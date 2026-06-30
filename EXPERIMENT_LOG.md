@@ -1305,3 +1305,65 @@ Interpretation:
 - This is not a passed method result. The next useful work is response-level
   audit and parent-level swap-failure analysis, not more steps on the same
   target.
+
+## 2026-07-01 07:45 +08:00 - Heldout Swap-Failure Analysis
+
+Commit before action: `ae8a574 analysis: add obs tag heldout evaluation`
+Branch: `main`
+Machine: local Windows mirror, synced later to remote
+
+Change:
+
+- Added `scripts/analyze_pairwise_swap_failures.py`.
+- The script consumes `scripts/evaluate_pairwise_scores.py` JSON output plus
+  the matching position-balanced pairwise dataset.
+- It writes parent-level Markdown/JSON/CSV analysis without needing ignored
+  generation outputs.
+
+Command:
+
+```bash
+python scripts/analyze_pairwise_swap_failures.py \
+  --eval-json reports/pairwise_v0_1_heldout_fork_scope_posbalanced_obs_tag_generation.json \
+  --dataset data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise_posbalanced.jsonl \
+  --output-md reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.md \
+  --output-json reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.json \
+  --output-csv reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.csv
+```
+
+Report:
+
+- `reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.md`
+
+Result:
+
+```text
+fullbase_obs:
+  inconsistent parents = 21/48
+  locked A/B = 21/0
+  axes = scope_contract 13, fork_state 5, clarification 3
+
+r128_winner_delta_obs:
+  inconsistent parents = 16/48
+  locked A/B = 5/11
+  axes = scope_contract 9, fork_state 7
+
+r128_obs_tag:
+  inconsistent parents = 16/48
+  locked A/B = 6/10
+  axes = scope_contract 9, fork_state 6, clarification 1
+```
+
+Cross-run result:
+
+- Both adapters fix 12 fullbase inconsistent parents.
+- Both adapters add 7 new inconsistent parents.
+- Seven parent pairs remain inconsistent across all three runs.
+
+Interpretation:
+
+- The adapters reduce fullbase's A-side lock and improve winner accuracy, but
+  they still fail the heldout swap gate through candidate-side locking on hard
+  scope/fork boundaries.
+- Next analysis should inspect the seven persistent failures and adapter-new
+  failures before adding more training steps.

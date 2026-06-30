@@ -548,6 +548,25 @@ python scripts/evaluate_pairwise_scores.py \
   --output-csv reports/pairwise_v0_1_heldout_fork_scope_posbalanced_obs_tag_generation_errors.csv
 ```
 
+Heldout swap-failure analysis:
+
+```bash
+python scripts/analyze_pairwise_swap_failures.py \
+  --eval-json reports/pairwise_v0_1_heldout_fork_scope_posbalanced_obs_tag_generation.json \
+  --dataset data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise_posbalanced.jsonl \
+  --output-md reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.md \
+  --output-json reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.json \
+  --output-csv reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.csv
+```
+
+Current swap-failure result:
+
+- fullbase: `21/48` inconsistent parents, all locked to A;
+- existing winner-delta adapter: `16/48`, locked A/B `5/11`;
+- new obs-tag adapter: `16/48`, locked A/B `6/10`;
+- both adapters fix 12 fullbase inconsistent parents but add 7 new ones;
+- seven parent pairs remain inconsistent across all three runs.
+
 Current smoke report:
 
 - `reports/pairwise_v0_1_dev_lora_r128_smoke.md`;

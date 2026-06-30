@@ -139,6 +139,25 @@ This should not be claimed as a passed method result. The defensible claim is:
 > consistency is still below gate. The observable tag helps support-label
 > formatting, not primary pairwise behavior.
 
+## Swap-Failure Follow-Up
+
+Report:
+
+- `reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.md`
+
+The parent-level swap analysis makes the gate failure more concrete:
+
+| run | inconsistent parents | locked A | locked B | main axes |
+| --- | ---: | ---: | ---: | --- |
+| fullbase_obs | `21/48` | 21 | 0 | scope_contract 13, fork_state 5, clarification 3 |
+| r128_winner_delta_obs | `16/48` | 5 | 11 | scope_contract 9, fork_state 7 |
+| r128_obs_tag | `16/48` | 6 | 10 | scope_contract 9, fork_state 6, clarification 1 |
+
+Both adapters fix 12 of the fullbase inconsistent parents but add 7 new
+inconsistent parents. Seven parents remain inconsistent across all three runs.
+The adapters reduce fullbase's all-A side locking, but still fail by locking to
+one candidate side on difficult scope/fork boundaries.
+
 ## Caveats
 
 - The fresh heldout set is a small Chinese fork/scope diagnostic set, not a
@@ -159,7 +178,8 @@ Next work should focus on:
 
 1. Response-level assistant generation/audit for the best current adapter and
    fullbase.
-2. Parent-level analysis of the heldout swap failures, especially scope
-   contract cases.
+2. Inspect the seven persistent heldout swap failures and the seven adapter-new
+   failures, especially scope-contract unsafe-specificity and fork-preservation
+   cases.
 3. A training objective or data construction change that directly improves
    position-invariant pairwise consistency.

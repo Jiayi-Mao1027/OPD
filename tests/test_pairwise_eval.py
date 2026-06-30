@@ -200,6 +200,56 @@ def test_evaluate_pairwise_scores_reports_position_bias_and_swap_consistency():
     assert result["position_bias_gate"]["status"] == "fail"
 
 
+def test_swap_failure_analysis_cli_writes_outputs(tmp_path: Path):
+    examples = load_jsonl("data/splits/reconcilebench_v0_1_train.jsonl")[:1]
+    records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=14, builder_version="pairwise_v0_1")
+    from reconcile_opsd.pairwise_data import build_position_balanced_records
+
+    balanced = build_position_balanced_records(records)
+    score_rows = {
+        record["pair_id"]: {
+            "predicted_winner": "A",
+            "scores": {"A": {"avg_logprob": -0.1}, "B": {"avg_logprob": -0.5}},
+        }
+        for record in balanced
+    }
+    metrics = evaluate_pairwise_scores(balanced, score_rows)
+    dataset = tmp_path / "balanced.jsonl"
+    eval_json = tmp_path / "eval.json"
+    output_md = tmp_path / "swap.md"
+    output_json = tmp_path / "swap.json"
+    output_csv = tmp_path / "swap.csv"
+    dataset.write_text("\n".join(json.dumps(record, ensure_ascii=False) for record in balanced) + "\n", encoding="utf-8")
+    eval_json.write_text(json.dumps([{"name": "dummy", "path": "scores.jsonl", "metrics": metrics}], ensure_ascii=False), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/analyze_pairwise_swap_failures.py",
+            "--eval-json",
+            str(eval_json),
+            "--dataset",
+            str(dataset),
+            "--output-md",
+            str(output_md),
+            "--output-json",
+            str(output_json),
+            "--output-csv",
+            str(output_csv),
+        ],
+        env=script_env(),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    assert result.returncode == 0
+    assert "Swap-Failure Analysis" in output_md.read_text(encoding="utf-8")
+    payload = json.loads(output_json.read_text(encoding="utf-8"))
+    assert payload["runs"][0]["inconsistent"] == 1
+    assert output_csv.read_text(encoding="utf-8").startswith("run,parent_pair_id")
+
+
 def test_evaluate_pairwise_scores_counts_generation_parse_failures():
     examples = load_jsonl("data/splits/reconcilebench_v0_1_train.jsonl")[:1]
     records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=17, builder_version="pairwise_v0_1")

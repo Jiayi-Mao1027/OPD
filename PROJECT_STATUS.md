@@ -120,6 +120,8 @@ Validate whether rank-128 pairwise LoRA gives a real fresh-heldout fork/scope si
 - Ran full BF16 base, existing rank-128 winner-delta adapter, and new rank-128 obs-tag adapter on fresh heldout under `compact_winner_obs_tag` generation.
 - Fresh position-balanced heldout result: fullbase `61/96 = 0.6354`, existing adapter `68/96 = 0.7083`, new obs-tag adapter `68/96 = 0.7083`. Both adapters improve over base but fail the swap gate at `32/48 = 0.6667`.
 - Documented the training, dev eval, heldout eval, render caveat, and next recommendation in `reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`.
+- Added reusable parent-level swap-failure analysis via `scripts/analyze_pairwise_swap_failures.py`.
+- Generated `reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.md/json/csv`. Fullbase has `21/48` inconsistent parents, all locked to A; both adapters reduce this to `16/48`, fix 12 fullbase failures, add 7 new failures, and leave 7 persistent failures across all runs.
 
 ## Current Blockers
 
@@ -150,7 +152,7 @@ Validate whether rank-128 pairwise LoRA gives a real fresh-heldout fork/scope si
 - Ask Pro to review the compact generation, mismatch, ontology-prompt result, and reduced-target implementation once browser access is stable.
 - Ask Pro to review the obs-tag training plus fresh-heldout result, especially whether the heldout winner signal is useful despite failing the swap gate.
 - Do not claim the new obs-tag adapter as a passed method result. Treat it as support-label learning plus a fresh-heldout winner signal that still needs position-invariance repair.
-- Analyze heldout parent-level swap failures, especially `scope_contract/wrong_scope` cases.
+- Inspect the seven persistent heldout swap failures and seven adapter-new failures, especially `scope_contract/wrong_scope`, `unsafe_specificity`, and fork-preservation cases.
 - Add response-level assistant generation/audit before more training on the same target.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

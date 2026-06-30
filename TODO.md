@@ -20,7 +20,8 @@
 - Fresh position-balanced heldout result: fullbase `61/96`, existing winner-delta adapter `68/96`, new obs-tag adapter `68/96`; both adapters fail swap gate at `32/48 = 0.6667`.
 - Do not claim `OBS_TAG` label learning as the contribution. Exact `OBS_TAG` improves to `38/96` on fresh position-balanced heldout, but the main gate remains winner accuracy, side balance, and parent-level swap consistency.
 - Keep the render-format caveat visible: newly generated heldout pairwise files have fixed `render_card` newlines; historical train/dev pairwise files still use the earlier concatenated-field rendering.
-- Run parent-level heldout swap-failure analysis, especially `scope_contract/wrong_scope` and `unsafe_specificity` cases.
+- Parent-level heldout swap-failure analysis is now generated in `reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.md`.
+- Inspect the seven persistent inconsistent parents and the seven adapter-new inconsistent parents before adding more training. The main remaining axes are `scope_contract` and `fork_state`; the adapter failures include more B-side locking than fullbase.
 - Add response-level assistant generation/eval or human/external audit before more training on the same target.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Redesign `continue_reasoning` as a prefix-level fork-state target, not a final response action.
