@@ -1,0 +1,69 @@
+{
+  "builder_version": "pairwise_v0_1",
+  "builder_versions": [
+    "pairwise_v0_1"
+  ],
+  "dataset": "data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl",
+  "delta_tag_counts": {
+    "lost_fork_state": 18,
+    "unnecessary_clarification": 3,
+    "wrong_redirect": 2,
+    "wrong_scope": 25
+  },
+  "expanded_delta_tag_counts": {
+    "authorization_boundary": 3,
+    "context_drift_guard": 6,
+    "evidence_calibration": 3,
+    "lost_fork_state": 18,
+    "partial_allowed_split": 24,
+    "professional_boundary": 15,
+    "safe_high_level_boundary": 9,
+    "safe_redirect_boundary": 15,
+    "unnecessary_clarification": 3,
+    "wrong_redirect": 2,
+    "wrong_scope": 25
+  },
+  "forbid_source_datasets": [
+    "data/splits/reconcilebench_v0_1_train.jsonl",
+    "data/splits/reconcilebench_v0_1_dev.jsonl"
+  ],
+  "forbidden_prompt_hash_overlap": [],
+  "forbidden_source_id_overlap": [],
+  "gold_action_counts": {
+    "partial_allowed": 24,
+    "safe_high_level": 9,
+    "safe_redirect": 15
+  },
+  "hard_axis_counts": {
+    "clarification": 3,
+    "fork_state": 18,
+    "redirect_boundary": 2,
+    "scope_contract": 25
+  },
+  "max_pairs_per_example": 3,
+  "negative_action_counts": {
+    "ask_clarification": 3,
+    "direct_answer": 16,
+    "partial_allowed": 2,
+    "refuse": 11,
+    "safe_high_level": 5,
+    "safe_redirect": 11
+  },
+  "position_variant_counts": {},
+  "scope_error_direction_counts": {
+    "none": 23,
+    "too_narrow": 6,
+    "unsafe_specificity": 8,
+    "wrong_level": 6,
+    "wrong_object": 5
+  },
+  "score_file": null,
+  "seed": 20260701,
+  "source_examples": 16,
+  "split_name": "heldout",
+  "total_pairs": 48,
+  "winner_counts": {
+    "A": 21,
+    "B": 27
+  }
+}

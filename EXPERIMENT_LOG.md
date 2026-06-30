@@ -1198,3 +1198,110 @@ Interpretation:
 - Next decision: ask Pro to review whether to train a new
   `compact_winner_obs_tag` rank-128 LoRA or first validate this gate on a fresh
   held-out fork/scope set.
+
+## 2026-07-01 07:10 +08:00 - Observable-Tag LoRA and Fresh Fork/Scope Heldout
+
+Commit before action: `f725acb analysis: record observable tag generation eval`
+Branch: `main`
+Machine: remote `/data03/liang/mjy/reconcile_opsd`
+Model path: `/data/LLM/Qwen3-8B`
+
+Policy:
+
+- No QLoRA.
+- No full-parameter fine-tuning.
+- Rank-128 LoRA only.
+- GPU memory controlled with batch size and gradient accumulation.
+
+Training:
+
+- Target style: `compact_winner_obs_tag`
+- Dataset: `data/pairwise/reconcilebench_v0_1_train_pairwise_posbalanced.jsonl`
+- Output adapter:
+  `outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_obs_tag_lr3e6_s24_len1024_b2/adapter`
+- Batch size `3` probe OOMed under shared GPU load.
+- Batch size `2`, grad accumulation `8`, max length `1024`, max steps `24`,
+  lr `3e-6`, rank/alpha `128/256` completed.
+- Loss: `6.4620 -> 0.7934`.
+- Process peak allocated CUDA memory: `35413.57 MB`.
+- GPU1 total observed memory during the completed run: max `78328 MB`.
+
+Fresh heldout construction:
+
+- Source: `data/heldout/reconcilebench_v0_fork_scope_holdout.jsonl`
+- Enriched: `data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl`
+- Pairwise: `data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise.jsonl`
+- Position-balanced:
+  `data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise_posbalanced.jsonl`
+- Source examples: `16`, all Chinese.
+- Source action modes: `continue_reasoning=8`, `partial_allowed=3`,
+  `safe_high_level=3`, `safe_redirect=2`.
+- Pairwise records: `48`.
+- Position-balanced records: `96`.
+- Audit: `96/96` clean.
+- Leakage checks: no forbidden source-id overlap and no forbidden prompt-hash
+  overlap against existing v0.1 train/dev splits.
+
+Render fix:
+
+- Fixed `src/reconcile_opsd/pairwise_data.py::render_card` so decision-card
+  fields are newline-separated.
+- Added
+  `tests/test_pairwise_data.py::test_pairwise_card_rendering_keeps_decision_fields_on_separate_lines`.
+- Regenerated the fresh heldout pairwise files after the fix.
+- Historical train/dev pairwise JSONL files were not regenerated, so historical
+  training/eval should not be described as using the fixed rendering.
+
+Reports:
+
+- `reports/heldout_fork_scope_source_audit.json`
+- `reports/heldout_fork_scope_pairwise_audit.md`
+- `reports/pairwise_v0_1_dev_obs_tag_adapter_generation.md`
+- `reports/pairwise_v0_1_dev_posbalanced_obs_tag_adapter_generation.md`
+- `reports/pairwise_v0_1_heldout_fork_scope_obs_tag_generation.md`
+- `reports/pairwise_v0_1_heldout_fork_scope_posbalanced_obs_tag_generation.md`
+- `reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`
+
+Dev result:
+
+```text
+Original dev:
+  fullbase_obs = 22/28, OBS_TAG 0/28
+  r128_winner_delta_obs = 23/28, OBS_TAG 6/28
+  r128_obs_tag = 23/28, OBS_TAG 11/28
+
+Position-balanced dev:
+  fullbase_obs = 42/56, swap 16/28, gate fail, OBS_TAG 0/56
+  r128_winner_delta_obs = 44/56, swap 20/28, gate pass, OBS_TAG 8/56
+  r128_obs_tag = 44/56, swap 20/28, gate pass, OBS_TAG 18/56
+```
+
+Fresh heldout result:
+
+```text
+Original heldout:
+  fullbase_obs = 31/48, fork 12/18, scope 16/25, OBS_TAG 0/48
+  r128_winner_delta_obs = 34/48, fork 13/18, scope 17/25, OBS_TAG 10/48
+  r128_obs_tag = 33/48, fork 12/18, scope 16/25, OBS_TAG 17/48
+
+Position-balanced heldout:
+  fullbase_obs = 61/96, fork 23/36, scope 31/50,
+    pred A/B 69/27, swap 27/48, gate fail, OBS_TAG 0/96
+  r128_winner_delta_obs = 68/96, fork 25/36, scope 35/50,
+    pred A/B 42/54, swap 32/48, gate fail, OBS_TAG 20/96
+  r128_obs_tag = 68/96, fork 24/36, scope 35/50,
+    pred A/B 44/52, swap 32/48, gate fail, OBS_TAG 38/96
+```
+
+Interpretation:
+
+- Both rank-128 adapters beat the full BF16 base on fresh fork/scope heldout.
+- The new obs-tag adapter mainly improves exact `OBS_TAG` support-label
+  matching.
+- It does not improve primary winner accuracy or swap consistency over the
+  existing winner-delta adapter.
+- Both adapters fail the current heldout position-balanced swap gate at
+  `32/48 = 0.6667`, below the `0.70` threshold.
+- This is not a passed method result. The next useful work is response-level
+  audit and parent-level swap-failure analysis, not more steps on the same
+  target.

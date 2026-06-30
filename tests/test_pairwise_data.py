@@ -158,6 +158,18 @@ def test_pairwise_v0_1_records_include_hard_axis_and_gold_judgment(tmp_path: Pat
     assert all(record["scope_error_direction"] != "none" for record in wrong_scope)
 
 
+def test_pairwise_card_rendering_keeps_decision_fields_on_separate_lines():
+    examples = load_jsonl("data/splits/reconcilebench_v0_1_train.jsonl")
+    records = build_pairwise_records(examples[:1], split_name="train", max_pairs_per_example=1, seed=7, builder_version="pairwise_v0_1")
+
+    rendered = records[0]["input"]
+
+    assert "\nFORK_POLICY: " in rendered
+    assert "\nSCOPE_ANSWERABILITY: " in rendered
+    assert "\nREQUIRED_GRANULARITY: " in rendered
+    assert "SCOPE_ANSWERABILITY:" not in rendered.split("FORK_POLICY:", maxsplit=1)[1].splitlines()[0]
+
+
 def test_pairwise_v0_1_manifest_counts(tmp_path: Path):
     enriched = tmp_path / "train_v0_1.jsonl"
     subprocess.run(

@@ -51,3 +51,17 @@ Use `WINNER` generation, side balance, and parent-level swap consistency as the 
 - `reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation.json`
 - `reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation_errors.csv`
 - remote run log: `outputs/run_logs/obs_tag_eval_20260701_0545.log`
+
+## Follow-Up Result
+
+This report is the eval-only check for the existing winner-delta adapter. The
+follow-up rank-128 `compact_winner_obs_tag` training run and fresh fork/scope
+heldout validation are summarized in:
+
+- `reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`
+
+The follow-up result is mixed: both rank-128 adapters beat fullbase on fresh
+position-balanced heldout (`68/96` vs `61/96`), but both fail the swap gate at
+`32/48 = 0.6667`. The new obs-tag adapter improves exact `OBS_TAG` matching
+but does not improve primary winner/swap metrics over the existing
+winner-delta adapter.

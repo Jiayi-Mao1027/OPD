@@ -219,6 +219,37 @@ Observable-tag eval-only result:
   position-balanced bias gate, but it is still prompt-target-specific and does
   not prove assistant-response safety.
 
+Observable-tag LoRA and fresh-heldout result:
+
+- Summary: `reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`
+- Training: rank-128 LoRA, no QLoRA, no full-parameter fine-tuning, batch `2`,
+  grad accumulation `8`, max length `1024`, 24 steps, lr `3e-6`.
+- Batch `3` OOMed under shared GPU load; batch `2` completed with loss
+  `6.4620 -> 0.7934`, process peak `35413.57 MB`, and observed total GPU1
+  memory up to `78328 MB`.
+- Fresh heldout: 16 Chinese fork/scope source examples, 48 pairwise records,
+  96 position-balanced records, audit clean, no source-id or prompt-hash
+  overlap with v0.1 train/dev.
+- Render caveat: fresh heldout pairwise files were regenerated after fixing
+  `render_card` newlines. Historical train/dev pairwise files still use the
+  earlier concatenated-field rendering, and historical adapters should not be
+  described as trained on the fixed rendering.
+- Existing dev:
+  - new obs-tag adapter ties existing winner-delta adapter on primary winner
+    metrics: original `23/28`, posbalanced `44/56`, swap `20/28`.
+  - exact `OBS_TAG` improves from `8/56` to `18/56` on posbalanced dev.
+- Fresh position-balanced heldout:
+  - full base: `61/96`, fork `23/36`, scope `31/50`, pred A/B `69/27`,
+    swap `27/48`, gate fail.
+  - existing winner-delta adapter: `68/96`, fork `25/36`, scope `35/50`,
+    pred A/B `42/54`, swap `32/48`, gate fail, `OBS_TAG 20/96`.
+  - new obs-tag adapter: `68/96`, fork `24/36`, scope `35/50`,
+    pred A/B `44/52`, swap `32/48`, gate fail, `OBS_TAG 38/96`.
+- Interpretation: both rank-128 adapters beat fullbase on fresh heldout winner
+  accuracy, but neither passes the heldout swap gate. The new obs-tag adapter
+  improves support-label formatting, not primary behavior over the existing
+  winner-delta adapter.
+
 ## Current Interpretation
 
 Main metric should remain `score-mode=winner_only`.
@@ -243,13 +274,13 @@ Previous conservative winner-only claim:
 > position-balanced swap consistency remains below gate and scope/refusal
 > regressions remain unresolved.
 
-Updated claim:
+Updated claim after fresh heldout:
 
-> Current rank-128 compact LoRA is not yet a positive method result. It is a
-> useful diagnostic showing that compact target alignment does not
-> automatically transfer to stronger generated pairwise judgment. Mismatch
-> analysis and the ontology prompt diagnostic suggest the current compact target
-> asks for too many metadata fields at once and should be decomposed.
+> Rank-128 LoRA now shows a fresh-heldout winner-selection signal over full
+> BF16 Qwen3-8B on fork/scope pairwise judgments, but position-balanced swap
+> consistency remains below gate. The observable tag helps support-label
+> formatting and does not yet improve primary pairwise behavior over the
+> existing winner-delta adapter.
 
 ## Questions For Pro
 
@@ -260,11 +291,14 @@ Updated claim:
    observable natural labels?
 3. Is the new `OBS_TAG` target a reasonable minimal replacement, or is it too
    close to `GOLD_ACTION` to be useful even as a support tag?
-4. Given the obs-tag eval-only gate pass, should the next step be a new
-   `compact_winner_obs_tag` rank-128 LoRA run, or should we first validate this
-   prompt-target result on a fresh held-out fork/scope pairwise set?
-5. What is the best primary validation path now: fresh held-out fork/scope
-   pairwise set, external/human audit of assistant-facing responses, or a
-   paired-consistency training objective?
-6. What contribution framing remains defensible if current rank-128 LoRA does
-   not beat full BF16 base?
+4. Given that both adapters beat fullbase on fresh heldout but fail the swap
+   gate at `32/48`, is the result useful enough to frame as an intermediate
+   method signal?
+5. Does the old train/dev render-format caveat undermine comparability with
+   the fixed fresh-heldout set, or is it acceptable if we explicitly report the
+   boundary?
+6. Should the next validation path be response-level assistant audit,
+   parent-level swap-failure analysis, or a paired-consistency training
+   objective?
+7. What contribution framing remains defensible if the best current result is
+   fresh-heldout winner improvement without passing position-invariance?

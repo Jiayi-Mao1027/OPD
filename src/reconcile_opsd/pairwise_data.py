@@ -324,12 +324,12 @@ def render_pairwise_input(prompt: str, candidate_a: dict[str, Any], candidate_b:
 
 def render_card(card: dict[str, Any]) -> str:
     lines = [
-        f"ACTION_MODE: {card['action_mode']}\n"
-        f"INTENT: {card['intent']}\n"
-        f"ALLOWED_SCOPE: {card['allowed_scope']}\n"
-        f"DISALLOWED_SCOPE: {card['disallowed_scope']}\n"
-        f"NEEDS_CLARIFICATION: {str(card['needs_clarification']).lower()}\n"
-        f"NEEDS_MORE_REASONING: {str(card['needs_more_reasoning']).lower()}"
+        f"ACTION_MODE: {card['action_mode']}",
+        f"INTENT: {card['intent']}",
+        f"ALLOWED_SCOPE: {card['allowed_scope']}",
+        f"DISALLOWED_SCOPE: {card['disallowed_scope']}",
+        f"NEEDS_CLARIFICATION: {str(card['needs_clarification']).lower()}",
+        f"NEEDS_MORE_REASONING: {str(card['needs_more_reasoning']).lower()}",
     ]
     decision_card = card.get("decision_card")
     if isinstance(decision_card, dict):
@@ -337,13 +337,13 @@ def render_card(card: dict[str, Any]) -> str:
         scope_contract = decision_card.get("scope_contract") if isinstance(decision_card.get("scope_contract"), dict) else {}
         lines.extend(
             [
-                f"\nFORK_POLICY: {fork_state.get('fork_policy', 'none')}",
+                f"FORK_POLICY: {fork_state.get('fork_policy', 'none')}",
                 f"SCOPE_ANSWERABILITY: {scope_contract.get('answerability', 'unclear')}",
                 f"REQUIRED_GRANULARITY: {scope_contract.get('required_granularity', 'high_level')}",
                 f"RESPONSE_SKETCH: {card.get('response_sketch', '')}",
             ]
         )
-    return "".join(lines)
+    return "\n".join(lines)
 
 
 def render_pairwise_target(

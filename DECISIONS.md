@@ -24,3 +24,19 @@ Reason: the user asked for credentials to be documented but not shown in convers
 
 Impact: tracked docs mention the private credential file location but not its content.
 
+## 2026-07-01 - Use fresh fork/scope heldout as a diagnostic, not a benchmark
+
+Decision: use `data/heldout/reconcilebench_v0_fork_scope_holdout.jsonl` and its v0.1 pairwise derivatives as a fresh fork/scope diagnostic set.
+
+Reason: the existing dev split had already shaped model/target decisions. A separate heldout slice is needed to check whether the pairwise signal survives outside the current dev set.
+
+Impact: heldout results can support or reject a narrow fork/scope claim, but should not be described as a full safety benchmark. The set is small, Chinese-only, and does not cover every source action mode.
+
+## 2026-07-01 - Do not retroactively relabel historical pairwise rendering
+
+Decision: fix `render_card` newlines for newly generated pairwise data, but do not regenerate historical train/dev pairwise files inside the current result narrative.
+
+Reason: the earlier train/dev pairwise files and all existing adapters were produced with the old concatenated decision-field rendering. Regenerating them now would create a new experimental surface and blur which inputs produced the current adapters.
+
+Impact: fresh heldout files use the fixed rendering. Historical train/dev results remain valid as their own logged artifacts, but must carry the old-rendering caveat.
+

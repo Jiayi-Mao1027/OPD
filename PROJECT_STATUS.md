@@ -1,10 +1,10 @@
 # Project Status
 
-Last updated: 2026-07-01 06:14 +08:00
+Last updated: 2026-07-01 07:10 +08:00
 
 ## Current Objective
 
-Validate a smaller pairwise target for Reconcile-OPSD: keep `WINNER` as the behavior signal and replace the failed discrete `DELTA_TAG` rationale target with an observable winner-action tag.
+Validate whether rank-128 pairwise LoRA gives a real fresh-heldout fork/scope signal under the observable `WINNER + OBS_TAG` target, while keeping position-balanced swap consistency as the main gate.
 
 ## Git State
 
@@ -111,6 +111,15 @@ Validate a smaller pairwise target for Reconcile-OPSD: keep `WINNER` as the beha
 - Ran eval-only `compact_winner_obs_tag` generation for full BF16 Qwen3-8B and the existing rank-128 winner-delta adapter.
 - Observable-tag generation result: the existing adapter beats full base on original dev (`23/28` vs `22/28`) and position-balanced dev (`44/56` vs `42/56`), improves fork-state on position-balanced dev (`5/6` vs `4/6`), and passes the current position-bias gate with swap consistency `20/28 = 0.7143`.
 - Documented this in `reports/pairwise_v0_1_obs_tag_generation_summary.md` and the original/position-balanced obs-tag generation reports.
+- Ran a `compact_winner_obs_tag` rank-128 LoRA training probe. Batch size `3` OOMed under shared GPU load; batch size `2`, gradient accumulation `8`, max length `1024`, 24 steps, lr `3e-6` completed without QLoRA or full-parameter fine-tuning.
+- Completed obs-tag LoRA training loss `6.4620 -> 0.7934`, process peak allocated CUDA memory `35413.57 MB`, and observed GPU1 total memory up to `78328 MB`.
+- Added a fresh Chinese fork/scope heldout diagnostic set: 16 source examples, 48 pairwise records, and 96 position-balanced records.
+- Fixed `src/reconcile_opsd/pairwise_data.py::render_card` so newly generated pairwise inputs keep decision-card fields on separate lines; added a regression test.
+- Rebuilt the fresh heldout pairwise files after the render fix. Existing train/dev pairwise JSONL files were not regenerated, so historical training/eval remains tied to the old rendering.
+- Heldout audit is clean: position-balanced heldout has `96/96` clean records and no forbidden source-id or prompt-hash overlap against existing v0.1 train/dev.
+- Ran full BF16 base, existing rank-128 winner-delta adapter, and new rank-128 obs-tag adapter on fresh heldout under `compact_winner_obs_tag` generation.
+- Fresh position-balanced heldout result: fullbase `61/96 = 0.6354`, existing adapter `68/96 = 0.7083`, new obs-tag adapter `68/96 = 0.7083`. Both adapters improve over base but fail the swap gate at `32/48 = 0.6667`.
+- Documented the training, dev eval, heldout eval, render caveat, and next recommendation in `reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`.
 
 ## Current Blockers
 
@@ -130,16 +139,18 @@ Validate a smaller pairwise target for Reconcile-OPSD: keep `WINNER` as the beha
 - ChatGPT Pro browser handoff is temporarily blocked by Chrome tab-claim timeouts, not by missing project context.
 - `compact_winner_delta_tag` gives a real preliminary winner-generation signal, but it is not a passed method result because position-balanced swap consistency is still below gate and `DELTA_TAG` exact accuracy is `0`.
 - The current discrete `DELTA_TAG` ontology is not learned even under constrained scoring, so additional training on the same tag labels is unlikely to be useful before relabeling/redesign.
-- The batch-2 run increased memory over batch-1 runs but still did not reach the preferred `70GB+` GPU utilization target; total observed GPU1 usage during training was around `67GB`.
-- `OBS_TAG` is close to `GOLD_ACTION` and exact `OBS_TAG` accuracy remains low (`8/56` on position-balanced dev for the adapter); use it as an observable support tag and keep winner accuracy, side balance, and parent-level swap consistency as the primary acceptance gates.
+- Historical train/dev pairwise JSONL files still contain the earlier `render_card` field-concatenation formatting. Newly generated heldout files are fixed, but do not retroactively claim historical training used fixed rendering.
+- The fresh heldout set is a small Chinese fork/scope diagnostic set, not a full benchmark. It does not cover `ask_clarification`, `direct_answer`, or `refuse` as source action modes.
+- The new obs-tag adapter improves `OBS_TAG` exact matching (`38/96` vs `20/96` for the existing adapter on position-balanced heldout), but it does not improve primary winner/swap metrics over the existing winner-delta adapter.
+- Both rank-128 adapters beat fullbase on fresh heldout winner accuracy, but both fail the current position-balanced swap gate (`32/48 = 0.6667`, below `0.70`).
 
 ## Next Actions
 
 - Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore/ontology results were useful diagnostics, and they show the one-shot compact field target needs decomposition before more training steps.
 - Ask Pro to review the compact generation, mismatch, ontology-prompt result, and reduced-target implementation once browser access is stable.
-- Ask Pro to review the new obs-tag eval-only gate-pass result before treating it as a contribution claim.
-- If we train on the new target, run rank-128 LoRA with `--target-style compact_winner_obs_tag`; keep no QLoRA/no full-parameter fine-tuning.
-- Before training, decide whether to add a small held-out fork/scope set or a response-level audit so the result is not only prompt-format-specific.
-- If another training run is needed, use a larger micro-batch only after checking GPU free memory; batch size `3` is the next likely probe for the `70GB+` utilization target, but reduce it if the fresh GPU state is crowded.
+- Ask Pro to review the obs-tag training plus fresh-heldout result, especially whether the heldout winner signal is useful despite failing the swap gate.
+- Do not claim the new obs-tag adapter as a passed method result. Treat it as support-label learning plus a fresh-heldout winner signal that still needs position-invariance repair.
+- Analyze heldout parent-level swap failures, especially `scope_contract/wrong_scope` cases.
+- Add response-level assistant generation/audit before more training on the same target.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

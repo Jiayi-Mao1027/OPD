@@ -29,6 +29,26 @@ The project should not be framed as "safe OPD". The intended direction is:
 
 Credentials are documented in the local private file `.secrets/PROJECT_CREDENTIALS.md`, which is intentionally not tracked by Git.
 
+## Current Status
+
+Latest pairwise summary:
+`reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`.
+
+Current conservative interpretation:
+
+- Rank-128 LoRA only; no QLoRA and no full-parameter fine-tuning for current
+  pairwise experiments.
+- The fresh fork/scope heldout set is available under `data/heldout/` and
+  `data/pairwise/reconcilebench_v0_1_fork_scope_holdout_*`.
+- On fresh position-balanced heldout, both rank-128 adapters beat full BF16
+  Qwen3-8B on winner accuracy (`68/96` vs `61/96`), but both miss the current
+  swap-consistency gate (`32/48 = 0.6667`, threshold `0.70`).
+- The new `compact_winner_obs_tag` adapter mainly improves exact `OBS_TAG`
+  support-label matching. It is not a passed method result yet.
+- Fresh heldout pairwise files use the fixed `render_card` newline format.
+  Historical train/dev pairwise files were not regenerated and still reflect
+  the old rendering.
+
 ## First Runnable Loop
 
 Use the small-model path first:

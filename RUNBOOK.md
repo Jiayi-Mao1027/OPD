@@ -458,7 +458,7 @@ python scripts/evaluate_pairwise_scores.py \
   --output-csv reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation_errors.csv
 ```
 
-Candidate rank-128 LoRA run, only after a fresh GPU check:
+Completed rank-128 LoRA run:
 
 ```bash
 eval "$(python scripts/gpu_status.py --export)"
@@ -477,6 +477,18 @@ python scripts/train_pairwise_lora.py \
   --attn-implementation eager
 ```
 
+Current training result:
+
+- output dir:
+  `outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_obs_tag_lr3e6_s24_len1024_b2`;
+- batch size `3` OOMed under shared GPU load;
+- batch size `2`, grad accumulation `8`, max length `1024`, 24 steps, lr
+  `3e-6`, rank/alpha `128/256` completed;
+- no QLoRA and no full-parameter fine-tuning;
+- loss `6.4620 -> 0.7934`;
+- process peak allocated CUDA memory `35413.57 MB`;
+- observed total GPU1 memory reached `78328 MB`.
+
 Current observable-tag eval-only result:
 
 - summary: `reports/pairwise_v0_1_obs_tag_generation_summary.md`;
@@ -488,6 +500,53 @@ Current observable-tag eval-only result:
 - position-balanced fork-state improves from `4/6` to `5/6`;
 - exact `OBS_TAG` accuracy is still weak (`8/56` for the adapter on
   position-balanced dev), so use it only as an auxiliary support field.
+
+Current observable-tag adapter and fresh-heldout result:
+
+- summary: `reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`;
+- heldout source: `data/heldout/reconcilebench_v0_fork_scope_holdout.jsonl`;
+- heldout pairwise:
+  `data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise.jsonl`;
+- heldout position-balanced pairwise:
+  `data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise_posbalanced.jsonl`;
+- source set: 16 Chinese fork/scope examples;
+- position-balanced audit: `96/96` clean, with no forbidden source-id or
+  prompt-hash overlap against existing v0.1 train/dev;
+- position-balanced heldout:
+  - fullbase `61/96`, swap `27/48`, gate fail;
+  - existing winner-delta adapter `68/96`, swap `32/48`, gate fail;
+  - new obs-tag adapter `68/96`, swap `32/48`, gate fail;
+- exact `OBS_TAG` improves for the new obs-tag adapter (`38/96` vs `20/96`
+  for the existing adapter), but this is not the primary gate.
+
+Important render caveat:
+
+- Fresh heldout pairwise files were regenerated after fixing `render_card`
+  newlines.
+- Historical train/dev pairwise JSONL files were not regenerated and still
+  reflect the earlier concatenated-field rendering.
+- Do not retroactively describe historical adapters as trained on the fixed
+  rendering.
+
+Heldout eval command shape:
+
+```bash
+python scripts/generate_pairwise_compact_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_obs_tag_lr3e6_s24_len1024_b2/adapter \
+  --dataset data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise_posbalanced.jsonl \
+  --output outputs/pairwise_generations/qwen3_8b_v0_1_heldout_fork_scope_posbalanced_r128_obs_tag_gen.jsonl \
+  --target-style compact_winner_obs_tag \
+  --max-new-tokens 48 \
+  --attn-implementation eager
+
+python scripts/evaluate_pairwise_scores.py \
+  --dataset data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise_posbalanced.jsonl \
+  --scores r128_obs_tag=outputs/pairwise_generations/qwen3_8b_v0_1_heldout_fork_scope_posbalanced_r128_obs_tag_gen.jsonl \
+  --output-md reports/pairwise_v0_1_heldout_fork_scope_posbalanced_obs_tag_generation.md \
+  --output-json reports/pairwise_v0_1_heldout_fork_scope_posbalanced_obs_tag_generation.json \
+  --output-csv reports/pairwise_v0_1_heldout_fork_scope_posbalanced_obs_tag_generation_errors.csv
+```
 
 Current smoke report:
 

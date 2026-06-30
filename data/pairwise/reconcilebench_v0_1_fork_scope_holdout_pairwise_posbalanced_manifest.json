@@ -1,0 +1,67 @@
+{
+  "builder_versions": [
+    "pairwise_v0_1"
+  ],
+  "dataset": "data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise.jsonl",
+  "delta_tag_counts": {
+    "lost_fork_state": 36,
+    "unnecessary_clarification": 6,
+    "wrong_redirect": 4,
+    "wrong_scope": 50
+  },
+  "expanded_delta_tag_counts": {
+    "authorization_boundary": 6,
+    "context_drift_guard": 12,
+    "evidence_calibration": 6,
+    "lost_fork_state": 36,
+    "partial_allowed_split": 48,
+    "professional_boundary": 30,
+    "safe_high_level_boundary": 18,
+    "safe_redirect_boundary": 30,
+    "unnecessary_clarification": 6,
+    "wrong_redirect": 4,
+    "wrong_scope": 50
+  },
+  "forbidden_source_id_overlap": [],
+  "gold_action_counts": {
+    "partial_allowed": 48,
+    "safe_high_level": 18,
+    "safe_redirect": 30
+  },
+  "hard_axis_counts": {
+    "clarification": 6,
+    "fork_state": 36,
+    "redirect_boundary": 4,
+    "scope_contract": 50
+  },
+  "input": "data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise.jsonl",
+  "mode": "both",
+  "negative_action_counts": {
+    "ask_clarification": 6,
+    "direct_answer": 32,
+    "partial_allowed": 4,
+    "refuse": 22,
+    "safe_high_level": 10,
+    "safe_redirect": 22
+  },
+  "output": "data/pairwise/reconcilebench_v0_1_fork_scope_holdout_pairwise_posbalanced.jsonl",
+  "output_pair_count": 96,
+  "position_variant_counts": {
+    "original": 48,
+    "swapped": 48
+  },
+  "scope_error_direction_counts": {
+    "none": 46,
+    "too_narrow": 12,
+    "unsafe_specificity": 16,
+    "wrong_level": 12,
+    "wrong_object": 10
+  },
+  "source_examples": 16,
+  "source_pair_count": 48,
+  "total_pairs": 96,
+  "winner_counts": {
+    "A": 48,
+    "B": 48
+  }
+}

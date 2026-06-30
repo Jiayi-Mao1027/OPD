@@ -15,10 +15,13 @@
 - Treat the completed `compact_winner_delta_tag` run as a preliminary winner-generation signal, not a passed method result: generation beats reduced-prompt base, but swap consistency is still `19/28` and `DELTA_TAG` exact accuracy is `0`.
 - Stop training/scoring the current discrete `DELTA_TAG` labels as a positive target: constrained scoring also failed (`6/28` original, `10/56` adapter posbalanced).
 - Treat the completed eval-only `compact_winner_obs_tag` result as the current best pairwise generation diagnostic: existing rank-128 winner-delta adapter gets `44/56` on position-balanced dev, swap `20/28 = 0.7143`, and passes the current position-bias gate.
-- Ask Pro to review the obs-tag gate-pass result and whether it justifies a new `compact_winner_obs_tag` rank-128 LoRA run or should first be checked on a fresh held-out fork/scope set.
-- Do not claim `OBS_TAG` label learning yet: adapter exact `OBS_TAG` accuracy is still only `8/56` on position-balanced dev.
-- Consider a batch-size 3 rank-128 LoRA probe only if a fresh GPU check shows enough free memory; batch size 2 reached about `35.8GB` process peak and around `67GB` total observed GPU1 usage, below the preferred `70GB+` target.
-- Build a newly held-out fork/scope pairwise set or run human/external audit of assistant-facing responses.
+- `compact_winner_obs_tag` rank-128 LoRA has been trained and checked on fresh heldout. Treat it as a mixed diagnostic, not a passed method result: it improves `OBS_TAG` exact matching, but does not beat the existing winner-delta adapter on primary winner/swap metrics.
+- Fresh fork/scope heldout is built: 16 source examples, 48 pairwise records, 96 position-balanced records, audit clean, no source-id or prompt-hash overlap with v0.1 train/dev.
+- Fresh position-balanced heldout result: fullbase `61/96`, existing winner-delta adapter `68/96`, new obs-tag adapter `68/96`; both adapters fail swap gate at `32/48 = 0.6667`.
+- Do not claim `OBS_TAG` label learning as the contribution. Exact `OBS_TAG` improves to `38/96` on fresh position-balanced heldout, but the main gate remains winner accuracy, side balance, and parent-level swap consistency.
+- Keep the render-format caveat visible: newly generated heldout pairwise files have fixed `render_card` newlines; historical train/dev pairwise files still use the earlier concatenated-field rendering.
+- Run parent-level heldout swap-failure analysis, especially `scope_contract/wrong_scope` and `unsafe_specificity` cases.
+- Add response-level assistant generation/eval or human/external audit before more training on the same target.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Redesign `continue_reasoning` as a prefix-level fork-state target, not a final response action.
 
