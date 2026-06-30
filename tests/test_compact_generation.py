@@ -1,5 +1,8 @@
 from reconcile_opsd.compact_generation import (
+    FIELD_LABELS,
+    COMPACT_PROMPT_STYLES,
     compact_structured_target,
+    compact_generation_system_prompt,
     compare_compact_fields,
     expected_compact_fields,
     parse_compact_judgment,
@@ -72,3 +75,56 @@ def test_parse_errors_and_output_mapping():
     assert parse_errors_for_compact_judgment(parsed) == ["invalid WINNER: C"]
     assert parsed_fields_for_output(parsed) == {"winner": "C", "delta_tag": "wrong_scope"}
     assert parse_errors_for_compact_judgment({}) == ["missing WINNER"]
+
+
+def test_ontology_prompt_lists_exact_labels_and_schema_rules():
+    assert COMPACT_PROMPT_STYLES == ("minimal", "ontology")
+    prompt = compact_generation_system_prompt("ontology")
+
+    assert "GOLD_ACTION: direct_answer | ask_clarification" in prompt
+    assert "HARD_AXIS: clarification | fork_state | granularity | refusal_boundary | redirect_boundary | scope_contract" in prompt
+    assert "DELTA_TAG: lost_fork_state | missing_clarification" in prompt
+    assert "Use HARD_AXIS: scope_contract, not HARD_AXIS: scope." in prompt
+    assert "safe_redirect or direct_answer in DELTA_TAG" in prompt
+    assert "continue_reasoning" in FIELD_LABELS["GOLD_ACTION"]
+    assert "continue_reasoning means a fork-state/internal decision label" in prompt
+
+
+def test_prompt_style_does_not_change_compact_target():
+    record = {
+        "winner": "A",
+        "gold_action_mode": "continue_reasoning",
+        "hard_axis": "fork_state",
+        "delta_tag": "lost_fork_state",
+        "scope_error_direction": "none",
+        "gold_judgment": {
+            "required_granularity": "bounded_steps",
+            "fork_policy": "preserve",
+        },
+    }
+
+    minimal_prompt = compact_generation_system_prompt("minimal")
+    ontology_prompt = compact_generation_system_prompt("ontology")
+
+    assert "continue_reasoning" not in minimal_prompt
+    assert "continue_reasoning" in ontology_prompt
+    assert compact_structured_target(record) == "\n".join(
+        [
+            "WINNER: A",
+            "GOLD_ACTION: continue_reasoning",
+            "HARD_AXIS: fork_state",
+            "DELTA_TAG: lost_fork_state",
+            "SCOPE_ERROR_DIRECTION: none",
+            "REQUIRED_GRANULARITY: bounded_steps",
+            "FORK_POLICY: preserve",
+        ]
+    )
+
+
+def test_unknown_prompt_style_rejected():
+    try:
+        compact_generation_system_prompt("bad")
+    except ValueError as exc:
+        assert "unknown compact generation prompt style" in str(exc)
+    else:
+        raise AssertionError("bad prompt style should fail")
