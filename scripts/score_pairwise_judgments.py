@@ -3,12 +3,18 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = REPO_ROOT / "src"
+if SRC_ROOT.exists():
+    sys.path.insert(0, str(SRC_ROOT))
 
 from reconcile_opsd.compact_generation import compact_structured_target
 from reconcile_opsd.pairwise_eval import load_pairwise_jsonl
