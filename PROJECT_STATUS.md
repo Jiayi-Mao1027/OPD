@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-06-30 22:58 +08:00
+Last updated: 2026-06-30 23:06 +08:00
 
 ## Current Objective
 
@@ -49,6 +49,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Created a fixed split under `data/splits/`: 38 train examples and 14 dev examples, with exactly two dev examples per action mode.
 - Extended the QLoRA trainer to optionally run dev generation/evaluation after training.
 - Ran Qwen3-8B v0 20-step QLoRA: train loss dropped `5.9287 -> 1.7881`, but dev action-mode accuracy fell from the 4-bit base control `0.4286` to adapter `0.3571`.
+- Added `--target-style normalized_reason` to reduce noisy `judgment_delta` targets.
+- Ran Qwen3-8B v0 20-step QLoRA with normalized reasons: dev action-mode accuracy recovered to `0.4286`, matching but not beating the 4-bit base control; repeated reason generation mostly disappeared.
 
 ## Current Blockers
 
@@ -62,12 +64,13 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - The current QLoRA result is only a training/eval plumbing smoke; it does not improve quality on the seed set.
 - ReconcileBench v0 is synthetic/seed-quality data for method iteration, not a publishable benchmark yet.
 - The current v0 QLoRA run is a negative result: lower dev accuracy and repetitive reason generation.
+- Normalized reasons fix the repetition issue but still do not produce a positive dev signal.
 
 ## Next Actions
 
 - Ask ChatGPT Pro to investigate novelty/collision risks using the prepared context packet.
 - Ask ChatGPT Pro to review the v0 negative result and recommend the next training target/ablation.
-- Use the baseline and v0 adapter failure pattern to redesign action-mode targets before longer training.
 - Add response-level evaluation beyond explicit action-mode classification.
 - Add a training data builder that uses `benign_allowed_parts`, `disallowed_parts`, `forks_to_keep`, `forks_to_prune`, and `final_response`.
+- Consider a classification-style or pairwise judgment-delta target for `ask_clarification` and `continue_reasoning`, which remain weak.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

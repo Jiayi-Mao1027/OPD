@@ -105,6 +105,7 @@ No DeepSeek-R1-Distill-Qwen model was found locally. R1-style experiments are de
 - Qwen3-8B 4-bit base control on v0 dev with the train prompt gets `0.4286` action-mode accuracy. Predicted counts: `safe_high_level: 7`, `refuse: 5`, `direct_answer: 2`.
 - A 20-step QLoRA run on v0 train drops train loss `5.9287 -> 1.7881`, but v0 dev accuracy falls to `0.3571`. Predicted counts: `safe_high_level: 4`, `ask_clarification: 3`, `safe_redirect: 4`, `direct_answer: 2`, `refuse: 1`.
 - The adapter learned a broader label distribution but produced repetitive reason text and did not improve dev accuracy. This suggests the next step should not be simply more steps.
+- A normalized-reason target avoids most repetitive reason generation and recovers dev accuracy to `0.4286`, matching the 4-bit base but still not beating it. It still misses `ask_clarification` and `continue_reasoning`, often mapping them to `safe_redirect` or `partial_allowed`.
 - Response-level evaluation and judgment-delta/fork metrics remain missing.
 
 ## Specific Questions

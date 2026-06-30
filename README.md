@@ -170,3 +170,20 @@ CUDA_VISIBLE_DEVICES=1 python scripts/train_action_mode_lora.py \
 ```
 
 Current v0 result: the 4-bit base control gets `0.4286` dev action-mode accuracy; the 20-step QLoRA adapter gets `0.3571`. This is a useful negative result: training runs and broadens predicted modes, but does not yet improve dev accuracy.
+
+The trainer also supports a shorter target format:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/train_action_mode_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/splits/reconcilebench_v0_train.jsonl \
+  --eval-dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output-dir outputs/train_v0/qwen3_8b_action_lora_normreason_steps20 \
+  --max-steps 20 \
+  --max-length 768 \
+  --eval-max-new-tokens 96 \
+  --attn-implementation eager \
+  --target-style normalized_reason
+```
+
+Current normalized-target result: dev accuracy returns to `0.4286`, matching the 4-bit base control and avoiding most repetitive reason generation, but still not beating the base model.

@@ -27,6 +27,17 @@ REASON: <one short reason>
 Prefer calibrated reconciliation: do not collapse ambiguous or partial-help cases into pure refusal."""
 
 
+NORMALIZED_REASONS = {
+    "direct_answer": "The request is allowed, specific, and can be answered directly.",
+    "ask_clarification": "Essential intent, authorization, scope, or evidence is missing.",
+    "safe_high_level": "Sensitive content can be addressed only at a high level.",
+    "safe_redirect": "The unsafe part should be redirected to a safe alternative.",
+    "partial_allowed": "Answer the safe portion and avoid the unsafe portion.",
+    "refuse": "The request is clearly disallowed and should be refused.",
+    "continue_reasoning": "Preserve uncertainty, alternatives, or prior safety boundaries.",
+}
+
+
 @dataclass
 class EncodedExample:
     input_ids: list[int]
@@ -55,6 +66,12 @@ def main() -> None:
     parser.add_argument("--max-length", type=int, default=768)
     parser.add_argument("--max-steps", type=int, default=2)
     parser.add_argument("--eval-max-new-tokens", type=int, default=96)
+    parser.add_argument(
+        "--target-style",
+        choices=["judgment_delta", "normalized_reason"],
+        default="judgment_delta",
+        help="Choose whether REASON targets use example judgment_delta text or a fixed short reason per action mode.",
+    )
     parser.add_argument("--lr", type=float, default=2e-4)
     parser.add_argument("--lora-r", type=int, default=8)
     parser.add_argument("--lora-alpha", type=int, default=16)
@@ -104,7 +121,7 @@ def main() -> None:
     model.train()
     input_device = model.get_input_embeddings().weight.device
 
-    encoded = [encode_example(tokenizer, example, args.max_length) for example in examples]
+    encoded = [encode_example(tokenizer, example, args.max_length, args.target_style) for example in examples]
     loader = DataLoader(
         ActionModeDataset(encoded),
         batch_size=1,
@@ -138,6 +155,7 @@ def main() -> None:
         "dataset": args.dataset,
         "num_examples": len(examples),
         "max_steps": args.max_steps,
+        "target_style": args.target_style,
         "losses": losses,
         "load_in_4bit": not args.no_4bit,
         "output_dir": str(output_dir),
@@ -171,13 +189,13 @@ def main() -> None:
     print(json.dumps(metrics, ensure_ascii=False, indent=2))
 
 
-def encode_example(tokenizer, example: ReconcileExample, max_length: int) -> EncodedExample:
+def encode_example(tokenizer, example: ReconcileExample, max_length: int, target_style: str) -> EncodedExample:
     prompt_messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": build_user_content(example.prompt)},
     ]
     prompt = apply_template(tokenizer, prompt_messages)
-    target = f"ACTION_MODE: {example.action_mode}\nREASON: {example.judgment_delta}{tokenizer.eos_token}"
+    target = build_target(example, target_style, tokenizer.eos_token)
     prompt_ids = tokenizer(prompt, add_special_tokens=False).input_ids
     target_ids = tokenizer(target, add_special_tokens=False).input_ids
     input_ids = (prompt_ids + target_ids)[:max_length]
@@ -185,6 +203,16 @@ def encode_example(tokenizer, example: ReconcileExample, max_length: int) -> Enc
     if all(label == -100 for label in labels):
         raise ValueError(f"target was truncated away for {example.id}")
     return EncodedExample(input_ids=input_ids, labels=labels)
+
+
+def build_target(example: ReconcileExample, target_style: str, eos_token: str) -> str:
+    if target_style == "normalized_reason":
+        reason = NORMALIZED_REASONS[example.action_mode]
+    elif target_style == "judgment_delta":
+        reason = example.judgment_delta
+    else:
+        raise ValueError(f"unknown target_style: {target_style}")
+    return f"ACTION_MODE: {example.action_mode}\nREASON: {reason}{eos_token}"
 
 
 def build_user_content(prompt: str) -> str:

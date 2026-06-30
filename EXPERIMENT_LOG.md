@@ -384,3 +384,60 @@ Interpretation:
 - The adapter predicts a broader label distribution than the base control, but dev accuracy is lower.
 - Several dev generations show repetitive reason text, so longer training without fixing target formatting/data quality is not justified yet.
 - Next step should be research/design review: likely improve labels, target format, response-level evaluation, and maybe train on shorter normalized reasons rather than raw `judgment_delta`.
+
+## 2026-06-30 23:03 +08:00 - Qwen3-8B v0 QLoRA Normalized-Reason Target
+
+Commit before action: `46d8406 exp: log qwen3 v0 qlora result`
+Branch: `main`
+Machine: `node-128-46`
+Project path: `/data03/liang/mjy/reconcile_opsd`
+Conda env: `/data/conda/envs/mjy`
+Model path: `/data/LLM/Qwen3-8B`
+Train dataset: `data/splits/reconcilebench_v0_train.jsonl`
+Dev dataset: `data/splits/reconcilebench_v0_dev.jsonl`
+
+Change:
+
+- Added `--target-style normalized_reason` to `scripts/train_action_mode_lora.py`.
+- This replaces heterogeneous `judgment_delta` text with a fixed short reason per action mode.
+- Default remains `--target-style judgment_delta` for reproducibility of prior runs.
+
+Command:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/train_action_mode_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/splits/reconcilebench_v0_train.jsonl \
+  --eval-dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output-dir outputs/train_v0/qwen3_8b_action_lora_normreason_steps20 \
+  --max-steps 20 \
+  --max-length 768 \
+  --eval-max-new-tokens 96 \
+  --attn-implementation eager \
+  --target-style normalized_reason
+```
+
+Result:
+
+```text
+4-bit base dev control:
+  action_mode_accuracy = 0.4286
+  predicted_counts = safe_high_level: 7, refuse: 5, direct_answer: 2
+
+20-step QLoRA, judgment_delta target:
+  action_mode_accuracy = 0.3571
+  predicted_counts = safe_high_level: 4, ask_clarification: 3, safe_redirect: 4, direct_answer: 2, refuse: 1
+
+20-step QLoRA, normalized_reason target:
+  action_mode_accuracy = 0.4286
+  predicted_counts = partial_allowed: 3, safe_redirect: 6, direct_answer: 4, refuse: 1
+  train loss first -> last = 3.2749 -> 0.5582
+  peak allocated CUDA memory = 9354.79 MB
+```
+
+Interpretation:
+
+- Normalized reasons stabilize generation and remove most repeated `REASON` text.
+- The normalized-target adapter recovers from the judgment-delta degradation, but only ties the base control.
+- It still misses `ask_clarification` and `continue_reasoning` on dev, often mapping them to `safe_redirect` or `partial_allowed`.
+- Next improvement should not be more steps alone; add response-level eval and/or a clearer classification-style target for clarification and fork-preservation behavior.
