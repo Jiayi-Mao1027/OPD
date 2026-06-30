@@ -18,6 +18,7 @@ if SRC_ROOT.exists():
 
 from reconcile_opsd.compact_generation import (
     COMPACT_PROMPT_STYLES,
+    COMPACT_TARGET_STYLES,
     compact_structured_target,
     compact_generation_system_prompt,
     compare_compact_fields,
@@ -41,6 +42,7 @@ def main() -> None:
     parser.add_argument("--attn-implementation", default="eager")
     parser.add_argument("--enable-thinking", action="store_true")
     parser.add_argument("--prompt-style", choices=COMPACT_PROMPT_STYLES, default="minimal")
+    parser.add_argument("--target-style", choices=COMPACT_TARGET_STYLES, default="compact_structured_judgment")
     parser.add_argument("--max-new-tokens", type=int, default=96)
     args = parser.parse_args()
 
@@ -57,7 +59,7 @@ def main() -> None:
 
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    system_prompt = compact_generation_system_prompt(args.prompt_style)
+    system_prompt = compact_generation_system_prompt(args.prompt_style, args.target_style)
     with output.open("w", encoding="utf-8") as handle:
         for record in records:
             messages = [
@@ -69,7 +71,7 @@ def main() -> None:
             parsed = parse_compact_judgment(generated_text)
             predicted = parsed_winner(parsed)
             parse_errors = parse_errors_for_compact_judgment(parsed)
-            expected_fields = expected_compact_fields(record)
+            expected_fields = expected_compact_fields(record, args.target_style)
             field_comparison = compare_compact_fields(expected_fields, parsed)
             expected = record["winner"]
             output_record = {
@@ -88,9 +90,10 @@ def main() -> None:
                 "delta_tag": record["delta_tag"],
                 "hard_axis": record.get("hard_axis"),
                 "scope_error_direction": record.get("scope_error_direction"),
-                "score_mode": "compact_structured_generation",
-                "generation_mode": "greedy_compact_structured_judgment",
+                "score_mode": compact_generation_score_mode(args.target_style),
+                "generation_mode": f"greedy_{args.target_style}",
                 "prompt_style": args.prompt_style,
+                "target_style": args.target_style,
                 "raw_generation": generated_text,
                 "generated_text": generated_text,
                 "parse_status": "ok" if not parse_errors else "failed",
@@ -98,7 +101,7 @@ def main() -> None:
                 "parsed": parsed_fields_for_output(parsed),
                 "parsed_fields": parsed,
                 "expected_fields": expected_fields,
-                "expected_compact_target": compact_structured_target(record),
+                "expected_compact_target": compact_structured_target(record, target_style=args.target_style),
                 "field_matches": field_comparison["by_field"],
                 "field_comparison": field_comparison,
                 "parse_failure": predicted is None,
@@ -121,6 +124,12 @@ def main() -> None:
 
     if torch.cuda.is_available():
         print(json.dumps({"cuda_max_memory_allocated_mb": round(torch.cuda.max_memory_allocated() / 1024**2, 2)}, ensure_ascii=False))
+
+
+def compact_generation_score_mode(target_style: str) -> str:
+    if target_style == "compact_structured_judgment":
+        return "compact_structured_generation"
+    return f"{target_style}_generation"
 
 
 def load_model(args: argparse.Namespace):

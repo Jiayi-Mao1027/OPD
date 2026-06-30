@@ -341,6 +341,55 @@ python scripts/train_pairwise_lora.py \
 
 Official first-stage pairwise runs must omit `--load-in-4bit`.
 
+Reduced target next ablation:
+
+- Use `--target-style compact_winner_delta_tag` to train/generate only:
+
+```text
+WINNER: A|B
+DELTA_TAG: <observable rationale tag>
+```
+
+- Keep `winner_only` constrained scoring as the primary gate.
+- Treat reduced generation as a behavior/format check, not as proof of final
+  assistant safety behavior.
+- If `DELTA_TAG` remains label-confused, move it to a constrained scorer
+  rather than adding more metadata fields back into generation.
+
+```bash
+eval "$(python scripts/gpu_status.py --export)"
+python scripts/train_pairwise_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_train_pairwise_posbalanced.jsonl \
+  --output-dir outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_winner_delta_lr3e6_s24_len1024 \
+  --target-style compact_winner_delta_tag \
+  --max-length 1024 \
+  --max-steps 24 \
+  --batch-size 1 \
+  --gradient-accumulation-steps 16 \
+  --lr 3e-6 \
+  --lora-r 128 \
+  --lora-alpha 256 \
+  --attn-implementation eager
+
+python scripts/score_pairwise_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_winner_delta_lr3e6_s24_len1024/adapter \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --output outputs/pairwise_scores/qwen3_8b_v0_1_dev_posbalanced_r128_winner_delta_winneronly.jsonl \
+  --score-mode winner_only \
+  --attn-implementation eager
+
+python scripts/generate_pairwise_compact_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_winner_delta_lr3e6_s24_len1024/adapter \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --output outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_winner_delta_gen.jsonl \
+  --target-style compact_winner_delta_tag \
+  --max-new-tokens 48 \
+  --attn-implementation eager
+```
+
 Current smoke report:
 
 - `reports/pairwise_v0_1_dev_lora_r128_smoke.md`;

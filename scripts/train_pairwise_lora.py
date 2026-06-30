@@ -3,17 +3,22 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import torch
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-from reconcile_opsd.compact_generation import compact_structured_target
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = REPO_ROOT / "src"
+if SRC_ROOT.exists():
+    sys.path.insert(0, str(SRC_ROOT))
+
+from reconcile_opsd.compact_generation import COMPACT_TARGET_STYLES, compact_structured_target
 from reconcile_opsd.gpu_utils import gpu_report, query_gpu_status
 from reconcile_opsd.pairwise_eval import load_pairwise_jsonl
 
@@ -56,7 +61,7 @@ def main() -> None:
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
     parser.add_argument(
         "--target-style",
-        choices=["winner_only", "structured_judgment_delta", "compact_structured_judgment"],
+        choices=["winner_only", "structured_judgment_delta", *COMPACT_TARGET_STYLES],
         default="structured_judgment_delta",
     )
     parser.add_argument("--render-samples", type=int, default=8, help="Save this many rendered prompt/target examples for audit.")
@@ -99,6 +104,11 @@ def main() -> None:
             bnb_4bit_compute_dtype=torch.bfloat16,
             bnb_4bit_use_double_quant=True,
         )
+
+    try:
+        from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+    except ImportError as exc:
+        raise RuntimeError("Training pairwise LoRA requires peft to be installed") from exc
 
     model = AutoModelForCausalLM.from_pretrained(
         args.model,
@@ -247,8 +257,8 @@ def build_target(record: dict[str, Any], target_style: str, eos_token: str) -> s
         target = f"WINNER: {record['winner']}"
     elif target_style == "structured_judgment_delta":
         target = record["target"]
-    elif target_style == "compact_structured_judgment":
-        target = compact_structured_target(record)
+    elif target_style in COMPACT_TARGET_STYLES:
+        target = compact_structured_target(record, target_style=target_style)
     else:
         raise ValueError(f"unknown target_style: {target_style}")
     return f"{target}{eos_token}"

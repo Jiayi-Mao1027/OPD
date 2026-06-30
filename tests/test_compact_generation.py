@@ -1,6 +1,8 @@
 from reconcile_opsd.compact_generation import (
     FIELD_LABELS,
     COMPACT_PROMPT_STYLES,
+    COMPACT_TARGET_STYLES,
+    compact_target_fields,
     compact_structured_target,
     compact_generation_system_prompt,
     compare_compact_fields,
@@ -79,6 +81,7 @@ def test_parse_errors_and_output_mapping():
 
 def test_ontology_prompt_lists_exact_labels_and_schema_rules():
     assert COMPACT_PROMPT_STYLES == ("minimal", "ontology")
+    assert COMPACT_TARGET_STYLES == ("compact_structured_judgment", "compact_winner_delta_tag")
     prompt = compact_generation_system_prompt("ontology")
 
     assert "GOLD_ACTION: direct_answer | ask_clarification" in prompt
@@ -88,6 +91,47 @@ def test_ontology_prompt_lists_exact_labels_and_schema_rules():
     assert "safe_redirect or direct_answer in DELTA_TAG" in prompt
     assert "continue_reasoning" in FIELD_LABELS["GOLD_ACTION"]
     assert "continue_reasoning means a fork-state/internal decision label" in prompt
+
+
+def test_reduced_winner_delta_target_uses_only_observable_fields():
+    record = {
+        "winner": "B",
+        "gold_action_mode": "safe_redirect",
+        "hard_axis": "scope_contract",
+        "delta_tag": "wrong_scope",
+        "scope_error_direction": "too_broad",
+        "gold_judgment": {
+            "required_granularity": "redirect_only",
+            "fork_policy": "select_with_uncertainty",
+        },
+    }
+
+    assert compact_target_fields("compact_winner_delta_tag") == ("WINNER", "DELTA_TAG")
+    assert expected_compact_fields(record, "compact_winner_delta_tag") == {
+        "WINNER": "B",
+        "DELTA_TAG": "wrong_scope",
+    }
+    assert compact_structured_target(record, target_style="compact_winner_delta_tag") == "\n".join(
+        [
+            "WINNER: B",
+            "DELTA_TAG: wrong_scope",
+        ]
+    )
+    assert compact_structured_target(record, winner="A", target_style="compact_winner_delta_tag").splitlines()[0] == "WINNER: A"
+
+
+def test_reduced_prompt_does_not_request_full_metadata_fields():
+    minimal_prompt = compact_generation_system_prompt("minimal", "compact_winner_delta_tag")
+    ontology_prompt = compact_generation_system_prompt("ontology", "compact_winner_delta_tag")
+
+    assert "WINNER: <A or B>" in minimal_prompt
+    assert "DELTA_TAG: <delta label>" in minimal_prompt
+    assert "GOLD_ACTION:" not in minimal_prompt
+    assert "HARD_AXIS:" not in minimal_prompt
+    assert "WINNER: A | B" in ontology_prompt
+    assert "DELTA_TAG: lost_fork_state | missing_clarification" in ontology_prompt
+    assert "GOLD_ACTION:" not in ontology_prompt
+    assert "continue_reasoning" not in ontology_prompt
 
 
 def test_prompt_style_does_not_change_compact_target():
@@ -128,3 +172,12 @@ def test_unknown_prompt_style_rejected():
         assert "unknown compact generation prompt style" in str(exc)
     else:
         raise AssertionError("bad prompt style should fail")
+
+
+def test_unknown_compact_target_style_rejected():
+    try:
+        compact_target_fields("bad")
+    except ValueError as exc:
+        assert "unknown compact target style" in str(exc)
+    else:
+        raise AssertionError("bad compact target style should fail")

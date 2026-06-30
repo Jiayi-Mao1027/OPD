@@ -10,6 +10,11 @@ Repository: `https://github.com/Jiayi-Mao1027/OPD`
 Review baseline commit: `ebf9af8 eval: add ontology compact prompt`, plus
 the later ontology-result docs commit that updates this packet.
 
+Implementation note: after the ontology diagnostic, the code now supports a
+reduced target style named `compact_winner_delta_tag`. It trains/generates only
+`WINNER` and `DELTA_TAG`, leaving the full compact target as a diagnostic.
+Please judge whether this is the right next ablation before we spend GPU time.
+
 Working direction: Reconcile-OPSD / fork-preserving judgment-delta
 self-distillation for safety boundary decisions. First-stage experiments use
 Qwen3-8B as the thinking-capable student model.
@@ -169,8 +174,9 @@ Updated claim:
 1. Given the negative greedy generation result, is there any defensible way to
    use compact structured logprob scoring beyond target-alignment diagnostics?
 2. Since explicit label ontology improves metadata shape but worsens winner
-   selection, should the next target be reduced to `WINNER` plus one observable
-   rationale tag, or should metadata be moved to separate constrained scorers?
+   selection, is the implemented `compact_winner_delta_tag` target the right
+   next ablation, or should `DELTA_TAG` move directly to a separate constrained
+   scorer?
 3. What is the best primary validation path now: fresh held-out fork/scope
    pairwise set, external/human audit of assistant-facing responses, or a
    paired-consistency training objective?

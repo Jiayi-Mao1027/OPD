@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 04:35 +08:00
+Last updated: 2026-07-01 04:46 +08:00
 
 ## Current Objective
 
@@ -94,6 +94,10 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Ran eval-only ontology-prompt compact generation for full BF16 base and both rank-128 compact adapters on original and position-balanced dev.
 - Ontology prompt result: it removes schema-level confusion and gives `r128_lr1e5` a small strict full-target match (`0.1071` original, `0.0893` posbalanced), but it sharply worsens winner selection and side balance. On position-balanced dev, full base drops from `43/56 = 0.7679` to `34/56 = 0.6071`; `r128_lr1e5` drops from `39/56 = 0.6964` to `36/56 = 0.6429`; `r128_lr3e6_len1024` drops from `42/56 = 0.7500` to `35/56 = 0.6250`.
 - Documented the ontology prompt result in `reports/pairwise_v0_1_compact_ontology_generation_summary.md`.
+- Tried to hand off the updated compact-generation packet to the open ChatGPT Pro conversation, but Chrome tab claiming timed out twice, including one 5-minute attempt. The Pro review packet remains ready in `PRO_REVIEW_PACKET_2026-07-01.md`.
+- Added the reduced pairwise compact target `compact_winner_delta_tag`, which trains/generates only `WINNER` and `DELTA_TAG` while keeping the full compact target as the default diagnostic path.
+- Updated `scripts/train_pairwise_lora.py` and `scripts/generate_pairwise_compact_judgments.py` to support `--target-style compact_winner_delta_tag`.
+- Verified local tests after the reduced-target implementation: `55 passed`.
 
 ## Current Blockers
 
@@ -110,11 +114,12 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Normalized reasons fix the repetition issue but still do not produce a positive dev signal.
 - The next contribution signal must come from structured judgment/audit or pairwise ranking, not from continuing the same SFT target.
 - The current one-shot compact target is overloaded: explicit label ontology improves some metadata-field formatting but harms winner selection, so continuing the same compact target with more steps is not justified before redesign.
+- ChatGPT Pro browser handoff is temporarily blocked by Chrome tab-claim timeouts, not by missing project context.
 
 ## Next Actions
 
 - Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore/ontology results were useful diagnostics, and they show the one-shot compact field target needs decomposition before more training steps.
-- Ask Pro to review the compact generation, mismatch, and ontology-prompt result once browser access is stable.
-- Next validation should be a reduced generation target (`WINNER` plus one observable rationale tag), a constrained multi-field scorer, a newly held-out fork/scope pairwise set, or human/external audit of assistant-facing responses.
+- Ask Pro to review the compact generation, mismatch, ontology-prompt result, and reduced-target implementation once browser access is stable.
+- Next validation should first run the implemented `compact_winner_delta_tag` target. If it improves only formatting and not winner/swap behavior, move `DELTA_TAG` to a constrained scorer rather than expanding the generation target again.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.
