@@ -4,15 +4,15 @@ Last updated: 2026-07-01 00:52 +08:00
 
 ## Decision
 
-Do not move directly from the v0 pairwise base result to a full pairwise QLoRA
-run.
+Do not move directly from the v0 pairwise base result to a large pairwise
+adapter run.
 
 Use a hybrid path:
 
 1. Repair the target/schema around fork state and answer scope.
 2. Re-score Qwen3-8B 4-bit base with the repaired v0.1 eval.
-3. Run one small structured pairwise QLoRA smoke only after the revised target is
-   inspectable.
+3. Run one small structured pairwise rank-128 LoRA smoke only after the revised
+   target is inspectable.
 
 Rationale:
 
@@ -20,7 +20,7 @@ Rationale:
   winner accuracy.
 - The failures are concentrated in the project's core contribution axes:
   `lost_fork_state` is `0/4`, and `wrong_scope` is `1/4`.
-- A winner-only QLoRA could improve aggregate pairwise accuracy while missing
+- A winner-only adapter could improve aggregate pairwise accuracy while missing
   the actual Reconcile-OPSD claim: preserving competing forks and enforcing
   answer-scope contracts.
 
@@ -115,7 +115,7 @@ Run 1: base v0.1 scoring.
   table separates fork-state from scope-contract failures.
 - Failure: the new fields are too ambiguous to score consistently.
 
-Run 2: winner-only pairwise QLoRA smoke.
+Run 2: winner-only pairwise rank-128 LoRA smoke.
 
 - Purpose: train a cheap baseline on the existing pairwise objective.
 - Success: loss decreases, missing count remains zero, and dev winner accuracy
@@ -123,7 +123,7 @@ Run 2: winner-only pairwise QLoRA smoke.
 - Failure: aggregate accuracy improves while `lost_fork_state` and `wrong_scope`
   stay flat or regress.
 
-Run 3: structured judgment-delta QLoRA smoke.
+Run 3: structured judgment-delta rank-128 LoRA smoke.
 
 - Purpose: test whether explicit fork/scope fields improve the core axes.
 - Success: `lost_fork_state` improves from `0/4` toward at least `2/4`, or
@@ -131,7 +131,7 @@ Run 3: structured judgment-delta QLoRA smoke.
   accuracy remains near the base control.
 - Failure: the model learns the output format but not the hard axes.
 
-Run 4: balanced structured judgment-delta QLoRA smoke.
+Run 4: balanced structured judgment-delta rank-128 LoRA smoke.
 
 - Purpose: check whether upweighting `lost_fork_state`, `wrong_scope`, and
   `partial_allowed` changes the failure profile.
@@ -218,6 +218,6 @@ Secondary claims:
 Avoid claiming:
 
 - that v0 proves Reconcile-OPSD works;
-- that pairwise QLoRA significantly improves safety before v0.1 evidence;
+- that pairwise LoRA significantly improves safety before v0.1 evidence;
 - that `0.6786` on 28 dev pairs is a stable generalization result;
 - that this is an R1/DeepSeek route in the current stage.

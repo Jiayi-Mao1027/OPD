@@ -35,6 +35,9 @@ def test_evaluate_pairwise_scores_accuracy_and_margin():
     assert result["winner_accuracy"] == 1.0
     assert result["average_winner_margin"] == 0.8
     assert result["missing_scores"] == 0
+    assert result["by_expected_side"]
+    assert result["score_side_bias"]["count"] == len(records)
+    assert "chosen_action_distribution" in result
     assert not result["errors"]
 
 
@@ -187,6 +190,9 @@ def test_evaluate_pairwise_scores_reports_position_bias_and_swap_consistency():
     assert result["pred_A_rate"] == 1.0
     assert result["pred_B_rate"] == 0.0
     assert result["swap_consistency"] == 0.0
+    assert result["side_bias"]["predicted_majority_side"] == "A"
+    assert result["side_bias"]["predicted_majority_rate"] == 1.0
+    assert result["side_bias"]["min_expected_side_accuracy"] == 0.0
     assert result["position_bias_flag"] is True
     assert result["position_bias_gate"]["status"] == "fail"
 

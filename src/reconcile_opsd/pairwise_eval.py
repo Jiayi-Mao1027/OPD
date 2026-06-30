@@ -59,6 +59,10 @@ def evaluate_pairwise_scores(
     scope_error_direction_stats: dict[str, Counter[str]] = defaultdict(Counter)
     gold_winner_counts: Counter[str] = Counter()
     predicted_winner_counts: Counter[str] = Counter()
+    expected_side_stats: dict[str, Counter[str]] = defaultdict(Counter)
+    expected_side_margins: dict[str, list[float]] = defaultdict(list)
+    score_diffs: list[float] = []
+    chosen_action_counts: Counter[str] = Counter()
     errors: list[dict[str, Any]] = []
 
     for record in records:
@@ -73,6 +77,9 @@ def evaluate_pairwise_scores(
             margin = winner_margin(row.get("scores", {}) if row else {}, expected)
         if predicted == "invalid":
             parse_failures += 1
+        score_diff = score_a_minus_b(row.get("scores", {}) if row else {})
+        if score_diff is not None:
+            score_diffs.append(score_diff)
 
         is_correct = predicted == expected
         if is_correct:
@@ -85,6 +92,11 @@ def evaluate_pairwise_scores(
         confusion[expected][predicted or "invalid"] += 1
         gold_winner_counts[expected] += 1
         predicted_winner_counts[predicted or "invalid"] += 1
+        add_group_stat(expected_side_stats[expected], is_correct)
+        if isinstance(margin, (int, float)):
+            expected_side_margins[expected].append(float(margin))
+        if predicted in {"A", "B"}:
+            chosen_action_counts[chosen_action(record, predicted)] += 1
         add_group_stat(delta_stats[record["delta_tag"]], is_correct)
         add_group_stat(gold_action_stats[record.get("gold_action_mode", record.get("gold_action", ""))], is_correct)
         add_group_stat(source_split_stats[record["source_split"]], is_correct)
@@ -96,7 +108,22 @@ def evaluate_pairwise_scores(
     pred_a_rate = predicted_winner_counts["A"] / total if total else 0.0
     pred_b_rate = predicted_winner_counts["B"] / total if total else 0.0
     swap_consistency = compute_swap_consistency(records, score_rows)
-    position_bias_flag = pred_a_rate > 0.75 or pred_b_rate > 0.75 or (swap_consistency is not None and swap_consistency < 0.70)
+    by_expected_side = grouped_accuracy_with_margins(expected_side_stats, expected_side_margins)
+    side_bias = side_bias_metrics(
+        total=total,
+        gold_counts=gold_winner_counts,
+        predicted_counts=predicted_winner_counts,
+        by_expected_side=by_expected_side,
+    )
+    score_bias = score_side_bias_metrics(score_diffs)
+    position_bias_flag = (
+        pred_a_rate > 0.75
+        or pred_b_rate > 0.75
+        or side_bias["predicted_majority_rate"] > 0.80
+        or abs(side_bias["predicted_a_rate_minus_gold_a_rate"]) > 0.20
+        or (side_bias["min_expected_side_accuracy"] is not None and side_bias["min_expected_side_accuracy"] < 0.50)
+        or (swap_consistency is not None and swap_consistency < 0.70)
+    )
     return {
         "total": total,
         "missing_scores": missing,
@@ -112,10 +139,17 @@ def evaluate_pairwise_scores(
         "pred_B_rate": pred_b_rate,
         "A_recall": confusion["A"]["A"] / gold_winner_counts["A"] if gold_winner_counts["A"] else None,
         "B_recall": confusion["B"]["B"] / gold_winner_counts["B"] if gold_winner_counts["B"] else None,
+        "by_expected_side": by_expected_side,
+        "side_bias": side_bias,
+        "score_side_bias": score_bias,
+        "chosen_action_distribution": dict(sorted(chosen_action_counts.items())),
         "swap_consistency": swap_consistency,
         "position_bias_flag": position_bias_flag,
         "position_bias_gate": {
             "pred_rate_threshold": 0.75,
+            "predicted_majority_rate_threshold": 0.80,
+            "predicted_a_rate_delta_threshold": 0.20,
+            "min_expected_side_accuracy_threshold": 0.50,
             "swap_consistency_threshold": 0.70,
             "status": "fail" if position_bias_flag else "pass",
         },
@@ -164,6 +198,67 @@ def compute_swap_consistency(records: list[dict[str, Any]], score_rows: dict[str
     return consistent / comparable if comparable else None
 
 
+def side_bias_metrics(
+    *,
+    total: int,
+    gold_counts: Counter[str],
+    predicted_counts: Counter[str],
+    by_expected_side: dict[str, dict[str, float | int | None]],
+) -> dict[str, Any]:
+    valid_predicted = predicted_counts["A"] + predicted_counts["B"]
+    pred_a_rate = predicted_counts["A"] / total if total else 0.0
+    pred_b_rate = predicted_counts["B"] / total if total else 0.0
+    gold_a_rate = gold_counts["A"] / total if total else 0.0
+    majority_side = "A" if predicted_counts["A"] >= predicted_counts["B"] else "B"
+    majority_rate = max(predicted_counts["A"], predicted_counts["B"]) / valid_predicted if valid_predicted else 0.0
+    side_gap = abs(predicted_counts["A"] - predicted_counts["B"]) / valid_predicted if valid_predicted else None
+    side_accs = [
+        float(stats["accuracy"])
+        for side in ["A", "B"]
+        if (stats := by_expected_side.get(side)) and isinstance(stats.get("accuracy"), (int, float))
+    ]
+    return {
+        "predicted_majority_side": majority_side,
+        "predicted_majority_rate": majority_rate,
+        "side_gap": side_gap,
+        "predicted_a_rate_minus_gold_a_rate": pred_a_rate - gold_a_rate,
+        "side_entropy_bits": binary_entropy(pred_a_rate, pred_b_rate),
+        "min_expected_side_accuracy": min(side_accs) if side_accs else None,
+    }
+
+
+def score_side_bias_metrics(score_diffs: list[float]) -> dict[str, float | int | None]:
+    if not score_diffs:
+        return {
+            "count": 0,
+            "mean_score_a_minus_b": None,
+            "median_score_a_minus_b": None,
+            "near_tie_rate_abs_le_0_01": None,
+        }
+    ordered = sorted(score_diffs)
+    midpoint = len(ordered) // 2
+    if len(ordered) % 2:
+        median = ordered[midpoint]
+    else:
+        median = (ordered[midpoint - 1] + ordered[midpoint]) / 2
+    return {
+        "count": len(score_diffs),
+        "mean_score_a_minus_b": mean(score_diffs),
+        "median_score_a_minus_b": median,
+        "near_tie_rate_abs_le_0_01": sum(1 for value in score_diffs if abs(value) <= 0.01) / len(score_diffs),
+    }
+
+
+def binary_entropy(rate_a: float, rate_b: float) -> float:
+    import math
+
+    entropy = 0.0
+    for rate in [rate_a, rate_b]:
+        if rate > 0:
+            entropy -= rate * math.log2(rate)
+    return entropy
+
+
 def normalize_winner(value: object) -> str | None:
     if isinstance(value, str):
         value = value.strip().upper()
@@ -194,6 +289,16 @@ def winner_margin(raw_scores: object, expected: str) -> float | None:
     return score_a - score_b if expected == "A" else score_b - score_a
 
 
+def score_a_minus_b(raw_scores: object) -> float | None:
+    if not isinstance(raw_scores, dict):
+        return None
+    score_a = extract_avg_logprob(raw_scores.get("A"))
+    score_b = extract_avg_logprob(raw_scores.get("B"))
+    if score_a is None or score_b is None:
+        return None
+    return score_a - score_b
+
+
 def extract_avg_logprob(value: object) -> float | None:
     if isinstance(value, dict):
         value = value.get("avg_logprob", value.get("score"))
@@ -217,6 +322,24 @@ def grouped_accuracy(groups: dict[str, Counter[str]]) -> dict[str, dict[str, flo
             "total": total,
             "correct": correct,
             "accuracy": correct / total if total else 0.0,
+        }
+    return result
+
+
+def grouped_accuracy_with_margins(
+    groups: dict[str, Counter[str]],
+    margins: dict[str, list[float]],
+) -> dict[str, dict[str, float | int | None]]:
+    result: dict[str, dict[str, float | int | None]] = {}
+    for name, counter in sorted(groups.items()):
+        total = counter["total"]
+        correct = counter["correct"]
+        group_margins = margins.get(name, [])
+        result[name] = {
+            "total": total,
+            "correct": correct,
+            "accuracy": correct / total if total else 0.0,
+            "average_winner_margin": mean(group_margins) if group_margins else None,
         }
     return result
 
@@ -252,14 +375,33 @@ def record_scope_error_direction(record: dict[str, Any]) -> str:
     return "none"
 
 
+def chosen_action(record: dict[str, Any], predicted: str) -> str:
+    candidate_key = "candidate_a" if predicted == "A" else "candidate_b"
+    candidate = record.get(candidate_key)
+    if isinstance(candidate, dict):
+        value = candidate.get("action_mode")
+        if isinstance(value, str) and value:
+            return value
+        decision_card = candidate.get("decision_card")
+        if isinstance(decision_card, dict):
+            value = decision_card.get("primary_action")
+            if isinstance(value, str) and value:
+                return value
+    return "unknown"
+
+
 def error_row(record: dict[str, Any], predicted: str | None, margin: float | None) -> dict[str, Any]:
+    predicted_value = predicted or "invalid"
     return {
         "pair_id": record["pair_id"],
         "source_id": record["source_id"],
         "source_split": record["source_split"],
         "expected_winner": record["winner"],
-        "predicted_winner": predicted or "invalid",
+        "predicted_winner": predicted_value,
         "winner_margin": margin,
+        "candidate_a_action": chosen_action(record, "A"),
+        "candidate_b_action": chosen_action(record, "B"),
+        "chosen_action": chosen_action(record, predicted_value) if predicted_value in {"A", "B"} else "invalid",
         "gold_action_mode": record.get("gold_action_mode", record.get("gold_action", "")),
         "primary_action": record.get("primary_action", record.get("gold_action_mode", record.get("gold_action", ""))),
         "negative_action": record.get("negative_action", ""),

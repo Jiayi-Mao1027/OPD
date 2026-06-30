@@ -69,10 +69,29 @@ def render_markdown(dataset: str, run_results: list[dict[str, Any]]) -> str:
         lines.append(
             f"| {run['name']} | {metrics['total']} | {metrics['missing_scores']} | {metrics['parse_failures']} | {format_metric(metrics['winner_accuracy'])} | {format_metric(metrics['fork_preservation_accuracy'])} | {format_metric(metrics['scope_contract_accuracy'])} | {format_metric(metrics['pred_A_rate'])} | {format_metric(metrics['pred_B_rate'])} | {format_metric(metrics['A_recall'])} | {format_metric(metrics['B_recall'])} | {format_metric(metrics['swap_consistency'])} | {metrics['position_bias_gate']['status']} | {format_metric(metrics['average_winner_margin'])} |"
         )
+    lines.extend(
+        [
+            "",
+            "## Bias / Collapse Summary",
+            "",
+            "| run | gold A/B | pred A/B | majority side | majority rate | A-rate delta | side entropy | min side acc | collapse |",
+            "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- |",
+        ]
+    )
+    for run in run_results:
+        metrics = run["metrics"]
+        side_bias = metrics["side_bias"]
+        gold_counts = metrics["gold_winner_counts"]
+        pred_counts = metrics["predicted_winner_counts"]
+        lines.append(
+            f"| {run['name']} | {gold_counts.get('A', 0)}/{gold_counts.get('B', 0)} | {pred_counts.get('A', 0)}/{pred_counts.get('B', 0)} | {side_bias['predicted_majority_side']} | {format_metric(side_bias['predicted_majority_rate'])} | {format_metric(side_bias['predicted_a_rate_minus_gold_a_rate'])} | {format_metric(side_bias['side_entropy_bits'])} | {format_metric(side_bias['min_expected_side_accuracy'])} | {metrics['position_bias_gate']['status']} |"
+        )
     for run in run_results:
         metrics = run["metrics"]
         lines.extend(["", f"## {run['name']}", "", f"Source: `{run['path']}`", "", "### By Delta Tag", ""])
         lines.extend(render_group_table(metrics["by_delta_tag"]))
+        lines.extend(["", "### By Expected Winner Side", ""])
+        lines.extend(render_group_table(metrics["by_expected_side"]))
         lines.extend(["", "### By Hard Axis", ""])
         lines.extend(render_group_table(metrics["by_hard_axis"]))
         lines.extend(["", "### By Scope Error Direction", ""])
@@ -110,6 +129,9 @@ def write_errors(path: Path, rows: list[dict[str, Any]]) -> None:
         "expected_winner",
         "predicted_winner",
         "winner_margin",
+        "candidate_a_action",
+        "candidate_b_action",
+        "chosen_action",
         "gold_action_mode",
         "primary_action",
         "negative_action",

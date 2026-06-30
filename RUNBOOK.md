@@ -283,8 +283,8 @@ python scripts/evaluate_pairwise_scores.py \
 Next pairwise stage:
 
 - Follow `docs/pairwise_v0_1_plan.md`.
-- Do not run full pairwise QLoRA before v0.1 fork-state and scope-contract
-  fields are inspectable and the Qwen3-8B 4-bit base has been re-scored.
+- Do not run full pairwise QLoRA. First-stage pairwise training is rank-128
+  LoRA only after v0.1 fork-state and scope-contract fields are inspectable.
 
 Pairwise v0.1 base result:
 
@@ -303,6 +303,13 @@ Training policy:
 - Do not use full-parameter fine-tuning.
 - Use rank-128 LoRA and tune memory with `--batch-size`,
   `--gradient-accumulation-steps`, and `--max-length`.
+- Prefer `data/pairwise/reconcilebench_v0_1_train_pairwise_posbalanced.jsonl`
+  for new runs, and evaluate side bias on
+  `data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl`.
+- Reject runs with `position_bias_gate = fail`; the current gate fails if the
+  predicted majority side is above `0.80`, the predicted A-rate differs from
+  gold A-rate by more than `0.20`, min A/B recall is below `0.50`, or swap
+  consistency is below `0.70`.
 
 Structured target example:
 

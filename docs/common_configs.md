@@ -191,7 +191,7 @@ Current pairwise v0 draft:
 - dev: `28` pairs from `14` source examples;
 - both manifests have empty forbidden source-id and prompt-hash overlap.
 
-Score pairwise dev before pairwise QLoRA:
+Score pairwise dev before pairwise LoRA:
 
 ```bash
 eval "$($PY scripts/gpu_status.py --min-free-mb 20000 --max-used-mb 70000 --export)"
@@ -221,7 +221,7 @@ Current pairwise dev base result:
 Next-stage pairwise plan:
 
 - see `docs/pairwise_v0_1_plan.md`;
-- repair `fork_state` and `scope_contract` before full QLoRA;
+- repair `fork_state` and `scope_contract` before rank-128 LoRA;
 - re-score Qwen3-8B 4-bit base on pairwise v0.1 before training adapters.
 
 Current pairwise v0.1 base result:
@@ -255,6 +255,12 @@ $PY scripts/train_pairwise_lora.py \
 Do not use QLoRA or full-parameter fine-tuning for this stage. If memory becomes
 the bottleneck, lower `--batch-size`, increase `--gradient-accumulation-steps`,
 or lower `--max-length`.
+
+For new pairwise runs, prefer the position-balanced files:
+
+- train: `data/pairwise/reconcilebench_v0_1_train_pairwise_posbalanced.jsonl`;
+- side-bias eval: `data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl`;
+- runbook: `docs/rank128_lora_position_balanced.md`.
 
 Current rank-128 LoRA smoke report:
 
