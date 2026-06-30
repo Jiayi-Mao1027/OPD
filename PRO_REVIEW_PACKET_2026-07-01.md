@@ -7,7 +7,8 @@ pairwise stage. Do not include credentials or server tokens.
 
 Repository: `https://github.com/Jiayi-Mao1027/OPD`
 
-Current commit: `f83a28a docs: add pro review packet`
+Review baseline commit: `f54b557 eval: add compactscore alignment diagnostics`.
+This packet itself is tracked in later docs-only commits.
 
 Working direction: Reconcile-OPSD / fork-preserving judgment-delta
 self-distillation for safety boundary decisions. First-stage experiments use
