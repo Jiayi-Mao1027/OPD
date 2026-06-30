@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-06-30 23:24 +08:00
+Last updated: 2026-06-30 23:55 +08:00
 
 ## Current Objective
 
@@ -54,6 +54,14 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Added GPU status/selection utilities and tests.
 - Added a standard Qwen3-8B v0 QLoRA run wrapper that checks tests, selects a low-conflict GPU, exports CUDA env, and writes metrics.
 - Added reference experiment configs for the current judgment-delta and normalized-reason v0 runs.
+- Collected two ChatGPT Pro reviews of the v0 negative result and compared them in `PRO_COMPARISON_2026-06-30.md`.
+- Decided to freeze the current action-mode/REASON SFT line and move next to constrained scoring, audit reports, and pairwise judgment-delta data.
+- Added optional schema fields for decision axes: `primary_action`, `acceptable_actions`, `risk_type`, `can_answer`, `missing_critical_info`, `allowed_scope`, `needs_clarification`, `needs_uncertainty_expression`, `context_conflict`, and `needs_more_reasoning`.
+- Added structured action-mode metrics and reporting support for per-mode F1, allowed-set accuracy, top-2 allowed accuracy, gold margin, entropy, confusion matrices, and hard-boundary confusions.
+- Added constrained action-mode logprob scoring via `scripts/score_action_modes.py`.
+- Ran constrained scoring on the v0 dev split for the Qwen3-8B 4-bit base control and normalized-reason adapter.
+- Generated `reports/reconcile_v0_eval_base_vs_qlora.md`, `reports/reconcile_v0_error_table.csv`, and terminal-only variants.
+- Constrained scoring result: both runs remain `0.4286` all-mode accuracy; normalized adapter improves macro-F1 `0.2880 -> 0.3293` and top-2 allowed accuracy `0.5714 -> 0.7143`.
 
 ## Current Blockers
 
@@ -68,13 +76,11 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - ReconcileBench v0 is synthetic/seed-quality data for method iteration, not a publishable benchmark yet.
 - The current v0 QLoRA run is a negative result: lower dev accuracy and repetitive reason generation.
 - Normalized reasons fix the repetition issue but still do not produce a positive dev signal.
+- The next contribution signal must come from structured judgment/audit or pairwise ranking, not from continuing the same SFT target.
 
 ## Next Actions
 
-- Ask ChatGPT Pro to investigate novelty/collision risks using the prepared context packet.
-- Ask ChatGPT Pro to review the v0 negative result and recommend the next training target/ablation.
-- Wait for ChatGPT Pro review before changing the main method target.
-- Add response-level evaluation beyond explicit action-mode classification after Pro confirms the metric shape.
-- Add a training data builder that uses `benign_allowed_parts`, `disallowed_parts`, `forks_to_keep`, `forks_to_prune`, and `final_response` after target design is settled.
-- Consider a classification-style or pairwise judgment-delta target for `ask_clarification` and `continue_reasoning`, which remain weak.
+- Audit the dev errors into clean, ambiguous, taxonomy-problem, and likely-mislabeled groups.
+- Build the first pairwise judgment-delta draft from audited examples.
+- Split `continue_reasoning` out of root terminal action-mode evaluation and into a prefix-level fork-state target.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

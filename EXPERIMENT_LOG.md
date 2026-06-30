@@ -441,3 +441,108 @@ Interpretation:
 - The normalized-target adapter recovers from the judgment-delta degradation, but only ties the base control.
 - It still misses `ask_clarification` and `continue_reasoning` on dev, often mapping them to `safe_redirect` or `partial_allowed`.
 - Next improvement should not be more steps alone; add response-level eval and/or a clearer classification-style target for clarification and fork-preservation behavior.
+
+## 2026-06-30 23:58 +08:00 - Pro Review Follow-Up: Constrained Action-Mode Scoring
+
+Commit before action: `e7cacd6 chore: add gpu run helpers`
+Branch: `main`
+Machine: `node-128-46`
+Project path: `/data03/liang/mjy/reconcile_opsd`
+Conda env: `/data/conda/envs/mjy`
+Model path: `/data/LLM/Qwen3-8B`
+Dev dataset: `data/splits/reconcilebench_v0_dev.jsonl`
+
+Motivation:
+
+- Two ChatGPT Pro reviews agreed that the current action-mode/REASON QLoRA line
+  should be frozen as a negative-result baseline.
+- The next diagnostic step is constrained scoring and audit, not more training
+  steps on the same target.
+
+GPU state before run:
+
+```json
+{
+  "selected_gpu": 1,
+  "name": "NVIDIA H100 PCIe",
+  "memory_used_mb": 33257,
+  "memory_free_mb": 47738,
+  "utilization_gpu_pct": 86
+}
+```
+
+Commands:
+
+```bash
+eval "$(python scripts/gpu_status.py --min-free-mb 20000 --max-used-mb 70000 --export)"
+
+python scripts/score_action_modes.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output outputs/scores/qwen3_8b_v0_dev_base_trainprompt_4bit.jsonl \
+  --load-in-4bit \
+  --prompt-style train \
+  --candidate-set all \
+  --attn-implementation eager
+
+python scripts/score_action_modes.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_v0/qwen3_8b_action_lora_normreason_steps20/adapter \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output outputs/scores/qwen3_8b_v0_dev_normreason_adapter_trainprompt_4bit.jsonl \
+  --load-in-4bit \
+  --prompt-style train \
+  --candidate-set all \
+  --attn-implementation eager
+
+python scripts/compare_action_mode_runs.py \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --scores base=outputs/scores/qwen3_8b_v0_dev_base_trainprompt_4bit.jsonl \
+  --scores normreason=outputs/scores/qwen3_8b_v0_dev_normreason_adapter_trainprompt_4bit.jsonl \
+  --output-md reports/reconcile_v0_eval_base_vs_qlora.md \
+  --output-csv reports/reconcile_v0_error_table.csv \
+  --output-json reports/reconcile_v0_eval_base_vs_qlora.json
+```
+
+Result:
+
+```text
+All-mode constrained scoring, 14 dev examples:
+  base acc = 0.4286
+  base macro-F1 = 0.2880
+  base top-2 allowed = 0.5714
+  base average gold margin = -0.1497
+
+  normalized adapter acc = 0.4286
+  normalized adapter macro-F1 = 0.3293
+  normalized adapter top-2 allowed = 0.7143
+  normalized adapter average gold margin = -0.0012
+
+Terminal-only report, excluding continue_reasoning gold items:
+  base acc = 0.5000
+  base macro-F1 = 0.3741
+  normalized adapter acc = 0.5000
+  normalized adapter macro-F1 = 0.4222
+
+Peak allocated CUDA memory:
+  base scoring = 7216.79 MB
+  normalized adapter scoring = 7216.79 MB
+```
+
+Main error clusters:
+
+- Base: `missing_clarification` 2, `wrong_scope` 2, `lost_continue_reasoning` 2.
+- Normalized adapter: `missing_clarification` 2, `lost_continue_reasoning` 2,
+  `terminal_mode_confusion` 2, `spurious_continue_reasoning` 1.
+
+Interpretation:
+
+- Constrained scoring confirms the same top-line accuracy as generation eval,
+  but provides more useful diagnostics.
+- The normalized adapter improves top-2 coverage and macro-F1 without improving
+  top-1 accuracy.
+- `ask_clarification` remains the clearest terminal-action weakness.
+- `continue_reasoning` behaves like a fork-state/control target and should be
+  split out rather than treated as a final user-visible action.
+- Next step: audit the error table, then build pairwise judgment-delta examples
+  from the clean/confusable cases.

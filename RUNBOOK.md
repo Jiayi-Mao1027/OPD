@@ -167,3 +167,62 @@ Current reference configs:
 configs/qwen3_8b_v0_judgment_delta_steps20.json
 configs/qwen3_8b_v0_normalized_reason_steps20.json
 ```
+
+## Constrained Scoring And Audit
+
+Use this path after the current v0 action-mode/REASON SFT negative results.
+It scores candidate labels directly instead of asking the model to generate a
+free-form `ACTION_MODE + REASON` response.
+
+Base control:
+
+```bash
+eval "$(python scripts/gpu_status.py --export)"
+python scripts/score_action_modes.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output outputs/scores/qwen3_8b_v0_dev_base_trainprompt_4bit.jsonl \
+  --load-in-4bit \
+  --prompt-style train \
+  --candidate-set all \
+  --attn-implementation eager
+```
+
+Normalized-reason adapter:
+
+```bash
+eval "$(python scripts/gpu_status.py --export)"
+python scripts/score_action_modes.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_v0/qwen3_8b_action_lora_normreason_steps20/adapter \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output outputs/scores/qwen3_8b_v0_dev_normreason_adapter_trainprompt_4bit.jsonl \
+  --load-in-4bit \
+  --prompt-style train \
+  --candidate-set all \
+  --attn-implementation eager
+```
+
+Combined report:
+
+```bash
+python scripts/compare_action_mode_runs.py \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --scores base=outputs/scores/qwen3_8b_v0_dev_base_trainprompt_4bit.jsonl \
+  --scores normreason=outputs/scores/qwen3_8b_v0_dev_normreason_adapter_trainprompt_4bit.jsonl \
+  --output-md reports/reconcile_v0_eval_base_vs_qlora.md \
+  --output-csv reports/reconcile_v0_error_table.csv \
+  --output-json reports/reconcile_v0_eval_base_vs_qlora.json
+```
+
+Terminal-action-only report:
+
+```bash
+python scripts/compare_action_mode_runs.py \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --scores base=outputs/scores/qwen3_8b_v0_dev_base_trainprompt_4bit.jsonl \
+  --scores normreason=outputs/scores/qwen3_8b_v0_dev_normreason_adapter_trainprompt_4bit.jsonl \
+  --exclude-continue-reasoning \
+  --output-md reports/reconcile_v0_eval_terminal_only.md \
+  --output-csv reports/reconcile_v0_error_table_terminal_only.csv
+```

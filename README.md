@@ -200,3 +200,63 @@ The reproducible wrapper for the same path is:
 ```bash
 TARGET_STYLE=normalized_reason MAX_STEPS=20 scripts/run_qwen3_v0_qlora.sh
 ```
+
+## Current Direction After Pro Review
+
+The v0 action-mode/REASON QLoRA line is now frozen as a negative-result
+baseline. Do not continue it with more steps until the target is redesigned.
+
+The next diagnostic loop is constrained scoring and audit:
+
+```bash
+eval "$(python scripts/gpu_status.py --export)"
+
+python scripts/score_action_modes.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output outputs/scores/qwen3_8b_v0_dev_base_trainprompt_4bit.jsonl \
+  --load-in-4bit \
+  --prompt-style train \
+  --candidate-set all \
+  --attn-implementation eager
+```
+
+Score the normalized-reason adapter the same way:
+
+```bash
+eval "$(python scripts/gpu_status.py --export)"
+
+python scripts/score_action_modes.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_v0/qwen3_8b_action_lora_normreason_steps20/adapter \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output outputs/scores/qwen3_8b_v0_dev_normreason_adapter_trainprompt_4bit.jsonl \
+  --load-in-4bit \
+  --prompt-style train \
+  --candidate-set all \
+  --attn-implementation eager
+```
+
+Generate the combined report:
+
+```bash
+python scripts/compare_action_mode_runs.py \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --scores base=outputs/scores/qwen3_8b_v0_dev_base_trainprompt_4bit.jsonl \
+  --scores normreason=outputs/scores/qwen3_8b_v0_dev_normreason_adapter_trainprompt_4bit.jsonl \
+  --output-md reports/reconcile_v0_eval_base_vs_qlora.md \
+  --output-csv reports/reconcile_v0_error_table.csv \
+  --output-json reports/reconcile_v0_eval_base_vs_qlora.json
+```
+
+Use `--exclude-continue-reasoning` when reporting terminal response actions
+only. `continue_reasoning` is being moved to a separate prefix-level fork-state
+target.
+
+Current constrained-scoring result on v0 dev:
+
+- all-mode accuracy: base `0.4286`, normalized adapter `0.4286`;
+- macro-F1: base `0.2880`, normalized adapter `0.3293`;
+- top-2 allowed accuracy: base `0.5714`, normalized adapter `0.7143`;
+- terminal-only accuracy after excluding `continue_reasoning` gold items:
+  base `0.5000`, normalized adapter `0.5000`.

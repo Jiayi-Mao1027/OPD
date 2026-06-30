@@ -23,3 +23,19 @@ def test_validate_record_rejects_invalid_action_mode():
     with pytest.raises(ValueError, match="invalid action_mode"):
         validate_record(record)
 
+
+def test_validate_record_accepts_optional_decision_axes():
+    record = json.loads(Path("data/reconcilebench_seed.jsonl").read_text(encoding="utf-8").splitlines()[0])
+    record["primary_action"] = record["action_mode"]
+    record["acceptable_actions"] = [record["action_mode"], "ask_clarification"]
+    record["risk_type"] = "over_refusal"
+    record["can_answer"] = True
+    record["missing_critical_info"] = False
+    validate_record(record)
+
+
+def test_validate_record_rejects_invalid_acceptable_actions():
+    record = json.loads(Path("data/reconcilebench_seed.jsonl").read_text(encoding="utf-8").splitlines()[0])
+    record["acceptable_actions"] = ["not_a_mode"]
+    with pytest.raises(ValueError, match="invalid acceptable_actions"):
+        validate_record(record)
