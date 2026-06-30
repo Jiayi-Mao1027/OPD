@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-06-30 22:44 +08:00
+Last updated: 2026-06-30 22:58 +08:00
 
 ## Current Objective
 
@@ -47,6 +47,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Added dataset audit/split tooling.
 - Expanded ReconcileBench to `data/reconcilebench_v0.jsonl`: 52 examples, all seven action modes covered, no duplicate ids.
 - Created a fixed split under `data/splits/`: 38 train examples and 14 dev examples, with exactly two dev examples per action mode.
+- Extended the QLoRA trainer to optionally run dev generation/evaluation after training.
+- Ran Qwen3-8B v0 20-step QLoRA: train loss dropped `5.9287 -> 1.7881`, but dev action-mode accuracy fell from the 4-bit base control `0.4286` to adapter `0.3571`.
 
 ## Current Blockers
 
@@ -59,12 +61,13 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - First-stage Qwen3-8B scripts use `attn_implementation=eager` and do not require `flash-attn`.
 - The current QLoRA result is only a training/eval plumbing smoke; it does not improve quality on the seed set.
 - ReconcileBench v0 is synthetic/seed-quality data for method iteration, not a publishable benchmark yet.
+- The current v0 QLoRA run is a negative result: lower dev accuracy and repetitive reason generation.
 
 ## Next Actions
 
 - Ask ChatGPT Pro to investigate novelty/collision risks using the prepared context packet.
-- Use the baseline and smoke-adapter failure pattern to design judgment-delta/action-mode training data.
-- Run the next Qwen3-8B QLoRA experiment on `data/splits/reconcilebench_v0_train.jsonl` and evaluate on `data/splits/reconcilebench_v0_dev.jsonl`.
+- Ask ChatGPT Pro to review the v0 negative result and recommend the next training target/ablation.
+- Use the baseline and v0 adapter failure pattern to redesign action-mode targets before longer training.
 - Add response-level evaluation beyond explicit action-mode classification.
 - Add a training data builder that uses `benign_allowed_parts`, `disallowed_parts`, `forks_to_keep`, `forks_to_prune`, and `final_response`.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

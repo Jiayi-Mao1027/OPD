@@ -154,3 +154,19 @@ CUDA_VISIBLE_DEVICES=1 python scripts/generate_action_mode_predictions.py \
 Current adapter eval result: both the 4-bit base control and the 2-step smoke adapter get `0.1667` action-mode accuracy on the 12 seed examples. The eval path is working; the tiny smoke adapter is not a quality improvement.
 
 Labeling reference: `docs/action_mode_label_guide.md`.
+
+Run a v0 train/dev QLoRA pass:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/train_action_mode_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/splits/reconcilebench_v0_train.jsonl \
+  --eval-dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output-dir outputs/train_v0/qwen3_8b_action_lora_steps20 \
+  --max-steps 20 \
+  --max-length 768 \
+  --eval-max-new-tokens 96 \
+  --attn-implementation eager
+```
+
+Current v0 result: the 4-bit base control gets `0.4286` dev action-mode accuracy; the 20-step QLoRA adapter gets `0.3571`. This is a useful negative result: training runs and broadens predicted modes, but does not yet improve dev accuracy.

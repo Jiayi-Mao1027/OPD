@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 import torch
@@ -11,6 +12,7 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
+from reconcile_opsd.heuristic_eval import evaluate_action_modes
 from reconcile_opsd.schema import ReconcileExample, load_jsonl
 
 
@@ -46,10 +48,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Tiny QLoRA/SFT smoke for action-mode labels.")
     parser.add_argument("--model", required=True)
     parser.add_argument("--dataset", default="data/reconcilebench_seed.jsonl")
+    parser.add_argument("--eval-dataset", default="")
     parser.add_argument("--output-dir", default="outputs/train_smoke/qwen3_8b_action_lora")
-    parser.add_argument("--limit", type=int, default=4)
+    parser.add_argument("--limit", type=int, default=0, help="0 means all training examples.")
+    parser.add_argument("--eval-limit", type=int, default=0, help="0 means all eval examples.")
     parser.add_argument("--max-length", type=int, default=768)
     parser.add_argument("--max-steps", type=int, default=2)
+    parser.add_argument("--eval-max-new-tokens", type=int, default=96)
     parser.add_argument("--lr", type=float, default=2e-4)
     parser.add_argument("--lora-r", type=int, default=8)
     parser.add_argument("--lora-alpha", type=int, default=16)
@@ -97,6 +102,7 @@ def main() -> None:
     )
     model = get_peft_model(model, lora_config)
     model.train()
+    input_device = model.get_input_embeddings().weight.device
 
     encoded = [encode_example(tokenizer, example, args.max_length) for example in examples]
     loader = DataLoader(
@@ -111,7 +117,7 @@ def main() -> None:
     step = 0
     while step < args.max_steps:
         for batch in loader:
-            batch = {key: value.to(model.device) for key, value in batch.items()}
+            batch = {key: value.to(input_device) for key, value in batch.items()}
             outputs = model(**batch)
             loss = outputs.loss
             loss.backward()
@@ -136,6 +142,29 @@ def main() -> None:
         "load_in_4bit": not args.no_4bit,
         "output_dir": str(output_dir),
     }
+    if args.eval_dataset:
+        eval_examples = load_jsonl(args.eval_dataset)
+        if args.eval_limit:
+            eval_examples = eval_examples[: args.eval_limit]
+        predictions_path = output_dir / "eval_predictions.jsonl"
+        eval_path = output_dir / "eval_metrics.json"
+        eval_payload = evaluate_current_model(
+            model=model,
+            tokenizer=tokenizer,
+            examples=eval_examples,
+            predictions_path=predictions_path,
+            eval_path=eval_path,
+            model_path=args.model,
+            adapter_path=str(output_dir / "adapter"),
+            load_in_4bit=not args.no_4bit,
+            attn_implementation=args.attn_implementation,
+            max_new_tokens=args.eval_max_new_tokens,
+            input_device=input_device,
+        )
+        metrics["eval_dataset"] = args.eval_dataset
+        metrics["eval_predictions"] = str(predictions_path)
+        metrics["eval_metrics"] = str(eval_path)
+        metrics["eval_action_mode_accuracy"] = eval_payload["action_mode_accuracy"]
     if torch.cuda.is_available():
         metrics["cuda_max_memory_allocated_mb"] = round(torch.cuda.max_memory_allocated() / 1024**2, 2)
     (output_dir / "metrics.json").write_text(json.dumps(metrics, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -176,6 +205,74 @@ def apply_template(tokenizer, messages: list[dict[str, str]]) -> str:
         return tokenizer.apply_chat_template(messages, **kwargs)
 
 
+def evaluate_current_model(
+    *,
+    model,
+    tokenizer,
+    examples: list[ReconcileExample],
+    predictions_path: Path,
+    eval_path: Path,
+    model_path: str,
+    adapter_path: str,
+    load_in_4bit: bool,
+    attn_implementation: str,
+    max_new_tokens: int,
+    input_device: torch.device,
+) -> dict[str, object]:
+    model.eval()
+    predictions_path.parent.mkdir(parents=True, exist_ok=True)
+    predictions: dict[str, str] = {}
+    with predictions_path.open("w", encoding="utf-8") as handle:
+        for example in examples:
+            prompt_messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": build_user_content(example.prompt)},
+            ]
+            rendered = apply_template(tokenizer, prompt_messages)
+            inputs = tokenizer([rendered], return_tensors="pt").to(input_device)
+            with torch.inference_mode():
+                generated = model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    pad_token_id=tokenizer.eos_token_id,
+                )
+            new_tokens = generated[0, inputs["input_ids"].shape[-1] :]
+            response = tokenizer.decode(new_tokens, skip_special_tokens=False)
+            predictions[example.id] = response
+            record = {
+                "id": example.id,
+                "response": response,
+                "expected_action_mode": example.action_mode,
+                "model": model_path,
+                "adapter": adapter_path,
+                "load_in_4bit": load_in_4bit,
+                "prompt_style": "train",
+                "requested_enable_thinking": False,
+                "attn_implementation": attn_implementation,
+                "max_new_tokens": max_new_tokens,
+                "do_sample": False,
+                "input_device": str(input_device),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+            handle.flush()
+            print(json.dumps({"eval_id": example.id, "expected": example.action_mode, "response_preview": response[:200]}, ensure_ascii=False))
+
+    result = evaluate_action_modes(examples, predictions)
+    payload = {
+        "total": result.total,
+        "action_mode_accuracy": result.action_mode_accuracy,
+        "expected_counts": result.expected_counts,
+        "predicted_counts": result.predicted_counts,
+        "mismatches": result.mismatches,
+    }
+    eval_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({"eval": payload}, ensure_ascii=False, indent=2))
+    model.train()
+    return payload
+
+
 def collate(batch: list[EncodedExample], pad_token_id: int) -> dict[str, torch.Tensor]:
     max_len = max(len(example.input_ids) for example in batch)
     input_ids = []
@@ -195,4 +292,3 @@ def collate(batch: list[EncodedExample], pad_token_id: int) -> dict[str, torch.T
 
 if __name__ == "__main__":
     main()
-

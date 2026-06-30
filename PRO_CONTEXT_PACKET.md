@@ -102,7 +102,10 @@ No DeepSeek-R1-Distill-Qwen model was found locally. R1-style experiments are de
 - A label guide now exists at `docs/action_mode_label_guide.md`; current priority is expanding data, fixing a train/dev split, and auditing taxonomy boundaries before longer training.
 - ReconcileBench v0 now has 52 synthetic/seed-quality examples. Action-mode counts are: `continue_reasoning: 9`, `ask_clarification: 8`, and `direct_answer`, `partial_allowed`, `refuse`, `safe_high_level`, `safe_redirect` each at `7`.
 - The fixed v0 split has 38 train and 14 dev examples; dev has exactly two examples per action mode.
-- The next engineering experiment can train Qwen3-8B QLoRA on `data/splits/reconcilebench_v0_train.jsonl` and evaluate on `data/splits/reconcilebench_v0_dev.jsonl`, but response-level evaluation and judgment-delta/fork metrics remain missing.
+- Qwen3-8B 4-bit base control on v0 dev with the train prompt gets `0.4286` action-mode accuracy. Predicted counts: `safe_high_level: 7`, `refuse: 5`, `direct_answer: 2`.
+- A 20-step QLoRA run on v0 train drops train loss `5.9287 -> 1.7881`, but v0 dev accuracy falls to `0.3571`. Predicted counts: `safe_high_level: 4`, `ask_clarification: 3`, `safe_redirect: 4`, `direct_answer: 2`, `refuse: 1`.
+- The adapter learned a broader label distribution but produced repetitive reason text and did not improve dev accuracy. This suggests the next step should not be simply more steps.
+- Response-level evaluation and judgment-delta/fork metrics remain missing.
 
 ## Specific Questions
 
@@ -113,3 +116,5 @@ No DeepSeek-R1-Distill-Qwen model was found locally. R1-style experiments are de
 5. What is the strongest minimal ablation matrix?
 6. Should the first smoke model be Qwen2.5-7B-Instruct, Qwen3-8B, or YuFeng-XGuard-Reason-8B?
 7. Given the first-stage preference for 8B or smaller thinking models, what is the strongest small-model experimental setup?
+8. Given the v0 negative result, should the next target be shorter normalized action-mode reasons, response-level distillation, pairwise judgment-delta classification, or a different ablation?
+9. How should we separate a real method signal from synthetic-label noise in a 52-example first-stage dataset?

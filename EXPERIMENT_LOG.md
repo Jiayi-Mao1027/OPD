@@ -322,3 +322,65 @@ Interpretation:
 - The project now has a small but usable v0 dataset with explicit `refuse` coverage and a fixed dev split.
 - The data is still synthetic/seed-quality and should be treated as a scaffold for method iteration, not as a publishable benchmark.
 - The next training run can use `data/splits/reconcilebench_v0_train.jsonl` and evaluate on `data/splits/reconcilebench_v0_dev.jsonl`.
+
+## 2026-06-30 22:54 +08:00 - Qwen3-8B v0 QLoRA 20-Step Run
+
+Commit before action: `e8384aa data: add reconcilebench v0 split`
+Branch: `main`
+Machine: `node-128-46`
+Project path: `/data03/liang/mjy/reconcile_opsd`
+Conda env: `/data/conda/envs/mjy`
+Model path: `/data/LLM/Qwen3-8B`
+Train dataset: `data/splits/reconcilebench_v0_train.jsonl`
+Dev dataset: `data/splits/reconcilebench_v0_dev.jsonl`
+
+Commands:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/generate_action_mode_predictions.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output outputs/predictions/qwen3_8b_action_modes_v0_dev_trainprompt_4bit.jsonl \
+  --max-new-tokens 96 \
+  --attn-implementation eager \
+  --load-in-4bit \
+  --prompt-style train
+
+python scripts/evaluate_baseline.py \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --predictions outputs/predictions/qwen3_8b_action_modes_v0_dev_trainprompt_4bit.jsonl \
+  --output outputs/eval/qwen3_8b_action_modes_v0_dev_trainprompt_4bit_eval.json
+
+CUDA_VISIBLE_DEVICES=1 python scripts/train_action_mode_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/splits/reconcilebench_v0_train.jsonl \
+  --eval-dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output-dir outputs/train_v0/qwen3_8b_action_lora_steps20 \
+  --max-steps 20 \
+  --max-length 768 \
+  --eval-max-new-tokens 96 \
+  --attn-implementation eager
+```
+
+Result:
+
+```text
+4-bit base dev control:
+  total = 14
+  action_mode_accuracy = 0.4286
+  predicted_counts = safe_high_level: 7, refuse: 5, direct_answer: 2
+
+20-step QLoRA adapter:
+  total = 14
+  action_mode_accuracy = 0.3571
+  predicted_counts = safe_high_level: 4, ask_clarification: 3, safe_redirect: 4, direct_answer: 2, refuse: 1
+  train loss first -> last = 5.9287 -> 1.7881
+  peak allocated CUDA memory = 9354.79 MB
+```
+
+Interpretation:
+
+- The v0 train/dev loop works end to end: train, save adapter, generate dev predictions, and write eval metrics.
+- The adapter predicts a broader label distribution than the base control, but dev accuracy is lower.
+- Several dev generations show repetitive reason text, so longer training without fixing target formatting/data quality is not justified yet.
+- Next step should be research/design review: likely improve labels, target format, response-level evaluation, and maybe train on shorter normalized reasons rather than raw `judgment_delta`.
