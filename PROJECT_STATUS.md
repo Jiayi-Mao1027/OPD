@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 00:52 +08:00
+Last updated: 2026-07-01 01:15 +08:00
 
 ## Current Objective
 
@@ -70,6 +70,10 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Pairwise weak spots are concentrated in `continue_reasoning` / `lost_fork_state` (`0/4`) and `partial_allowed` / `wrong_scope` (`1/4`).
 - Reviewed the latest pairwise result with Pro and a method subagent.
 - Added `docs/pairwise_v0_1_plan.md` to pin the next-stage decision: repair fork-state/scope-contract targets and eval before structured pairwise QLoRA.
+- Added v0.1 enrichment, pairwise builder, data audit, and hard-axis pairwise eval support.
+- Generated ReconcileBench v0.1 data and pairwise v0.1 data: `76` train pairs and `28` dev pairs, both audit-clean.
+- Ran Qwen3-8B 4-bit base scoring on pairwise v0.1 dev: winner accuracy `0.7500` (`21/28`), missing `0`, parse failures `0`, average winner margin `1.8103`, peak allocated CUDA memory about `7217 MB`.
+- v0.1 hard-axis result: fork-state remains `0/3`; scope-contract is `11/13 = 0.8462`.
 
 ## Current Blockers
 
@@ -88,8 +92,7 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 ## Next Actions
 
-- Implement v0.1 schema repair: move `continue_reasoning` out of final `primary_action` and into `fork_state` / `needs_more_reasoning`.
-- Add `scope_contract` fields and wrong-scope direction metrics.
-- Regenerate pairwise v0.1 data and re-score Qwen3-8B 4-bit base before structured pairwise QLoRA.
-- Add pairwise v0.1 data audit reporting and hard-axis/source-level eval metrics.
+- Add `scripts/train_pairwise_lora.py` for a small structured judgment-delta QLoRA smoke.
+- Use v0.1 hard-axis metrics as the acceptance gate: improve fork-state from `0/3` without collapsing scope-contract accuracy.
+- Add a balanced structured pairwise target or sampler that upweights fork-state and wrong-scope examples.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

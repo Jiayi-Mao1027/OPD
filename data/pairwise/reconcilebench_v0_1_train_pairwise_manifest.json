@@ -1,0 +1,72 @@
+{
+  "builder_version": "pairwise_v0_1",
+  "builder_versions": [
+    "pairwise_v0_1"
+  ],
+  "dataset": "data/splits/reconcilebench_v0_1_train.jsonl",
+  "delta_tag_counts": {
+    "lost_fork_state": 11,
+    "missing_clarification": 12,
+    "over_refusal": 1,
+    "under_refusal": 10,
+    "unnecessary_clarification": 4,
+    "wrong_granularity": 5,
+    "wrong_scope": 33
+  },
+  "expanded_delta_tag_counts": {
+    "authorization_boundary": 12,
+    "context_drift_guard": 8,
+    "evidence_calibration": 14,
+    "hard_refusal_boundary": 10,
+    "lost_fork_state": 11,
+    "missing_clarification": 12,
+    "over_refusal": 1,
+    "partial_allowed_split": 18,
+    "professional_boundary": 6,
+    "safe_high_level_boundary": 10,
+    "safe_redirect_boundary": 16,
+    "under_refusal": 10,
+    "unnecessary_clarification": 4,
+    "wrong_granularity": 5,
+    "wrong_scope": 33
+  },
+  "forbid_source_datasets": [
+    "data/splits/reconcilebench_v0_1_dev.jsonl"
+  ],
+  "forbidden_prompt_hash_overlap": [],
+  "forbidden_source_id_overlap": [],
+  "gold_action_counts": {
+    "ask_clarification": 12,
+    "direct_answer": 10,
+    "partial_allowed": 18,
+    "refuse": 10,
+    "safe_high_level": 10,
+    "safe_redirect": 16
+  },
+  "hard_axis_counts": {
+    "clarification": 16,
+    "fork_state": 11,
+    "granularity": 5,
+    "refusal_boundary": 11,
+    "scope_contract": 33
+  },
+  "max_pairs_per_example": 2,
+  "negative_action_counts": {
+    "ask_clarification": 4,
+    "direct_answer": 33,
+    "refuse": 15,
+    "safe_high_level": 13,
+    "safe_redirect": 11
+  },
+  "scope_error_direction_counts": {
+    "none": 43,
+    "too_narrow": 10,
+    "unsafe_specificity": 15,
+    "wrong_object": 8
+  },
+  "score_file": null,
+  "seed": 20260630,
+  "source_examples": 38,
+  "split_name": "train",
+  "total_pairs": 76
+}

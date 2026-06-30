@@ -714,3 +714,111 @@ Interpretation:
   action-boundary decisions under competing response forks.
 - `continue_reasoning` should become fork-state metadata, not a terminal
   user-visible action.
+
+## 2026-07-01 01:15 +08:00 - Pairwise v0.1 Data and Base Scoring
+
+Commit before action: `10e2e83 docs: record pairwise v0.1 plan`
+Branch: `main`
+Machine: local mirror plus remote `/data03/liang/mjy/reconcile_opsd`
+Model path: `/data/LLM/Qwen3-8B`
+
+Change:
+
+- Added v0.1 record enrichment with `fork_state` and `scope_contract`.
+- Added pairwise v0.1 builder support with `hard_axis`, `gold_judgment`,
+  candidate `decision_card`, and `response_sketch`.
+- Added pairwise data audit reports for clean/ambiguous/taxonomy-problem review.
+- Extended pairwise eval with hard-axis, source-level, fork-preservation,
+  scope-contract, scope-error-direction, missing, and parse-failure metrics.
+
+Commands:
+
+```bash
+python scripts/enrich_reconcilebench_v0_1.py \
+  --dataset data/reconcilebench_v0.jsonl \
+  --output data/reconcilebench_v0_1.jsonl
+
+python scripts/enrich_reconcilebench_v0_1.py \
+  --dataset data/splits/reconcilebench_v0_train.jsonl \
+  --output data/splits/reconcilebench_v0_1_train.jsonl
+
+python scripts/enrich_reconcilebench_v0_1.py \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output data/splits/reconcilebench_v0_1_dev.jsonl
+
+python scripts/build_pairwise_judgment_data.py \
+  --dataset data/splits/reconcilebench_v0_1_train.jsonl \
+  --forbid-source-dataset data/splits/reconcilebench_v0_1_dev.jsonl \
+  --output data/pairwise/reconcilebench_v0_1_train_pairwise.jsonl \
+  --manifest-output data/pairwise/reconcilebench_v0_1_train_pairwise_manifest.json \
+  --split-name train \
+  --max-pairs-per-example 2 \
+  --seed 20260630 \
+  --builder-version pairwise_v0_1
+
+python scripts/build_pairwise_judgment_data.py \
+  --dataset data/splits/reconcilebench_v0_1_dev.jsonl \
+  --forbid-source-dataset data/splits/reconcilebench_v0_1_train.jsonl \
+  --output data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl \
+  --manifest-output data/pairwise/reconcilebench_v0_1_dev_pairwise_manifest.json \
+  --split-name dev \
+  --max-pairs-per-example 2 \
+  --seed 20260630 \
+  --builder-version pairwise_v0_1
+
+python scripts/audit_pairwise_data.py \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl \
+  --output-md reports/pairwise_v0_1_data_audit_dev.md \
+  --output-json reports/pairwise_v0_1_data_audit_dev.json \
+  --output-csv reports/pairwise_v0_1_data_audit_dev.csv
+
+python scripts/score_pairwise_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl \
+  --output outputs/pairwise_scores/qwen3_8b_v0_1_dev_pairwise_base_4bit.jsonl \
+  --load-in-4bit \
+  --attn-implementation eager
+
+python scripts/evaluate_pairwise_scores.py \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl \
+  --scores base=outputs/pairwise_scores/qwen3_8b_v0_1_dev_pairwise_base_4bit.jsonl \
+  --output-md reports/pairwise_v0_1_dev_base_eval.md \
+  --output-json reports/pairwise_v0_1_dev_base_eval.json \
+  --output-csv reports/pairwise_v0_1_dev_base_errors.csv
+```
+
+Result:
+
+```text
+Pairwise v0.1 data:
+  train pairs = 76
+  dev pairs = 28
+  train audit = 76 clean / 0 ambiguous / 0 taxonomy_problem
+  dev audit = 28 clean / 0 ambiguous / 0 taxonomy_problem
+
+Qwen3-8B 4-bit base on v0.1 dev:
+  winner accuracy = 0.7500
+  correct = 21/28
+  missing = 0
+  parse failures = 0
+  average winner margin = 1.8103
+
+Hard axes:
+  fork_state = 0/3
+  scope_contract = 11/13
+  clarification = 4/5
+  refusal_boundary = 5/5
+  granularity = 1/2
+
+Peak allocated CUDA memory:
+  base pairwise v0.1 scoring = 7216.79 MB
+```
+
+Interpretation:
+
+- v0.1 made the scope-contract axis explicit and measurable; the base model is
+  already strong on most scope pairs.
+- The fork-state axis is still the clear failure target: `0/3`.
+- The next training smoke should use structured judgment-delta targets or
+  balanced sampling that explicitly upweights fork-state examples; overall
+  winner accuracy alone is not an acceptable success criterion.

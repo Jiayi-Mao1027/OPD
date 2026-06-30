@@ -28,6 +28,14 @@ ACTION_MODE_ORDER = [
 ACTION_MODES = set(ACTION_MODE_ORDER)
 
 TERMINAL_ACTION_MODES = tuple(mode for mode in ACTION_MODE_ORDER if mode != "continue_reasoning")
+VISIBLE_ACTION_MODES = set(TERMINAL_ACTION_MODES)
+
+FORK_RESOLUTIONS = {"resolved", "unresolved", "partially_resolved"}
+FORK_POLICIES = {"preserve", "disambiguate", "defer", "select_with_uncertainty"}
+COLLAPSE_RISKS = {"none", "over_refusal", "unsafe_answer", "premature_redirect", "premature_answer"}
+ANSWERABILITIES = {"full", "partial", "none", "unclear"}
+REQUIRED_GRANULARITIES = {"full", "bounded_steps", "high_level", "redirect_only", "refuse_only"}
+SCOPE_ERROR_DIRECTIONS = {"none", "too_broad", "too_narrow", "wrong_level", "wrong_object", "unsafe_specificity"}
 
 REQUIRED_FIELDS = {
     "id",
@@ -74,6 +82,8 @@ class ReconcileExample:
     needs_uncertainty_expression: bool | None = None
     context_conflict: bool | None = None
     needs_more_reasoning: bool | None = None
+    fork_state: dict[str, Any] | None = None
+    scope_contract: dict[str, Any] | None = None
 
     @classmethod
     def from_record(cls, record: dict[str, Any]) -> "ReconcileExample":
@@ -102,14 +112,17 @@ def validate_record(record: dict[str, Any]) -> None:
         raise ValueError(f"invalid action_mode: {record['action_mode']}")
 
     primary_action = record.get("primary_action")
-    if primary_action is not None and primary_action not in ACTION_MODES:
-        raise ValueError(f"invalid primary_action: {primary_action}")
+    if primary_action is not None:
+        if primary_action not in ACTION_MODES:
+            raise ValueError(f"invalid primary_action: {primary_action}")
+        if primary_action == "continue_reasoning":
+            raise ValueError("primary_action must be a user-visible action, not continue_reasoning")
 
     acceptable_actions = record.get("acceptable_actions")
     if acceptable_actions is not None:
         if not isinstance(acceptable_actions, list) or not all(isinstance(item, str) for item in acceptable_actions):
             raise ValueError("acceptable_actions must be a list of strings")
-        invalid_actions = sorted(set(acceptable_actions) - ACTION_MODES)
+        invalid_actions = sorted(set(acceptable_actions) - VISIBLE_ACTION_MODES)
         if invalid_actions:
             raise ValueError(f"invalid acceptable_actions: {', '.join(invalid_actions)}")
 
@@ -122,6 +135,50 @@ def validate_record(record: dict[str, Any]) -> None:
         value = record.get(field)
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f"{field} must be a non-empty string")
+
+    if record.get("fork_state") is not None:
+        validate_fork_state(record["fork_state"])
+    if record.get("scope_contract") is not None:
+        validate_scope_contract(record["scope_contract"])
+    if record.get("needs_more_reasoning") is True:
+        fork_state = record.get("fork_state")
+        if not isinstance(fork_state, dict) or not fork_state.get("forks_present"):
+            raise ValueError("needs_more_reasoning=true requires non-empty fork_state.forks_present")
+
+
+def validate_fork_state(value: object) -> None:
+    if not isinstance(value, dict):
+        raise ValueError("fork_state must be an object")
+    forks_present = value.get("forks_present", [])
+    if not isinstance(forks_present, list) or not all(isinstance(item, str) for item in forks_present):
+        raise ValueError("fork_state.forks_present must be a list of strings")
+    fork_resolution = value.get("fork_resolution")
+    if fork_resolution not in FORK_RESOLUTIONS:
+        raise ValueError(f"invalid fork_state.fork_resolution: {fork_resolution}")
+    fork_policy = value.get("fork_policy")
+    if fork_policy not in FORK_POLICIES:
+        raise ValueError(f"invalid fork_state.fork_policy: {fork_policy}")
+    collapse_risk = value.get("collapse_risk")
+    if collapse_risk not in COLLAPSE_RISKS:
+        raise ValueError(f"invalid fork_state.collapse_risk: {collapse_risk}")
+
+
+def validate_scope_contract(value: object) -> None:
+    if not isinstance(value, dict):
+        raise ValueError("scope_contract must be an object")
+    for field in ["allowed_content", "disallowed_content"]:
+        items = value.get(field, [])
+        if not isinstance(items, list) or not all(isinstance(item, str) for item in items):
+            raise ValueError(f"scope_contract.{field} must be a list of strings")
+    answerability = value.get("answerability")
+    if answerability not in ANSWERABILITIES:
+        raise ValueError(f"invalid scope_contract.answerability: {answerability}")
+    required_granularity = value.get("required_granularity")
+    if required_granularity not in REQUIRED_GRANULARITIES:
+        raise ValueError(f"invalid scope_contract.required_granularity: {required_granularity}")
+    scope_error_direction = value.get("scope_error_direction")
+    if scope_error_direction not in SCOPE_ERROR_DIRECTIONS:
+        raise ValueError(f"invalid scope_contract.scope_error_direction: {scope_error_direction}")
 
 
 def load_jsonl(path: str | Path) -> list[ReconcileExample]:

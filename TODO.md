@@ -7,12 +7,10 @@
 - Use the error table to mark clean/ambiguous/taxonomy-problem examples.
 - Decide first-stage method name: `Reconcile-OPSD`, `Judgment-Delta Self-OPD`, or `Fork-Preserving Safety Distillation`.
 - Keep R1/DeepSeek-R1-Distill out of first-stage experiments.
-- Implement pairwise v0.1 plan from `docs/pairwise_v0_1_plan.md`.
-- Move `continue_reasoning` out of final `primary_action` and into `fork_state` / `needs_more_reasoning`.
-- Add `scope_contract` and wrong-scope direction fields.
-- Regenerate pairwise v0.1 train/dev data and re-score Qwen3-8B 4-bit base.
-- Add `reports/pairwise_v0_1_data_audit.*` for clean/ambiguous/taxonomy-problem pair review.
-- Extend pairwise eval with hard-axis/source-level/fork-preservation/scope-contract metrics.
+- Review v0.1 base errors, especially the three fork-state failures.
+- Add `scripts/train_pairwise_lora.py` for structured judgment-delta QLoRA smoke.
+- Add a balanced structured target or sampler that upweights fork-state and wrong-scope examples.
+- Run winner-only vs structured-delta pairwise QLoRA smoke on Qwen3-8B.
 - Redesign `continue_reasoning` as a prefix-level fork-state target, not a final response action.
 
 ## Engineering

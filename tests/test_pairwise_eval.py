@@ -117,6 +117,7 @@ def test_pairwise_eval_cli_writes_outputs(tmp_path: Path):
     assert output_json.exists()
     assert output_csv.exists()
     assert "winner acc" in output_md.read_text(encoding="utf-8")
+    assert "By Hard Axis" in output_md.read_text(encoding="utf-8")
 
 
 def test_read_pairwise_score_rows(tmp_path: Path):
@@ -138,3 +139,67 @@ def test_load_pairwise_jsonl_validates_required_fields(tmp_path: Path):
         assert "missing source_id" in str(exc)
     else:
         raise AssertionError("expected ValueError")
+
+
+def test_evaluate_pairwise_scores_reports_hard_axis_metrics():
+    examples = load_jsonl("data/splits/reconcilebench_v0_train.jsonl")[:2]
+    records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=9)
+    records[0]["hard_axis"] = "fork_state"
+    records[0]["scope_error_direction"] = "none"
+    score_rows = {}
+    for record in records:
+        expected = record["winner"]
+        other = "B" if expected == "A" else "A"
+        score_rows[record["pair_id"]] = {
+            "predicted_winner": expected,
+            "scores": {
+                expected: {"avg_logprob": -0.1},
+                other: {"avg_logprob": -0.9},
+            },
+        }
+
+    result = evaluate_pairwise_scores(records, score_rows)
+
+    assert result["parse_failures"] == 0
+    assert result["by_hard_axis"]["fork_state"]["accuracy"] == 1.0
+    assert result["fork_preservation_accuracy"] == 1.0
+    assert result["by_source_id"]
+
+
+def test_pairwise_data_audit_cli_writes_outputs(tmp_path: Path):
+    examples = load_jsonl("data/splits/reconcilebench_v0_train.jsonl")[:2]
+    records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=10)
+    dataset = tmp_path / "pairs.jsonl"
+    output_md = tmp_path / "audit.md"
+    output_json = tmp_path / "audit.json"
+    output_csv = tmp_path / "audit.csv"
+
+    with dataset.open("w", encoding="utf-8") as handle:
+        for record in records:
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/audit_pairwise_data.py",
+            "--dataset",
+            str(dataset),
+            "--output-md",
+            str(output_md),
+            "--output-json",
+            str(output_json),
+            "--output-csv",
+            str(output_csv),
+        ],
+        env=script_env(),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    assert result.returncode == 0
+    assert output_md.exists()
+    assert output_json.exists()
+    assert output_csv.exists()
+    payload = json.loads(output_json.read_text(encoding="utf-8"))
+    assert payload["summary"]["total"] == len(records)

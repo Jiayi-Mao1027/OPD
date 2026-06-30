@@ -224,6 +224,16 @@ Next-stage pairwise plan:
 - repair `fork_state` and `scope_contract` before full QLoRA;
 - re-score Qwen3-8B 4-bit base on pairwise v0.1 before training adapters.
 
+Current pairwise v0.1 base result:
+
+- dataset: `data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl`;
+- report: `reports/pairwise_v0_1_dev_base_eval.md`;
+- winner accuracy: `0.7500` over `28` pairs;
+- fork-state accuracy: `0/3`;
+- scope-contract accuracy: `11/13`;
+- missing/parse failures: `0/0`;
+- peak allocated CUDA memory: about `7217 MB`.
+
 ## Proxy And GitHub
 
 The server uses `mihomo` with local ports:

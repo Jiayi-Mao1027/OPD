@@ -285,3 +285,12 @@ Next pairwise stage:
 - Follow `docs/pairwise_v0_1_plan.md`.
 - Do not run full pairwise QLoRA before v0.1 fork-state and scope-contract
   fields are inspectable and the Qwen3-8B 4-bit base has been re-scored.
+
+Pairwise v0.1 base result:
+
+- data: `data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl`;
+- report: `reports/pairwise_v0_1_dev_base_eval.md`;
+- Qwen3-8B 4-bit base winner accuracy: `0.7500`;
+- fork-state accuracy: `0/3`;
+- scope-contract accuracy: `11/13`;
+- peak allocated CUDA memory: about `7217 MB`.

@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from reconcile_opsd.pairwise_data import build_pairwise_records, prompt_hashes
+from reconcile_opsd.pairwise_data import build_pairwise_records, pairwise_manifest, prompt_hashes
 from reconcile_opsd.schema import ACTION_MODES, load_jsonl
 
 
@@ -116,3 +116,68 @@ def test_pairwise_cli_writes_manifest(tmp_path: Path):
     assert payload["forbidden_source_id_overlap"] == []
     assert payload["forbidden_prompt_hash_overlap"] == []
     assert payload["total_pairs"] == len(output.read_text(encoding="utf-8").splitlines())
+
+
+def test_pairwise_v0_1_records_include_hard_axis_and_gold_judgment(tmp_path: Path):
+    enriched = tmp_path / "train_v0_1.jsonl"
+    enrich_result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/enrich_reconcilebench_v0_1.py",
+            "--dataset",
+            "data/splits/reconcilebench_v0_train.jsonl",
+            "--output",
+            str(enriched),
+        ],
+        env=script_env(),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    assert enrich_result.returncode == 0
+    examples = load_jsonl(enriched)
+    records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=2, seed=7, builder_version="pairwise_v0_1")
+
+    assert records
+    assert "lost_fork_state" in {record["delta_tag"] for record in records}
+    assert "wrong_scope" in {record["delta_tag"] for record in records}
+    for record in records:
+        assert record["builder_version"] == "pairwise_v0_1"
+        assert record["hard_axis"]
+        assert record["gold_judgment"]["primary_action"] != "continue_reasoning"
+        assert record["candidate_a"]["decision_card"]["primary_action"] != "continue_reasoning"
+        assert record["candidate_b"]["decision_card"]["primary_action"] != "continue_reasoning"
+        assert record["candidate_a"]["response_sketch"]
+        assert record["candidate_b"]["response_sketch"]
+    lost_fork = [record for record in records if record["delta_tag"] == "lost_fork_state"]
+    assert lost_fork
+    for record in lost_fork:
+        assert record["hard_axis"] == "fork_state"
+    wrong_scope = [record for record in records if record["delta_tag"] == "wrong_scope"]
+    assert wrong_scope
+    assert all(record["scope_error_direction"] != "none" for record in wrong_scope)
+
+
+def test_pairwise_v0_1_manifest_counts(tmp_path: Path):
+    enriched = tmp_path / "train_v0_1.jsonl"
+    subprocess.run(
+        [
+            sys.executable,
+            "scripts/enrich_reconcilebench_v0_1.py",
+            "--dataset",
+            "data/splits/reconcilebench_v0_train.jsonl",
+            "--output",
+            str(enriched),
+        ],
+        env=script_env(),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    )
+    records = build_pairwise_records(load_jsonl(enriched), split_name="train", max_pairs_per_example=1, seed=8, builder_version="pairwise_v0_1")
+    manifest = pairwise_manifest(records, str(enriched), set())
+
+    assert manifest["builder_versions"] == ["pairwise_v0_1"]
+    assert manifest["hard_axis_counts"]
+    assert manifest["scope_error_direction_counts"]

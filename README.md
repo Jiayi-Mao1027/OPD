@@ -318,3 +318,7 @@ weak categories are `continue_reasoning` / `lost_fork_state` at `0.0000` and
 Next-stage pairwise plan: `docs/pairwise_v0_1_plan.md`. Do not run full
 pairwise QLoRA before fork-state and scope-contract fields are inspectable and
 the Qwen3-8B 4-bit base has been re-scored on v0.1.
+
+Current pairwise v0.1 draft: train `76` pairs, dev `28` pairs, both audit-clean.
+Qwen3-8B 4-bit base gets winner accuracy `0.7500` on v0.1 dev, with fork-state
+accuracy `0.0000` (`0/3`) and scope-contract accuracy `0.8462` (`11/13`).

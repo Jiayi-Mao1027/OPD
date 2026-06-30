@@ -24,6 +24,7 @@ def main() -> None:
     parser.add_argument("--split-name", default="train")
     parser.add_argument("--max-pairs-per-example", type=int, default=2)
     parser.add_argument("--seed", type=int, default=20260630)
+    parser.add_argument("--builder-version", choices=["pairwise_v0", "pairwise_v0_1"], default="pairwise_v0")
     parser.add_argument("--score-file", default="", help="Optional constrained-score JSONL for choosing hard confusers.")
     parser.add_argument(
         "--forbid-source-dataset",
@@ -55,6 +56,7 @@ def main() -> None:
         max_pairs_per_example=args.max_pairs_per_example,
         seed=args.seed,
         score_rows=score_rows,
+        builder_version=args.builder_version,
     )
     write_pairwise_jsonl(records, args.output)
     manifest = pairwise_manifest(records, args.dataset, forbidden_ids)
@@ -63,6 +65,7 @@ def main() -> None:
             "split_name": args.split_name,
             "max_pairs_per_example": args.max_pairs_per_example,
             "seed": args.seed,
+            "builder_version": args.builder_version,
             "score_file": args.score_file or None,
             "forbid_source_datasets": args.forbid_source_dataset,
             "forbidden_prompt_hash_overlap": sorted({record["prompt_hash"] for record in records} & forbidden_prompt_hashes),

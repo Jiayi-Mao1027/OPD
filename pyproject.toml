@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Reconcile-OPSD research scaffold for fork-preserving judgment-delta distillation."
 requires-python = ">=3.11"
 dependencies = [
+  "accelerate",
+  "bitsandbytes",
   "datasets",
+  "peft",
   "transformers",
   "torch",
 ]
@@ -12,4 +15,3 @@ dependencies = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-

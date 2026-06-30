@@ -61,20 +61,26 @@ def render_markdown(dataset: str, run_results: list[dict[str, Any]]) -> str:
         "",
         "## Summary",
         "",
-        "| run | total | missing | winner acc | avg winner margin |",
-        "| --- | ---: | ---: | ---: | ---: |",
+        "| run | total | missing | parse fail | winner acc | fork acc | scope acc | avg winner margin |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for run in run_results:
         metrics = run["metrics"]
         lines.append(
-            f"| {run['name']} | {metrics['total']} | {metrics['missing_scores']} | {format_metric(metrics['winner_accuracy'])} | {format_metric(metrics['average_winner_margin'])} |"
+            f"| {run['name']} | {metrics['total']} | {metrics['missing_scores']} | {metrics['parse_failures']} | {format_metric(metrics['winner_accuracy'])} | {format_metric(metrics['fork_preservation_accuracy'])} | {format_metric(metrics['scope_contract_accuracy'])} | {format_metric(metrics['average_winner_margin'])} |"
         )
     for run in run_results:
         metrics = run["metrics"]
         lines.extend(["", f"## {run['name']}", "", f"Source: `{run['path']}`", "", "### By Delta Tag", ""])
         lines.extend(render_group_table(metrics["by_delta_tag"]))
+        lines.extend(["", "### By Hard Axis", ""])
+        lines.extend(render_group_table(metrics["by_hard_axis"]))
+        lines.extend(["", "### By Scope Error Direction", ""])
+        lines.extend(render_group_table(metrics["by_scope_error_direction"]))
         lines.extend(["", "### By Gold Action Mode", ""])
         lines.extend(render_group_table(metrics["by_gold_action_mode"]))
+        lines.extend(["", "### By Source Id", ""])
+        lines.extend(render_group_table(metrics["by_source_id"]))
         lines.extend(["", "### Confusion Matrix", "", "```json", json.dumps(metrics["confusion_matrix"], ensure_ascii=False, indent=2), "```"])
     lines.append("")
     return "\n".join(lines)
@@ -105,8 +111,11 @@ def write_errors(path: Path, rows: list[dict[str, Any]]) -> None:
         "predicted_winner",
         "winner_margin",
         "gold_action_mode",
+        "primary_action",
         "negative_action",
         "delta_tag",
+        "hard_axis",
+        "scope_error_direction",
     ]
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=columns)

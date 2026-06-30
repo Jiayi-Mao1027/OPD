@@ -48,11 +48,15 @@ def evaluate_pairwise_scores(
     total = len(records)
     correct = 0
     missing = 0
+    parse_failures = 0
     margins: list[float] = []
     confusion: dict[str, Counter[str]] = defaultdict(Counter)
     delta_stats: dict[str, Counter[str]] = defaultdict(Counter)
     gold_action_stats: dict[str, Counter[str]] = defaultdict(Counter)
     source_split_stats: dict[str, Counter[str]] = defaultdict(Counter)
+    source_id_stats: dict[str, Counter[str]] = defaultdict(Counter)
+    hard_axis_stats: dict[str, Counter[str]] = defaultdict(Counter)
+    scope_error_direction_stats: dict[str, Counter[str]] = defaultdict(Counter)
     errors: list[dict[str, Any]] = []
 
     for record in records:
@@ -68,6 +72,8 @@ def evaluate_pairwise_scores(
             if predicted is None:
                 predicted = winner_from_scores(row.get("scores", {}))
             margin = winner_margin(row.get("scores", {}), expected)
+        if predicted == "invalid":
+            parse_failures += 1
 
         is_correct = predicted == expected
         if is_correct:
@@ -81,16 +87,26 @@ def evaluate_pairwise_scores(
         add_group_stat(delta_stats[record["delta_tag"]], is_correct)
         add_group_stat(gold_action_stats[record.get("gold_action_mode", record.get("gold_action", ""))], is_correct)
         add_group_stat(source_split_stats[record["source_split"]], is_correct)
+        add_group_stat(source_id_stats[record["source_id"]], is_correct)
+        add_group_stat(hard_axis_stats[record_hard_axis(record)], is_correct)
+        add_group_stat(scope_error_direction_stats[record_scope_error_direction(record)], is_correct)
 
+    by_hard_axis = grouped_accuracy(hard_axis_stats)
     return {
         "total": total,
         "missing_scores": missing,
+        "parse_failures": parse_failures,
         "winner_accuracy": correct / total if total else 0.0,
         "average_winner_margin": mean(margins) if margins else None,
         "confusion_matrix": {gold: dict(preds) for gold, preds in sorted(confusion.items())},
         "by_delta_tag": grouped_accuracy(delta_stats),
         "by_gold_action_mode": grouped_accuracy(gold_action_stats),
         "by_source_split": grouped_accuracy(source_split_stats),
+        "by_source_id": grouped_accuracy(source_id_stats),
+        "by_hard_axis": by_hard_axis,
+        "by_scope_error_direction": grouped_accuracy(scope_error_direction_stats),
+        "fork_preservation_accuracy": group_accuracy_value(by_hard_axis.get("fork_state")),
+        "scope_contract_accuracy": group_accuracy_value(by_hard_axis.get("scope_contract")),
         "errors": errors,
     }
 
@@ -152,6 +168,37 @@ def grouped_accuracy(groups: dict[str, Counter[str]]) -> dict[str, dict[str, flo
     return result
 
 
+def group_accuracy_value(group: dict[str, float | int] | None) -> float | None:
+    if not group:
+        return None
+    value = group.get("accuracy")
+    return float(value) if isinstance(value, (int, float)) else None
+
+
+def record_hard_axis(record: dict[str, Any]) -> str:
+    value = record.get("hard_axis")
+    if isinstance(value, str) and value:
+        return value
+    delta = record.get("delta_tag")
+    if delta == "lost_fork_state":
+        return "fork_state"
+    if delta == "wrong_scope":
+        return "scope_contract"
+    return "other"
+
+
+def record_scope_error_direction(record: dict[str, Any]) -> str:
+    value = record.get("scope_error_direction")
+    if isinstance(value, str) and value:
+        return value
+    judgment = record.get("gold_judgment")
+    if isinstance(judgment, dict):
+        value = judgment.get("scope_error_direction")
+        if isinstance(value, str) and value:
+            return value
+    return "none"
+
+
 def error_row(record: dict[str, Any], predicted: str | None, margin: float | None) -> dict[str, Any]:
     return {
         "pair_id": record["pair_id"],
@@ -161,6 +208,9 @@ def error_row(record: dict[str, Any], predicted: str | None, margin: float | Non
         "predicted_winner": predicted or "invalid",
         "winner_margin": margin,
         "gold_action_mode": record.get("gold_action_mode", record.get("gold_action", "")),
+        "primary_action": record.get("primary_action", record.get("gold_action_mode", record.get("gold_action", ""))),
         "negative_action": record.get("negative_action", ""),
         "delta_tag": record["delta_tag"],
+        "hard_axis": record_hard_axis(record),
+        "scope_error_direction": record_scope_error_direction(record),
     }
