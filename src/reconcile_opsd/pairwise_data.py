@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import random
@@ -462,6 +463,66 @@ def write_pairwise_jsonl(records: list[dict[str, Any]], path: str | Path) -> Non
             handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
 
 
+def build_position_balanced_records(
+    records: list[dict[str, Any]],
+    *,
+    include_original: bool = True,
+    include_swapped: bool = True,
+) -> list[dict[str, Any]]:
+    if not include_original and not include_swapped:
+        raise ValueError("At least one of include_original/include_swapped must be true")
+
+    balanced: list[dict[str, Any]] = []
+    for record in records:
+        if include_original:
+            original = copy.deepcopy(record)
+            original["parent_pair_id"] = record.get("parent_pair_id", record["pair_id"])
+            original["position_variant"] = "original"
+            original["gold_position"] = record["winner"]
+            balanced.append(original)
+        if include_swapped:
+            balanced.append(swapped_pairwise_record(record))
+    return balanced
+
+
+def swapped_pairwise_record(record: dict[str, Any]) -> dict[str, Any]:
+    swapped = copy.deepcopy(record)
+    original_pair_id = record["pair_id"]
+    flipped = flip_winner(record["winner"])
+    swapped["pair_id"] = f"{original_pair_id}__swapped"
+    swapped["id"] = swapped["pair_id"]
+    swapped["parent_pair_id"] = record.get("parent_pair_id", original_pair_id)
+    swapped["position_variant"] = "swapped"
+    swapped["gold_position"] = flipped
+    swapped["candidate_a"] = copy.deepcopy(record["candidate_b"])
+    swapped["candidate_b"] = copy.deepcopy(record["candidate_a"])
+    swapped["winner"] = flipped
+    target_object = swapped.get("target_object")
+    if isinstance(target_object, dict):
+        target_object["winner"] = flipped
+    gold_judgment = swapped.get("gold_judgment")
+    if isinstance(gold_judgment, dict):
+        gold_judgment["winner"] = flipped
+    swapped["input"] = render_pairwise_input(swapped["prompt"], swapped["candidate_a"], swapped["candidate_b"])
+    swapped["target"] = render_pairwise_target(
+        flipped,
+        swapped["delta_tag"],
+        swapped.get("gold_action_mode", swapped.get("gold_action", "")),
+        hard_axis=swapped.get("hard_axis"),
+        scope_error_direction=swapped.get("scope_error_direction"),
+        required_granularity=gold_judgment.get("required_granularity") if isinstance(gold_judgment, dict) else None,
+    )
+    return swapped
+
+
+def flip_winner(winner: str) -> str:
+    if winner == "A":
+        return "B"
+    if winner == "B":
+        return "A"
+    raise ValueError(f"winner must be A or B, got {winner!r}")
+
+
 def pairwise_manifest(records: list[dict[str, Any]], dataset_path: str, forbidden_source_ids: set[str]) -> dict[str, Any]:
     delta_counts: dict[str, int] = {}
     expanded_delta_counts: dict[str, int] = {}
@@ -469,7 +530,13 @@ def pairwise_manifest(records: list[dict[str, Any]], dataset_path: str, forbidde
     negative_counts: dict[str, int] = {}
     hard_axis_counts: dict[str, int] = {}
     scope_error_direction_counts: dict[str, int] = {}
+    winner_counts: dict[str, int] = {}
+    position_variant_counts: dict[str, int] = {}
     for record in records:
+        winner_counts[record["winner"]] = winner_counts.get(record["winner"], 0) + 1
+        variant = record.get("position_variant")
+        if isinstance(variant, str) and variant:
+            position_variant_counts[variant] = position_variant_counts.get(variant, 0) + 1
         delta_counts[record["delta_tag"]] = delta_counts.get(record["delta_tag"], 0) + 1
         for tag in record["delta_tags"]:
             expanded_delta_counts[tag] = expanded_delta_counts.get(tag, 0) + 1
@@ -491,6 +558,8 @@ def pairwise_manifest(records: list[dict[str, Any]], dataset_path: str, forbidde
         "expanded_delta_tag_counts": dict(sorted(expanded_delta_counts.items())),
         "gold_action_counts": dict(sorted(gold_counts.items())),
         "negative_action_counts": dict(sorted(negative_counts.items())),
+        "winner_counts": dict(sorted(winner_counts.items())),
+        "position_variant_counts": dict(sorted(position_variant_counts.items())),
         "hard_axis_counts": dict(sorted(hard_axis_counts.items())),
         "scope_error_direction_counts": dict(sorted(scope_error_direction_counts.items())),
         "forbidden_source_id_overlap": leaked,

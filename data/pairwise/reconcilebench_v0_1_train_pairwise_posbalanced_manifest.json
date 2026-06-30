@@ -1,0 +1,76 @@
+{
+  "builder_versions": [
+    "pairwise_v0_1"
+  ],
+  "dataset": "data\\pairwise\\reconcilebench_v0_1_train_pairwise.jsonl",
+  "delta_tag_counts": {
+    "lost_fork_state": 22,
+    "missing_clarification": 24,
+    "over_refusal": 2,
+    "under_refusal": 20,
+    "unnecessary_clarification": 8,
+    "wrong_granularity": 10,
+    "wrong_scope": 66
+  },
+  "expanded_delta_tag_counts": {
+    "authorization_boundary": 24,
+    "context_drift_guard": 16,
+    "evidence_calibration": 28,
+    "hard_refusal_boundary": 20,
+    "lost_fork_state": 22,
+    "missing_clarification": 24,
+    "over_refusal": 2,
+    "partial_allowed_split": 36,
+    "professional_boundary": 12,
+    "safe_high_level_boundary": 20,
+    "safe_redirect_boundary": 32,
+    "under_refusal": 20,
+    "unnecessary_clarification": 8,
+    "wrong_granularity": 10,
+    "wrong_scope": 66
+  },
+  "forbidden_source_id_overlap": [],
+  "gold_action_counts": {
+    "ask_clarification": 24,
+    "direct_answer": 20,
+    "partial_allowed": 36,
+    "refuse": 20,
+    "safe_high_level": 20,
+    "safe_redirect": 32
+  },
+  "hard_axis_counts": {
+    "clarification": 32,
+    "fork_state": 22,
+    "granularity": 10,
+    "refusal_boundary": 22,
+    "scope_contract": 66
+  },
+  "input": "data\\pairwise\\reconcilebench_v0_1_train_pairwise.jsonl",
+  "mode": "both",
+  "negative_action_counts": {
+    "ask_clarification": 8,
+    "direct_answer": 66,
+    "refuse": 30,
+    "safe_high_level": 26,
+    "safe_redirect": 22
+  },
+  "output": "data\\pairwise\\reconcilebench_v0_1_train_pairwise_posbalanced.jsonl",
+  "output_pair_count": 152,
+  "position_variant_counts": {
+    "original": 76,
+    "swapped": 76
+  },
+  "scope_error_direction_counts": {
+    "none": 86,
+    "too_narrow": 20,
+    "unsafe_specificity": 30,
+    "wrong_object": 16
+  },
+  "source_examples": 38,
+  "source_pair_count": 76,
+  "total_pairs": 152,
+  "winner_counts": {
+    "A": 76,
+    "B": 76
+  }
+}

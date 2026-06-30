@@ -61,13 +61,13 @@ def render_markdown(dataset: str, run_results: list[dict[str, Any]]) -> str:
         "",
         "## Summary",
         "",
-        "| run | total | missing | parse fail | winner acc | fork acc | scope acc | avg winner margin |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| run | total | missing | parse fail | winner acc | fork acc | scope acc | pred A | pred B | A recall | B recall | swap consistency | bias gate | avg winner margin |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |",
     ]
     for run in run_results:
         metrics = run["metrics"]
         lines.append(
-            f"| {run['name']} | {metrics['total']} | {metrics['missing_scores']} | {metrics['parse_failures']} | {format_metric(metrics['winner_accuracy'])} | {format_metric(metrics['fork_preservation_accuracy'])} | {format_metric(metrics['scope_contract_accuracy'])} | {format_metric(metrics['average_winner_margin'])} |"
+            f"| {run['name']} | {metrics['total']} | {metrics['missing_scores']} | {metrics['parse_failures']} | {format_metric(metrics['winner_accuracy'])} | {format_metric(metrics['fork_preservation_accuracy'])} | {format_metric(metrics['scope_contract_accuracy'])} | {format_metric(metrics['pred_A_rate'])} | {format_metric(metrics['pred_B_rate'])} | {format_metric(metrics['A_recall'])} | {format_metric(metrics['B_recall'])} | {format_metric(metrics['swap_consistency'])} | {metrics['position_bias_gate']['status']} | {format_metric(metrics['average_winner_margin'])} |"
         )
     for run in run_results:
         metrics = run["metrics"]

@@ -1,0 +1,15 @@
+{
+  "name": "qwen3_8b_v0_1_r128_posbalanced_compact_lr1e5_s24",
+  "model": "/data/LLM/Qwen3-8B",
+  "dataset": "data/pairwise/reconcilebench_v0_1_train_pairwise_posbalanced.jsonl",
+  "target_style": "compact_structured_judgment",
+  "max_length": 1536,
+  "max_steps": 24,
+  "batch_size": 1,
+  "gradient_accumulation_steps": 8,
+  "learning_rate": 1e-5,
+  "lora_r": 128,
+  "lora_alpha": 256,
+  "load_in_4bit": false,
+  "notes": "Official next sanity run: rank-128 LoRA only, no QLoRA, memory controlled by batch/grad_accum/max_length."
+}

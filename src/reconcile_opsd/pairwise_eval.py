@@ -57,21 +57,20 @@ def evaluate_pairwise_scores(
     source_id_stats: dict[str, Counter[str]] = defaultdict(Counter)
     hard_axis_stats: dict[str, Counter[str]] = defaultdict(Counter)
     scope_error_direction_stats: dict[str, Counter[str]] = defaultdict(Counter)
+    gold_winner_counts: Counter[str] = Counter()
+    predicted_winner_counts: Counter[str] = Counter()
     errors: list[dict[str, Any]] = []
 
     for record in records:
         pair_id = record["pair_id"]
         expected = record["winner"]
         row = score_rows.get(pair_id)
-        if row is None:
+        predicted = predicted_from_score_row(row)
+        if predicted == "missing":
             missing += 1
-            predicted = "missing"
             margin = None
         else:
-            predicted = normalize_winner(row.get("predicted_winner"))
-            if predicted is None:
-                predicted = winner_from_scores(row.get("scores", {}))
-            margin = winner_margin(row.get("scores", {}), expected)
+            margin = winner_margin(row.get("scores", {}) if row else {}, expected)
         if predicted == "invalid":
             parse_failures += 1
 
@@ -84,6 +83,8 @@ def evaluate_pairwise_scores(
             margins.append(float(margin))
 
         confusion[expected][predicted or "invalid"] += 1
+        gold_winner_counts[expected] += 1
+        predicted_winner_counts[predicted or "invalid"] += 1
         add_group_stat(delta_stats[record["delta_tag"]], is_correct)
         add_group_stat(gold_action_stats[record.get("gold_action_mode", record.get("gold_action", ""))], is_correct)
         add_group_stat(source_split_stats[record["source_split"]], is_correct)
@@ -92,6 +93,10 @@ def evaluate_pairwise_scores(
         add_group_stat(scope_error_direction_stats[record_scope_error_direction(record)], is_correct)
 
     by_hard_axis = grouped_accuracy(hard_axis_stats)
+    pred_a_rate = predicted_winner_counts["A"] / total if total else 0.0
+    pred_b_rate = predicted_winner_counts["B"] / total if total else 0.0
+    swap_consistency = compute_swap_consistency(records, score_rows)
+    position_bias_flag = pred_a_rate > 0.75 or pred_b_rate > 0.75 or (swap_consistency is not None and swap_consistency < 0.70)
     return {
         "total": total,
         "missing_scores": missing,
@@ -99,6 +104,21 @@ def evaluate_pairwise_scores(
         "winner_accuracy": correct / total if total else 0.0,
         "average_winner_margin": mean(margins) if margins else None,
         "confusion_matrix": {gold: dict(preds) for gold, preds in sorted(confusion.items())},
+        "gold_winner_counts": dict(sorted(gold_winner_counts.items())),
+        "predicted_winner_counts": dict(sorted(predicted_winner_counts.items())),
+        "gold_A_rate": gold_winner_counts["A"] / total if total else 0.0,
+        "gold_B_rate": gold_winner_counts["B"] / total if total else 0.0,
+        "pred_A_rate": pred_a_rate,
+        "pred_B_rate": pred_b_rate,
+        "A_recall": confusion["A"]["A"] / gold_winner_counts["A"] if gold_winner_counts["A"] else None,
+        "B_recall": confusion["B"]["B"] / gold_winner_counts["B"] if gold_winner_counts["B"] else None,
+        "swap_consistency": swap_consistency,
+        "position_bias_flag": position_bias_flag,
+        "position_bias_gate": {
+            "pred_rate_threshold": 0.75,
+            "swap_consistency_threshold": 0.70,
+            "status": "fail" if position_bias_flag else "pass",
+        },
         "by_delta_tag": grouped_accuracy(delta_stats),
         "by_gold_action_mode": grouped_accuracy(gold_action_stats),
         "by_source_split": grouped_accuracy(source_split_stats),
@@ -109,6 +129,39 @@ def evaluate_pairwise_scores(
         "scope_contract_accuracy": group_accuracy_value(by_hard_axis.get("scope_contract")),
         "errors": errors,
     }
+
+
+def predicted_from_score_row(row: dict[str, Any] | None) -> str:
+    if row is None:
+        return "missing"
+    predicted = normalize_winner(row.get("predicted_winner"))
+    if predicted is None:
+        predicted = winner_from_scores(row.get("scores", {}))
+    return predicted or "invalid"
+
+
+def compute_swap_consistency(records: list[dict[str, Any]], score_rows: dict[str, dict[str, Any]]) -> float | None:
+    grouped: dict[str, dict[str, str]] = defaultdict(dict)
+    for record in records:
+        parent_pair_id = record.get("parent_pair_id")
+        variant = record.get("position_variant")
+        if not isinstance(parent_pair_id, str) or not isinstance(variant, str):
+            continue
+        predicted = predicted_from_score_row(score_rows.get(record["pair_id"]))
+        if predicted not in {"A", "B"}:
+            continue
+        grouped[parent_pair_id][variant] = predicted
+
+    comparable = 0
+    consistent = 0
+    for variants in grouped.values():
+        original = variants.get("original")
+        swapped = variants.get("swapped")
+        if original in {"A", "B"} and swapped in {"A", "B"}:
+            comparable += 1
+            if original != swapped:
+                consistent += 1
+    return consistent / comparable if comparable else None
 
 
 def normalize_winner(value: object) -> str | None:

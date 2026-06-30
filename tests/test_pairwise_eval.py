@@ -166,6 +166,31 @@ def test_evaluate_pairwise_scores_reports_hard_axis_metrics():
     assert result["by_source_id"]
 
 
+def test_evaluate_pairwise_scores_reports_position_bias_and_swap_consistency():
+    examples = load_jsonl("data/splits/reconcilebench_v0_1_train.jsonl")[:1]
+    records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=13, builder_version="pairwise_v0_1")
+    from reconcile_opsd.pairwise_data import build_position_balanced_records
+
+    balanced = build_position_balanced_records(records)
+    score_rows = {}
+    for record in balanced:
+        score_rows[record["pair_id"]] = {
+            "predicted_winner": "A",
+            "scores": {
+                "A": {"avg_logprob": -0.1},
+                "B": {"avg_logprob": -0.5},
+            },
+        }
+
+    result = evaluate_pairwise_scores(balanced, score_rows)
+
+    assert result["pred_A_rate"] == 1.0
+    assert result["pred_B_rate"] == 0.0
+    assert result["swap_consistency"] == 0.0
+    assert result["position_bias_flag"] is True
+    assert result["position_bias_gate"]["status"] == "fail"
+
+
 def test_pairwise_data_audit_cli_writes_outputs(tmp_path: Path):
     examples = load_jsonl("data/splits/reconcilebench_v0_train.jsonl")[:2]
     records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=10)

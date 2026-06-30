@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from reconcile_opsd.pairwise_data import build_pairwise_records, pairwise_manifest, prompt_hashes
+from reconcile_opsd.pairwise_data import build_pairwise_records, build_position_balanced_records, pairwise_manifest, prompt_hashes
 from reconcile_opsd.schema import ACTION_MODES, load_jsonl
 
 
@@ -181,3 +181,55 @@ def test_pairwise_v0_1_manifest_counts(tmp_path: Path):
     assert manifest["builder_versions"] == ["pairwise_v0_1"]
     assert manifest["hard_axis_counts"]
     assert manifest["scope_error_direction_counts"]
+    assert manifest["winner_counts"]
+
+
+def test_position_balanced_records_swap_candidates_and_targets():
+    examples = load_jsonl("data/splits/reconcilebench_v0_1_train.jsonl")[:1]
+    records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=11, builder_version="pairwise_v0_1")
+
+    balanced = build_position_balanced_records(records)
+
+    assert len(balanced) == 2
+    original, swapped = balanced
+    assert original["position_variant"] == "original"
+    assert swapped["position_variant"] == "swapped"
+    assert swapped["parent_pair_id"] == original["pair_id"]
+    assert swapped["pair_id"] == f"{original['pair_id']}__swapped"
+    assert swapped["winner"] != original["winner"]
+    assert swapped["candidate_a"] == original["candidate_b"]
+    assert swapped["candidate_b"] == original["candidate_a"]
+    assert swapped["gold_judgment"]["winner"] == swapped["winner"]
+    assert swapped["target_object"]["winner"] == swapped["winner"]
+    assert f"WINNER: {swapped['winner']}" in swapped["target"]
+
+
+def test_position_balanced_cli_writes_manifest(tmp_path: Path):
+    examples = load_jsonl("data/splits/reconcilebench_v0_1_train.jsonl")[:2]
+    records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=12, builder_version="pairwise_v0_1")
+    source = tmp_path / "pairs.jsonl"
+    output = tmp_path / "balanced.jsonl"
+    manifest = tmp_path / "manifest.json"
+    source.write_text("\n".join(json.dumps(record, ensure_ascii=False) for record in records) + "\n", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/build_position_balanced_pairwise.py",
+            "--input",
+            str(source),
+            "--output",
+            str(output),
+            "--manifest-output",
+            str(manifest),
+        ],
+        env=script_env(),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    assert result.returncode == 0
+    assert len(output.read_text(encoding="utf-8").splitlines()) == len(records) * 2
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    assert payload["position_variant_counts"] == {"original": len(records), "swapped": len(records)}
