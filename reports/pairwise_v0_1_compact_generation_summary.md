@@ -3,8 +3,8 @@
 Date: 2026-07-01
 
 This report checks whether the high `compact_structured_judgment` logprob
-alignment scores transfer to actual greedy compact-target generation. They do
-not.
+alignment scores transfer to actual greedy compact-target generation under the
+current winner and position-consistency gates. They do not.
 
 The generation path asks the model to emit the compact target format directly
 and then parses the generated text into `WINNER`, `GOLD_ACTION`, `HARD_AXIS`,
@@ -65,7 +65,8 @@ Current rank-128 LoRA result is negative under generation:
 - Neither adapter beats the full BF16 base on winner accuracy.
 - Neither adapter beats the full BF16 base on position-balanced swap
   consistency.
-- Neither adapter produces any exact full compact target matches.
+- Neither adapter produces any exact full compact target matches under the
+  current strict all-field metric.
 - `r128_lr1e5_gen` learns more non-winner compact fields, but regresses winner
   accuracy, scope-contract accuracy, and side balance.
 - `r128_lr3e6_len1024_gen` is the less-bad adapter candidate because it avoids
@@ -74,11 +75,23 @@ Current rank-128 LoRA result is negative under generation:
 
 This should be treated as a calibration result, not a positive method result.
 
+Follow-up mismatch analysis is in
+`reports/pairwise_v0_1_compact_generation_mismatch_analysis.md`.
+
+That analysis shows `full target match = 0.0000` is too strict to use as a
+standalone behavioral metric. It is still a useful schema diagnostic:
+
+- full base and `r128_lr3e6_len1024` mostly generate only `WINNER` plus a
+  `DELTA_TAG` value that often looks like an action label;
+- `r128_lr1e5` emits nearly all compact fields, but `HARD_AXIS`,
+  `DELTA_TAG`, and `SCOPE_ERROR_DIRECTION` are schema-confused;
+- the next fix should target prompt/label ontology and target design, not more
+  training steps on the same compact target.
+
 ## Next Actions
 
-1. Inspect generated compact text for the rank-128 adapters to see whether
-   field labels, field order, or prompt/template mismatch explains the zero
-   full-target match.
+1. Redesign the compact target/prompt so the label ontology is explicit and the
+   model is not asked to infer arbitrary gold metadata fields without support.
 2. Keep `winner_only` and position-balanced swap consistency as the primary
    gate. Do not promote compactscore or compact field accuracy to the main
    safety metric.

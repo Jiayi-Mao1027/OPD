@@ -354,14 +354,18 @@ Current position-balanced compact reports:
 - `reports/pairwise_v0_1_r128_posbalanced_compact_summary.md`;
 - `reports/pairwise_v0_1_compactscore_alignment_summary.md`;
 - `reports/pairwise_v0_1_compact_generation_summary.md`;
+- `reports/pairwise_v0_1_compact_generation_mismatch_analysis.md`;
 - winner-only scoring: adapters improve fork-state and avoid simple side
   collapse, but still fail the position-balanced swap-consistency gate;
 - compact structured scoring: adapters reach 100% label-conditioned
   target-aligned dev scores, which confirms target learning but remains an
   optimistic diagnostic;
-- greedy compact generation: adapters do not beat the full BF16 base and all
-  runs have `0.0000` full compact-target match, so the current rank-128 compact
-  LoRA result is not a positive method result.
+- greedy compact generation: adapters do not beat the full BF16 base, so the
+  current rank-128 compact LoRA result is not a positive method result;
+- mismatch analysis: strict full-target match is too harsh as a standalone
+  behavioral metric, but it reveals the current compact target/prompt causes
+  field omission and schema confusion. Redesign label ontology before more
+  training steps on this target.
 
 Compact generation check:
 
@@ -384,3 +388,15 @@ python scripts/evaluate_pairwise_scores.py \
 ```
 
 Official first-stage compact generation checks must omit `--load-in-4bit`.
+
+Compact generation mismatch analysis:
+
+```bash
+python scripts/analyze_compact_generation_mismatches.py \
+  --generation full_base_pos=outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_fullbase_compact_gen.jsonl \
+  --generation r128_lr1e5_pos=outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_posbalanced_compact_lr1e5_s24_compact_gen.jsonl \
+  --generation r128_lr3e6_len1024_pos=outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_posbalanced_compact_lr3e6_s24_len1024_compact_gen.jsonl \
+  --output-md reports/pairwise_v0_1_compact_generation_mismatch_analysis.md \
+  --output-json reports/pairwise_v0_1_compact_generation_mismatch_analysis.json \
+  --output-csv reports/pairwise_v0_1_compact_generation_mismatch_samples.csv
+```

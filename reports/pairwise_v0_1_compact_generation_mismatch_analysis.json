@@ -1,0 +1,2247 @@
+[
+  {
+    "name": "full_base_orig",
+    "total": 28,
+    "winner_correct": 23,
+    "winner_accuracy": 0.8214285714285714,
+    "parse_failures": 0,
+    "parse_failure_rate": 0.0,
+    "avg_present_fields": 2.0,
+    "all_expected_present": 0,
+    "all_expected_present_rate": 0.0,
+    "full_matches": 0,
+    "full_match_rate": 0.0,
+    "missing_fields": [
+      {
+        "key": "GOLD_ACTION",
+        "count": 28
+      },
+      {
+        "key": "HARD_AXIS",
+        "count": 28
+      },
+      {
+        "key": "SCOPE_ERROR_DIRECTION",
+        "count": 28
+      },
+      {
+        "key": "REQUIRED_GRANULARITY",
+        "count": 28
+      },
+      {
+        "key": "FORK_POLICY",
+        "count": 28
+      }
+    ],
+    "wrong_fields": [
+      {
+        "key": "DELTA_TAG",
+        "count": 28
+      },
+      {
+        "key": "WINNER",
+        "count": 5
+      }
+    ],
+    "field_stats": {
+      "WINNER": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 23,
+        "present_rate": 1.0,
+        "accuracy": 0.8214285714285714,
+        "top_parsed_values": [
+          [
+            "A",
+            16
+          ],
+          [
+            "B",
+            12
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "A",
+              "B"
+            ],
+            3
+          ],
+          [
+            [
+              "B",
+              "A"
+            ],
+            2
+          ]
+        ]
+      },
+      "GOLD_ACTION": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "HARD_AXIS": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "DELTA_TAG": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 0,
+        "present_rate": 1.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [
+          [
+            "SAFE_HIGH_LEVEL",
+            2
+          ],
+          [
+            "ACTION_MODE",
+            2
+          ],
+          [
+            "direct_answer",
+            2
+          ],
+          [
+            "safe_redirect",
+            2
+          ],
+          [
+            "NEEDS_CLARIFICATION",
+            2
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "wrong_scope",
+              "SAFE_HIGH_LEVEL"
+            ],
+            2
+          ],
+          [
+            [
+              "wrong_scope",
+              "safe_redirect"
+            ],
+            2
+          ],
+          [
+            [
+              "missing_clarification",
+              "NEEDS_CLARIFICATION"
+            ],
+            2
+          ],
+          [
+            [
+              "under_refusal",
+              "DISALLOWED_SCOPE"
+            ],
+            2
+          ],
+          [
+            [
+              "wrong_scope",
+              "safety_over_direct_answer"
+            ],
+            1
+          ]
+        ]
+      },
+      "SCOPE_ERROR_DIRECTION": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "REQUIRED_GRANULARITY": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "FORK_POLICY": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      }
+    },
+    "confusions": [
+      {
+        "key": [
+          "DELTA_TAG",
+          "SAFE_HIGH_LEVEL",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 2
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "direct_answer",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 2
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "safe_redirect",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 2
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "partial_allowed",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 1
+      }
+    ],
+    "by_hard_axis": {
+      "clarification": {
+        "total": 5,
+        "winner_correct": 4,
+        "winner_accuracy": 0.8,
+        "field_accuracy": 0.11428571428571428,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "fork_state": {
+        "total": 3,
+        "winner_correct": 1,
+        "winner_accuracy": 0.3333333333333333,
+        "field_accuracy": 0.047619047619047616,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "granularity": {
+        "total": 2,
+        "winner_correct": 2,
+        "winner_accuracy": 1.0,
+        "field_accuracy": 0.14285714285714285,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "refusal_boundary": {
+        "total": 5,
+        "winner_correct": 5,
+        "winner_accuracy": 1.0,
+        "field_accuracy": 0.14285714285714285,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "scope_contract": {
+        "total": 13,
+        "winner_correct": 11,
+        "winner_accuracy": 0.8461538461538461,
+        "field_accuracy": 0.12087912087912088,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      }
+    }
+  },
+  {
+    "name": "full_base_pos",
+    "total": 56,
+    "winner_correct": 43,
+    "winner_accuracy": 0.7678571428571429,
+    "parse_failures": 0,
+    "parse_failure_rate": 0.0,
+    "avg_present_fields": 2.0,
+    "all_expected_present": 0,
+    "all_expected_present_rate": 0.0,
+    "full_matches": 0,
+    "full_match_rate": 0.0,
+    "missing_fields": [
+      {
+        "key": "GOLD_ACTION",
+        "count": 56
+      },
+      {
+        "key": "HARD_AXIS",
+        "count": 56
+      },
+      {
+        "key": "SCOPE_ERROR_DIRECTION",
+        "count": 56
+      },
+      {
+        "key": "REQUIRED_GRANULARITY",
+        "count": 56
+      },
+      {
+        "key": "FORK_POLICY",
+        "count": 56
+      }
+    ],
+    "wrong_fields": [
+      {
+        "key": "DELTA_TAG",
+        "count": 56
+      },
+      {
+        "key": "WINNER",
+        "count": 13
+      }
+    ],
+    "field_stats": {
+      "WINNER": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 43,
+        "present_rate": 1.0,
+        "accuracy": 0.7678571428571429,
+        "top_parsed_values": [
+          [
+            "A",
+            31
+          ],
+          [
+            "B",
+            25
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "B",
+              "A"
+            ],
+            8
+          ],
+          [
+            [
+              "A",
+              "B"
+            ],
+            5
+          ]
+        ]
+      },
+      "GOLD_ACTION": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "HARD_AXIS": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "DELTA_TAG": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 0,
+        "present_rate": 1.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [
+          [
+            "ACTION_MODE",
+            5
+          ],
+          [
+            "SAFE_HIGH_LEVEL",
+            3
+          ],
+          [
+            "SAFE_REDIRECT_OVER_DIRECT_ANSWER",
+            3
+          ],
+          [
+            "direct_answer",
+            3
+          ],
+          [
+            "safe_redirect",
+            3
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "wrong_scope",
+              "ACTION_MODE"
+            ],
+            3
+          ],
+          [
+            [
+              "missing_clarification",
+              "NEEDS_CLARIFICATION"
+            ],
+            3
+          ],
+          [
+            [
+              "under_refusal",
+              "DISALLOWED_SCOPE"
+            ],
+            3
+          ],
+          [
+            [
+              "wrong_scope",
+              "SAFE_HIGH_LEVEL"
+            ],
+            2
+          ],
+          [
+            [
+              "wrong_scope",
+              "SAFE_REDIRECT_OVER_DIRECT_ANSWER"
+            ],
+            2
+          ]
+        ]
+      },
+      "SCOPE_ERROR_DIRECTION": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "REQUIRED_GRANULARITY": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "FORK_POLICY": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      }
+    },
+    "confusions": [
+      {
+        "key": [
+          "DELTA_TAG",
+          "SAFE_HIGH_LEVEL",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 3
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "direct_answer",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 3
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "safe_redirect",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 3
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "partial_allowed",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 2
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "redirect_only",
+          "value_from_expected_REQUIRED_GRANULARITY"
+        ],
+        "count": 1
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "safe_high_level",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 1
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "FORK_POLICY",
+          "value_is_field_name:FORK_POLICY"
+        ],
+        "count": 1
+      }
+    ],
+    "by_hard_axis": {
+      "clarification": {
+        "total": 10,
+        "winner_correct": 6,
+        "winner_accuracy": 0.6,
+        "field_accuracy": 0.08571428571428572,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "fork_state": {
+        "total": 6,
+        "winner_correct": 4,
+        "winner_accuracy": 0.6666666666666666,
+        "field_accuracy": 0.09523809523809523,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "granularity": {
+        "total": 4,
+        "winner_correct": 3,
+        "winner_accuracy": 0.75,
+        "field_accuracy": 0.10714285714285714,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "refusal_boundary": {
+        "total": 10,
+        "winner_correct": 10,
+        "winner_accuracy": 1.0,
+        "field_accuracy": 0.14285714285714285,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "scope_contract": {
+        "total": 26,
+        "winner_correct": 20,
+        "winner_accuracy": 0.7692307692307693,
+        "field_accuracy": 0.10989010989010989,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      }
+    }
+  },
+  {
+    "name": "r128_lr1e5_orig",
+    "total": 28,
+    "winner_correct": 20,
+    "winner_accuracy": 0.7142857142857143,
+    "parse_failures": 0,
+    "parse_failure_rate": 0.0,
+    "avg_present_fields": 6.928571428571429,
+    "all_expected_present": 26,
+    "all_expected_present_rate": 0.9285714285714286,
+    "full_matches": 0,
+    "full_match_rate": 0.0,
+    "missing_fields": [
+      {
+        "key": "FORK_POLICY",
+        "count": 2
+      }
+    ],
+    "wrong_fields": [
+      {
+        "key": "HARD_AXIS",
+        "count": 28
+      },
+      {
+        "key": "DELTA_TAG",
+        "count": 28
+      },
+      {
+        "key": "SCOPE_ERROR_DIRECTION",
+        "count": 26
+      },
+      {
+        "key": "WINNER",
+        "count": 8
+      },
+      {
+        "key": "GOLD_ACTION",
+        "count": 8
+      },
+      {
+        "key": "REQUIRED_GRANULARITY",
+        "count": 8
+      },
+      {
+        "key": "FORK_POLICY",
+        "count": 1
+      }
+    ],
+    "field_stats": {
+      "WINNER": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 20,
+        "present_rate": 1.0,
+        "accuracy": 0.7142857142857143,
+        "top_parsed_values": [
+          [
+            "B",
+            17
+          ],
+          [
+            "A",
+            11
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "A",
+              "B"
+            ],
+            7
+          ],
+          [
+            [
+              "B",
+              "A"
+            ],
+            1
+          ]
+        ]
+      },
+      "GOLD_ACTION": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 20,
+        "present_rate": 1.0,
+        "accuracy": 0.7142857142857143,
+        "top_parsed_values": [
+          [
+            "safe_redirect",
+            7
+          ],
+          [
+            "direct_answer",
+            7
+          ],
+          [
+            "safe_high_level",
+            5
+          ],
+          [
+            "refuse",
+            5
+          ],
+          [
+            "ask_clarification",
+            3
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "partial_allowed",
+              "direct_answer"
+            ],
+            3
+          ],
+          [
+            [
+              "partial_allowed",
+              "refuse"
+            ],
+            2
+          ],
+          [
+            [
+              "safe_redirect",
+              "safe_high_level"
+            ],
+            1
+          ],
+          [
+            [
+              "ask_clarification",
+              "safe_redirect"
+            ],
+            1
+          ],
+          [
+            [
+              "refuse",
+              "safe_redirect"
+            ],
+            1
+          ]
+        ]
+      },
+      "HARD_AXIS": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 0,
+        "present_rate": 1.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [
+          [
+            "scope",
+            22
+          ],
+          [
+            "safety",
+            3
+          ],
+          [
+            "scope_answerability",
+            2
+          ],
+          [
+            "allowed_scope",
+            1
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "scope_contract",
+              "scope"
+            ],
+            10
+          ],
+          [
+            [
+              "clarification",
+              "scope"
+            ],
+            4
+          ],
+          [
+            [
+              "fork_state",
+              "scope"
+            ],
+            3
+          ],
+          [
+            [
+              "refusal_boundary",
+              "scope"
+            ],
+            3
+          ],
+          [
+            [
+              "scope_contract",
+              "safety"
+            ],
+            2
+          ]
+        ]
+      },
+      "DELTA_TAG": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 0,
+        "present_rate": 1.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [
+          [
+            "scope",
+            7
+          ],
+          [
+            "scope_error_direction",
+            4
+          ],
+          [
+            "scope_shrink",
+            3
+          ],
+          [
+            "safety",
+            2
+          ],
+          [
+            "over_scope",
+            2
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "wrong_scope",
+              "scope_error_direction"
+            ],
+            4
+          ],
+          [
+            [
+              "missing_clarification",
+              "scope"
+            ],
+            3
+          ],
+          [
+            [
+              "wrong_scope",
+              "scope_shrink"
+            ],
+            2
+          ],
+          [
+            [
+              "wrong_granularity",
+              "scope"
+            ],
+            2
+          ],
+          [
+            [
+              "under_refusal",
+              "disallowed_scope"
+            ],
+            2
+          ]
+        ]
+      },
+      "SCOPE_ERROR_DIRECTION": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 2,
+        "present_rate": 1.0,
+        "accuracy": 0.07142857142857142,
+        "top_parsed_values": [
+          [
+            "over_scope",
+            10
+          ],
+          [
+            "over",
+            10
+          ],
+          [
+            "disallowed",
+            3
+          ],
+          [
+            "under",
+            2
+          ],
+          [
+            "none",
+            2
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "none",
+              "over"
+            ],
+            8
+          ],
+          [
+            [
+              "unsafe_specificity",
+              "over_scope"
+            ],
+            3
+          ],
+          [
+            [
+              "none",
+              "over_scope"
+            ],
+            3
+          ],
+          [
+            [
+              "too_narrow",
+              "over_scope"
+            ],
+            2
+          ],
+          [
+            [
+              "unsafe_specificity",
+              "over"
+            ],
+            2
+          ]
+        ]
+      },
+      "REQUIRED_GRANULARITY": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 20,
+        "present_rate": 1.0,
+        "accuracy": 0.7142857142857143,
+        "top_parsed_values": [
+          [
+            "high_level",
+            8
+          ],
+          [
+            "redirect_only",
+            7
+          ],
+          [
+            "full",
+            7
+          ],
+          [
+            "bounded_steps",
+            2
+          ],
+          [
+            "none",
+            2
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "bounded_steps",
+              "full"
+            ],
+            3
+          ],
+          [
+            [
+              "bounded_steps",
+              "none"
+            ],
+            1
+          ],
+          [
+            [
+              "redirect_only",
+              "high_level"
+            ],
+            1
+          ],
+          [
+            [
+              "high_level",
+              "redirect_only"
+            ],
+            1
+          ],
+          [
+            [
+              "refuse_only",
+              "redirect_only"
+            ],
+            1
+          ]
+        ]
+      },
+      "FORK_POLICY": {
+        "expected": 28,
+        "present": 26,
+        "missing": 2,
+        "correct": 25,
+        "present_rate": 0.9285714285714286,
+        "accuracy": 0.8928571428571429,
+        "top_parsed_values": [
+          [
+            "select_with_uncertainty",
+            16
+          ],
+          [
+            "disambiguate",
+            4
+          ],
+          [
+            "preserve",
+            3
+          ],
+          [
+            "defer",
+            3
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "preserve",
+              "select_with_uncertainty"
+            ],
+            1
+          ]
+        ]
+      }
+    },
+    "confusions": [
+      {
+        "key": [
+          "HARD_AXIS",
+          "scope",
+          "possible_truncation_or_alias"
+        ],
+        "count": 10
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "scope_error_direction",
+          "value_is_field_name:SCOPE_ERROR_DIRECTION"
+        ],
+        "count": 4
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "full",
+          "value_from_expected_REQUIRED_GRANULARITY"
+        ],
+        "count": 2
+      },
+      {
+        "key": [
+          "REQUIRED_GRANULARITY",
+          "none",
+          "value_from_expected_SCOPE_ERROR_DIRECTION"
+        ],
+        "count": 2
+      }
+    ],
+    "by_hard_axis": {
+      "clarification": {
+        "total": 5,
+        "winner_correct": 4,
+        "winner_accuracy": 0.8,
+        "field_accuracy": 0.5142857142857142,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "fork_state": {
+        "total": 3,
+        "winner_correct": 1,
+        "winner_accuracy": 0.3333333333333333,
+        "field_accuracy": 0.2857142857142857,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "granularity": {
+        "total": 2,
+        "winner_correct": 2,
+        "winner_accuracy": 1.0,
+        "field_accuracy": 0.5714285714285714,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "refusal_boundary": {
+        "total": 5,
+        "winner_correct": 4,
+        "winner_accuracy": 0.8,
+        "field_accuracy": 0.45714285714285713,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "scope_contract": {
+        "total": 13,
+        "winner_correct": 9,
+        "winner_accuracy": 0.6923076923076923,
+        "field_accuracy": 0.42857142857142855,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      }
+    }
+  },
+  {
+    "name": "r128_lr1e5_pos",
+    "total": 56,
+    "winner_correct": 39,
+    "winner_accuracy": 0.6964285714285714,
+    "parse_failures": 0,
+    "parse_failure_rate": 0.0,
+    "avg_present_fields": 6.910714285714286,
+    "all_expected_present": 51,
+    "all_expected_present_rate": 0.9107142857142857,
+    "full_matches": 0,
+    "full_match_rate": 0.0,
+    "missing_fields": [
+      {
+        "key": "FORK_POLICY",
+        "count": 5
+      }
+    ],
+    "wrong_fields": [
+      {
+        "key": "HARD_AXIS",
+        "count": 56
+      },
+      {
+        "key": "DELTA_TAG",
+        "count": 56
+      },
+      {
+        "key": "SCOPE_ERROR_DIRECTION",
+        "count": 53
+      },
+      {
+        "key": "REQUIRED_GRANULARITY",
+        "count": 18
+      },
+      {
+        "key": "WINNER",
+        "count": 17
+      },
+      {
+        "key": "GOLD_ACTION",
+        "count": 17
+      },
+      {
+        "key": "FORK_POLICY",
+        "count": 3
+      }
+    ],
+    "field_stats": {
+      "WINNER": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 39,
+        "present_rate": 1.0,
+        "accuracy": 0.6964285714285714,
+        "top_parsed_values": [
+          [
+            "B",
+            37
+          ],
+          [
+            "A",
+            19
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "A",
+              "B"
+            ],
+            13
+          ],
+          [
+            [
+              "B",
+              "A"
+            ],
+            4
+          ]
+        ]
+      },
+      "GOLD_ACTION": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 39,
+        "present_rate": 1.0,
+        "accuracy": 0.6964285714285714,
+        "top_parsed_values": [
+          [
+            "safe_redirect",
+            14
+          ],
+          [
+            "direct_answer",
+            12
+          ],
+          [
+            "safe_high_level",
+            11
+          ],
+          [
+            "refuse",
+            9
+          ],
+          [
+            "ask_clarification",
+            6
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "partial_allowed",
+              "direct_answer"
+            ],
+            5
+          ],
+          [
+            [
+              "partial_allowed",
+              "refuse"
+            ],
+            3
+          ],
+          [
+            [
+              "direct_answer",
+              "safe_high_level"
+            ],
+            2
+          ],
+          [
+            [
+              "safe_redirect",
+              "safe_high_level"
+            ],
+            2
+          ],
+          [
+            [
+              "ask_clarification",
+              "safe_redirect"
+            ],
+            2
+          ]
+        ]
+      },
+      "HARD_AXIS": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 0,
+        "present_rate": 1.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [
+          [
+            "scope",
+            43
+          ],
+          [
+            "scope_answerability",
+            7
+          ],
+          [
+            "safety",
+            3
+          ],
+          [
+            "allowed_scope",
+            2
+          ],
+          [
+            "scope_boundary",
+            1
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "scope_contract",
+              "scope"
+            ],
+            22
+          ],
+          [
+            [
+              "refusal_boundary",
+              "scope"
+            ],
+            7
+          ],
+          [
+            [
+              "clarification",
+              "scope_answerability"
+            ],
+            5
+          ],
+          [
+            [
+              "clarification",
+              "scope"
+            ],
+            5
+          ],
+          [
+            [
+              "fork_state",
+              "scope"
+            ],
+            5
+          ]
+        ]
+      },
+      "DELTA_TAG": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 0,
+        "present_rate": 1.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [
+          [
+            "scope",
+            14
+          ],
+          [
+            "scope_error_direction",
+            6
+          ],
+          [
+            "over_scope",
+            4
+          ],
+          [
+            "full",
+            4
+          ],
+          [
+            "scope_shrink",
+            4
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "wrong_scope",
+              "scope_error_direction"
+            ],
+            5
+          ],
+          [
+            [
+              "wrong_scope",
+              "scope"
+            ],
+            4
+          ],
+          [
+            [
+              "missing_clarification",
+              "scope"
+            ],
+            4
+          ],
+          [
+            [
+              "under_refusal",
+              "disallowed_scope"
+            ],
+            4
+          ],
+          [
+            [
+              "wrong_scope",
+              "under_scope"
+            ],
+            3
+          ]
+        ]
+      },
+      "SCOPE_ERROR_DIRECTION": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 3,
+        "present_rate": 1.0,
+        "accuracy": 0.05357142857142857,
+        "top_parsed_values": [
+          [
+            "over",
+            21
+          ],
+          [
+            "over_scope",
+            18
+          ],
+          [
+            "disallowed",
+            6
+          ],
+          [
+            "under",
+            4
+          ],
+          [
+            "none",
+            4
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "none",
+              "over"
+            ],
+            15
+          ],
+          [
+            [
+              "none",
+              "over_scope"
+            ],
+            8
+          ],
+          [
+            [
+              "unsafe_specificity",
+              "over_scope"
+            ],
+            4
+          ],
+          [
+            [
+              "wrong_object",
+              "over_scope"
+            ],
+            4
+          ],
+          [
+            [
+              "unsafe_specificity",
+              "over"
+            ],
+            4
+          ]
+        ]
+      },
+      "REQUIRED_GRANULARITY": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 38,
+        "present_rate": 1.0,
+        "accuracy": 0.6785714285714286,
+        "top_parsed_values": [
+          [
+            "high_level",
+            17
+          ],
+          [
+            "redirect_only",
+            14
+          ],
+          [
+            "full",
+            12
+          ],
+          [
+            "bounded_steps",
+            5
+          ],
+          [
+            "none",
+            4
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "bounded_steps",
+              "full"
+            ],
+            4
+          ],
+          [
+            [
+              "bounded_steps",
+              "none"
+            ],
+            3
+          ],
+          [
+            [
+              "full",
+              "high_level"
+            ],
+            2
+          ],
+          [
+            [
+              "redirect_only",
+              "high_level"
+            ],
+            2
+          ],
+          [
+            [
+              "high_level",
+              "redirect_only"
+            ],
+            2
+          ]
+        ]
+      },
+      "FORK_POLICY": {
+        "expected": 56,
+        "present": 51,
+        "missing": 5,
+        "correct": 48,
+        "present_rate": 0.9107142857142857,
+        "accuracy": 0.8571428571428571,
+        "top_parsed_values": [
+          [
+            "select_with_uncertainty",
+            31
+          ],
+          [
+            "disambiguate",
+            8
+          ],
+          [
+            "preserve",
+            6
+          ],
+          [
+            "defer",
+            5
+          ],
+          [
+            "none",
+            1
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "preserve",
+              "select_with_uncertainty"
+            ],
+            2
+          ],
+          [
+            [
+              "select_with_uncertainty",
+              "none"
+            ],
+            1
+          ]
+        ]
+      }
+    },
+    "confusions": [
+      {
+        "key": [
+          "HARD_AXIS",
+          "scope",
+          "possible_truncation_or_alias"
+        ],
+        "count": 22
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "scope_error_direction",
+          "value_is_field_name:SCOPE_ERROR_DIRECTION"
+        ],
+        "count": 6
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "full",
+          "value_from_expected_REQUIRED_GRANULARITY"
+        ],
+        "count": 4
+      },
+      {
+        "key": [
+          "REQUIRED_GRANULARITY",
+          "none",
+          "value_from_expected_SCOPE_ERROR_DIRECTION"
+        ],
+        "count": 4
+      },
+      {
+        "key": [
+          "FORK_POLICY",
+          "none",
+          "value_from_expected_SCOPE_ERROR_DIRECTION"
+        ],
+        "count": 1
+      }
+    ],
+    "by_hard_axis": {
+      "clarification": {
+        "total": 10,
+        "winner_correct": 8,
+        "winner_accuracy": 0.8,
+        "field_accuracy": 0.5142857142857142,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "fork_state": {
+        "total": 6,
+        "winner_correct": 4,
+        "winner_accuracy": 0.6666666666666666,
+        "field_accuracy": 0.42857142857142855,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "granularity": {
+        "total": 4,
+        "winner_correct": 2,
+        "winner_accuracy": 0.5,
+        "field_accuracy": 0.35714285714285715,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "refusal_boundary": {
+        "total": 10,
+        "winner_correct": 8,
+        "winner_accuracy": 0.8,
+        "field_accuracy": 0.42857142857142855,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "scope_contract": {
+        "total": 26,
+        "winner_correct": 17,
+        "winner_accuracy": 0.6538461538461539,
+        "field_accuracy": 0.4010989010989011,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      }
+    }
+  },
+  {
+    "name": "r128_lr3e6_len1024_orig",
+    "total": 28,
+    "winner_correct": 22,
+    "winner_accuracy": 0.7857142857142857,
+    "parse_failures": 0,
+    "parse_failure_rate": 0.0,
+    "avg_present_fields": 2.0,
+    "all_expected_present": 0,
+    "all_expected_present_rate": 0.0,
+    "full_matches": 0,
+    "full_match_rate": 0.0,
+    "missing_fields": [
+      {
+        "key": "GOLD_ACTION",
+        "count": 28
+      },
+      {
+        "key": "HARD_AXIS",
+        "count": 28
+      },
+      {
+        "key": "SCOPE_ERROR_DIRECTION",
+        "count": 28
+      },
+      {
+        "key": "REQUIRED_GRANULARITY",
+        "count": 28
+      },
+      {
+        "key": "FORK_POLICY",
+        "count": 28
+      }
+    ],
+    "wrong_fields": [
+      {
+        "key": "DELTA_TAG",
+        "count": 28
+      },
+      {
+        "key": "WINNER",
+        "count": 6
+      }
+    ],
+    "field_stats": {
+      "WINNER": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 22,
+        "present_rate": 1.0,
+        "accuracy": 0.7857142857142857,
+        "top_parsed_values": [
+          [
+            "A",
+            15
+          ],
+          [
+            "B",
+            13
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "A",
+              "B"
+            ],
+            4
+          ],
+          [
+            [
+              "B",
+              "A"
+            ],
+            2
+          ]
+        ]
+      },
+      "GOLD_ACTION": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "HARD_AXIS": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "DELTA_TAG": {
+        "expected": 28,
+        "present": 28,
+        "missing": 0,
+        "correct": 0,
+        "present_rate": 1.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [
+          [
+            "safe_redirect",
+            6
+          ],
+          [
+            "direct_answer",
+            4
+          ],
+          [
+            "safety_boundary_preservation",
+            3
+          ],
+          [
+            "SAFE_HIGH_LEVEL",
+            2
+          ],
+          [
+            "safe_high_level",
+            2
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "wrong_scope",
+              "safety_boundary_preservation"
+            ],
+            3
+          ],
+          [
+            [
+              "wrong_scope",
+              "safe_redirect"
+            ],
+            3
+          ],
+          [
+            [
+              "wrong_scope",
+              "SAFE_HIGH_LEVEL"
+            ],
+            2
+          ],
+          [
+            [
+              "wrong_scope",
+              "safe_high_level"
+            ],
+            2
+          ],
+          [
+            [
+              "wrong_granularity",
+              "direct_answer"
+            ],
+            2
+          ]
+        ]
+      },
+      "SCOPE_ERROR_DIRECTION": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "REQUIRED_GRANULARITY": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "FORK_POLICY": {
+        "expected": 28,
+        "present": 0,
+        "missing": 28,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      }
+    },
+    "confusions": [
+      {
+        "key": [
+          "DELTA_TAG",
+          "safe_redirect",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 6
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "direct_answer",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 4
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "SAFE_HIGH_LEVEL",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 2
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "safe_high_level",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 2
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "partial_allowed",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 1
+      }
+    ],
+    "by_hard_axis": {
+      "clarification": {
+        "total": 5,
+        "winner_correct": 4,
+        "winner_accuracy": 0.8,
+        "field_accuracy": 0.11428571428571428,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "fork_state": {
+        "total": 3,
+        "winner_correct": 1,
+        "winner_accuracy": 0.3333333333333333,
+        "field_accuracy": 0.047619047619047616,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "granularity": {
+        "total": 2,
+        "winner_correct": 2,
+        "winner_accuracy": 1.0,
+        "field_accuracy": 0.14285714285714285,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "refusal_boundary": {
+        "total": 5,
+        "winner_correct": 4,
+        "winner_accuracy": 0.8,
+        "field_accuracy": 0.11428571428571428,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "scope_contract": {
+        "total": 13,
+        "winner_correct": 11,
+        "winner_accuracy": 0.8461538461538461,
+        "field_accuracy": 0.12087912087912088,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      }
+    }
+  },
+  {
+    "name": "r128_lr3e6_len1024_pos",
+    "total": 56,
+    "winner_correct": 42,
+    "winner_accuracy": 0.75,
+    "parse_failures": 0,
+    "parse_failure_rate": 0.0,
+    "avg_present_fields": 2.0,
+    "all_expected_present": 0,
+    "all_expected_present_rate": 0.0,
+    "full_matches": 0,
+    "full_match_rate": 0.0,
+    "missing_fields": [
+      {
+        "key": "GOLD_ACTION",
+        "count": 56
+      },
+      {
+        "key": "HARD_AXIS",
+        "count": 56
+      },
+      {
+        "key": "SCOPE_ERROR_DIRECTION",
+        "count": 56
+      },
+      {
+        "key": "REQUIRED_GRANULARITY",
+        "count": 56
+      },
+      {
+        "key": "FORK_POLICY",
+        "count": 56
+      }
+    ],
+    "wrong_fields": [
+      {
+        "key": "DELTA_TAG",
+        "count": 56
+      },
+      {
+        "key": "WINNER",
+        "count": 14
+      }
+    ],
+    "field_stats": {
+      "WINNER": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 42,
+        "present_rate": 1.0,
+        "accuracy": 0.75,
+        "top_parsed_values": [
+          [
+            "A",
+            28
+          ],
+          [
+            "B",
+            28
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "B",
+              "A"
+            ],
+            7
+          ],
+          [
+            [
+              "A",
+              "B"
+            ],
+            7
+          ]
+        ]
+      },
+      "GOLD_ACTION": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "HARD_AXIS": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "DELTA_TAG": {
+        "expected": 56,
+        "present": 56,
+        "missing": 0,
+        "correct": 0,
+        "present_rate": 1.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [
+          [
+            "safe_redirect",
+            10
+          ],
+          [
+            "direct_answer",
+            8
+          ],
+          [
+            "safe_high_level",
+            5
+          ],
+          [
+            "SAFE_HIGH_LEVEL",
+            4
+          ],
+          [
+            "safety_boundary_preservation",
+            3
+          ]
+        ],
+        "top_mismatches": [
+          [
+            [
+              "wrong_scope",
+              "safe_high_level"
+            ],
+            5
+          ],
+          [
+            [
+              "wrong_scope",
+              "safe_redirect"
+            ],
+            5
+          ],
+          [
+            [
+              "wrong_scope",
+              "SAFE_HIGH_LEVEL"
+            ],
+            3
+          ],
+          [
+            [
+              "wrong_scope",
+              "safety_boundary_preservation"
+            ],
+            3
+          ],
+          [
+            [
+              "wrong_granularity",
+              "direct_answer"
+            ],
+            3
+          ]
+        ]
+      },
+      "SCOPE_ERROR_DIRECTION": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "REQUIRED_GRANULARITY": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      },
+      "FORK_POLICY": {
+        "expected": 56,
+        "present": 0,
+        "missing": 56,
+        "correct": 0,
+        "present_rate": 0.0,
+        "accuracy": 0.0,
+        "top_parsed_values": [],
+        "top_mismatches": []
+      }
+    },
+    "confusions": [
+      {
+        "key": [
+          "DELTA_TAG",
+          "safe_redirect",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 10
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "direct_answer",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 8
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "safe_high_level",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 5
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "SAFE_HIGH_LEVEL",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 4
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "partial_allowed",
+          "value_from_expected_GOLD_ACTION"
+        ],
+        "count": 3
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "redirect_only",
+          "value_from_expected_REQUIRED_GRANULARITY"
+        ],
+        "count": 2
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "FORK_POLICY",
+          "value_is_field_name:FORK_POLICY"
+        ],
+        "count": 1
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "scope_error_direction",
+          "value_is_field_name:SCOPE_ERROR_DIRECTION"
+        ],
+        "count": 1
+      },
+      {
+        "key": [
+          "DELTA_TAG",
+          "fork_policy",
+          "value_is_field_name:FORK_POLICY"
+        ],
+        "count": 1
+      }
+    ],
+    "by_hard_axis": {
+      "clarification": {
+        "total": 10,
+        "winner_correct": 7,
+        "winner_accuracy": 0.7,
+        "field_accuracy": 0.1,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "fork_state": {
+        "total": 6,
+        "winner_correct": 4,
+        "winner_accuracy": 0.6666666666666666,
+        "field_accuracy": 0.09523809523809523,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "granularity": {
+        "total": 4,
+        "winner_correct": 3,
+        "winner_accuracy": 0.75,
+        "field_accuracy": 0.10714285714285714,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "refusal_boundary": {
+        "total": 10,
+        "winner_correct": 9,
+        "winner_accuracy": 0.9,
+        "field_accuracy": 0.12857142857142856,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      },
+      "scope_contract": {
+        "total": 26,
+        "winner_correct": 19,
+        "winner_accuracy": 0.7307692307692307,
+        "field_accuracy": 0.1043956043956044,
+        "full_matches": 0,
+        "full_match_rate": 0.0
+      }
+    }
+  }
+]

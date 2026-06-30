@@ -7,8 +7,8 @@ pairwise stage. Do not include credentials or server tokens.
 
 Repository: `https://github.com/Jiayi-Mao1027/OPD`
 
-Review baseline commit: `83cf7c1 eval: add compact generation parsing`.
-This packet itself may be tracked in later docs-only commits.
+Review baseline commit: `83cf7c1 eval: add compact generation parsing`, plus
+the later mismatch-analysis commit that updates this packet.
 
 Working direction: Reconcile-OPSD / fork-preserving judgment-delta
 self-distillation for safety boundary decisions. First-stage experiments use
@@ -86,6 +86,25 @@ Greedy compact generation:
 - `r128_lr3e6_len1024` is closer to base and avoids strong side skew, but it
   still does not beat base or pass the position-balanced gate.
 
+Raw-generation mismatch analysis:
+
+- Script: `scripts/analyze_compact_generation_mismatches.py`
+- Report: `reports/pairwise_v0_1_compact_generation_mismatch_analysis.md`
+- Full target exact match is too strict as a standalone behavioral metric, but
+  it is useful as a schema diagnostic.
+- Base and `r128_lr3e6_len1024` average only `2.00` parsed fields: mostly
+  `WINNER` plus `DELTA_TAG`. The generated `DELTA_TAG` often looks like a
+  `GOLD_ACTION` value such as `safe_redirect`, `direct_answer`, or
+  `safe_high_level`.
+- `r128_lr1e5` averages about `6.9` parsed fields and has high present-field
+  rate, so it learned to emit the compact shape. It still has `0.0000` full
+  match because `HARD_AXIS`, `DELTA_TAG`, and `SCOPE_ERROR_DIRECTION` are
+  schema-confused. Common examples: `HARD_AXIS: scope` for
+  `scope_contract`, `DELTA_TAG: scope_error_direction`, and
+  `SCOPE_ERROR_DIRECTION: over/over_scope`.
+- This points to target/prompt/label-ontology redesign before more rank-128
+  LoRA steps on the same compact target.
+
 Parent-level swap diagnostics:
 
 - `lr1e-5`: 10 inconsistent parents out of 28.
@@ -122,17 +141,20 @@ Previous conservative winner-only claim:
 Updated claim:
 
 > Current rank-128 compact LoRA is not yet a positive method result. It is a
-> useful diagnostic showing that compact target alignment does not automatically
-> transfer to stronger generated pairwise judgment.
+> useful diagnostic showing that compact target alignment does not
+> automatically transfer to stronger generated pairwise judgment. Mismatch
+> analysis suggests the current compact target asks for too many unsupported
+> gold metadata fields and needs a clearer label ontology.
 
 ## Questions For Pro
 
 1. Given the negative greedy generation result, is there any defensible way to
    use compact structured logprob scoring beyond target-alignment diagnostics?
-2. Should the next step be generated-text/parser error inspection, a fresh
-   held-out fork/scope pairwise set, external/human audit of assistant-facing
-   responses, or a paired-consistency training objective?
-3. If training continues, should it stay near `lr3e-6_len1024` with seed/small
-   hyperparameter replication, or should the target/prompt be redesigned first?
+2. Should the compact target be reduced to `WINNER` plus one or two observable
+   rationale tags, or should the prompt explicitly include the label ontology
+   and ask for full metadata prediction?
+3. Should the next validation be a fresh held-out fork/scope pairwise set,
+   external/human audit of assistant-facing responses, or a paired-consistency
+   training objective?
 4. What contribution framing remains defensible if current rank-128 LoRA does
    not beat full BF16 base?

@@ -108,6 +108,8 @@ generated assistant behavior. See
 
 The generation-side check is documented in
 `reports/pairwise_v0_1_compact_generation_summary.md`.
+Raw-generation mismatch analysis is documented in
+`reports/pairwise_v0_1_compact_generation_mismatch_analysis.md`.
 
 It asks the model to generate the compact target directly and parses the output.
 This is a stricter check than `score-mode=compact_structured_judgment` because
@@ -128,16 +130,21 @@ On position-balanced dev:
 - `r128_lr3e6_len1024`: `42/56 = 0.7500`, swap consistency
   `18/28 = 0.6429`.
 
-All generation runs have `0.0000` full compact-target match. The `lr1e-5`
-adapter has higher compact field accuracy, but it regresses winner accuracy,
-scope-contract accuracy, and side balance. The `lr3e-6_len1024` adapter is
-closer to base and avoids the strong B skew, but it still does not pass the
-position-balanced gate or beat base.
+All generation runs have `0.0000` strict full compact-target match. Do not use
+that exact-match number alone as a behavioral metric: mismatch analysis shows
+it is largely a schema/target diagnostic. The `lr1e-5` adapter has higher
+compact field accuracy and emits nearly all fields, but it regresses winner
+accuracy, scope-contract accuracy, and side balance while confusing
+`HARD_AXIS`, `DELTA_TAG`, and `SCOPE_ERROR_DIRECTION`. The `lr3e-6_len1024`
+adapter is closer to base and avoids the strong B skew, but it behaves mostly
+like a winner generator and still does not pass the position-balanced gate or
+beat base.
 
 Do not claim that rank-128 LoRA is effective from the current compact runs. The
-defensible claim is narrower: compactscore exposed target alignment, and greedy
+defensible claim is narrower: compactscore exposed target alignment, greedy
 generation showed that target alignment does not yet transfer to stronger
-pairwise judgment behavior.
+pairwise judgment behavior, and mismatch analysis shows the compact target
+needs a clearer label ontology before more training on the same target.
 
 ## Scoring
 

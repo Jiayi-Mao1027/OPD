@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 03:38 +08:00
+Last updated: 2026-07-01 04:18 +08:00
 
 ## Current Objective
 
@@ -87,6 +87,9 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Generation result: full BF16 base remains stronger than both adapters. On position-balanced dev, base gets `43/56 = 0.7679` winner accuracy and `19/28 = 0.6786` swap consistency; `r128_lr1e5` gets `39/56 = 0.6964` and `15/28 = 0.5357`; `r128_lr3e6_len1024` gets `42/56 = 0.7500` and `18/28 = 0.6429`.
 - Compact generation confirms the earlier 100% compactscore result was optimistic/label-conditioned: all generation runs have `0.0000` full compact-target match.
 - Documented this negative calibration result in `reports/pairwise_v0_1_compact_generation_summary.md`.
+- Added `scripts/analyze_compact_generation_mismatches.py` and compact mismatch analysis support.
+- Generated `reports/pairwise_v0_1_compact_generation_mismatch_analysis.md/json` and `reports/pairwise_v0_1_compact_generation_mismatch_samples.csv`.
+- Mismatch finding: `full target match = 0.0000` is too strict as a standalone behavioral metric. Base and `r128_lr3e6_len1024` mostly emit only `WINNER` plus a schema-confused `DELTA_TAG`; `r128_lr1e5` emits nearly all fields but confuses `HARD_AXIS`, `DELTA_TAG`, and `SCOPE_ERROR_DIRECTION`.
 
 ## Current Blockers
 
@@ -102,11 +105,12 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - The current v0 QLoRA run is a negative result: lower dev accuracy and repetitive reason generation.
 - Normalized reasons fix the repetition issue but still do not produce a positive dev signal.
 - The next contribution signal must come from structured judgment/audit or pairwise ranking, not from continuing the same SFT target.
+- The current compact target/prompt asks for gold metadata fields without enough explicit label ontology; continuing the same compact target with more steps is not justified before redesign.
 
 ## Next Actions
 
-- Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore results were useful diagnostics, but greedy compact generation does not show adapter improvement over full BF16 base.
-- Ask Pro to review the compact generation result and next validation path once browser access is stable.
-- Next validation should be generated-text error inspection, a newly held-out fork/scope pairwise set, or human/external audit of assistant-facing responses.
+- Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore results were useful diagnostics, and mismatch analysis shows the compact field target needs redesign before more training steps.
+- Ask Pro to review the compact generation and mismatch result once browser access is stable.
+- Next validation should be target/prompt redesign with explicit label ontology, a newly held-out fork/scope pairwise set, or human/external audit of assistant-facing responses.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.
