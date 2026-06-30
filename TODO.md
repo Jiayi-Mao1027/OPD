@@ -8,7 +8,8 @@
 - Decide first-stage method name: `Reconcile-OPSD`, `Judgment-Delta Self-OPD`, or `Fork-Preserving Safety Distillation`.
 - Keep R1/DeepSeek-R1-Distill out of first-stage experiments.
 - Review the first pairwise judgment-delta train/dev draft for template quality.
-- Add pairwise base scoring/evaluation before pairwise QLoRA.
+- Review pairwise base errors: `lost_fork_state` and `wrong_scope` are the first weak clusters.
+- Ask Pro/subagents whether to train pairwise QLoRA now or first retarget fork-state/wrong-scope data.
 - Redesign `continue_reasoning` as a prefix-level fork-state target, not a final response action.
 
 ## Engineering

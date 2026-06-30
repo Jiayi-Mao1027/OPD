@@ -289,3 +289,28 @@ python scripts/build_pairwise_judgment_data.py \
 Current pairwise v0 draft: train `76` pairs from `38` source examples; dev `28`
 pairs from `14` source examples. Both manifests report empty forbidden source-id
 and prompt-hash overlap.
+
+Score the Qwen3-8B base model on pairwise dev:
+
+```bash
+eval "$(python scripts/gpu_status.py --export)"
+
+python scripts/score_pairwise_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_dev_pairwise.jsonl \
+  --output outputs/pairwise_scores/qwen3_8b_v0_dev_pairwise_base_4bit.jsonl \
+  --load-in-4bit \
+  --attn-implementation eager
+
+python scripts/evaluate_pairwise_scores.py \
+  --dataset data/pairwise/reconcilebench_v0_dev_pairwise.jsonl \
+  --scores base=outputs/pairwise_scores/qwen3_8b_v0_dev_pairwise_base_4bit.jsonl \
+  --output-md reports/pairwise_v0_dev_base_eval.md \
+  --output-json reports/pairwise_v0_dev_base_eval.json \
+  --output-csv reports/pairwise_v0_dev_base_errors.csv
+```
+
+Current pairwise dev base result: winner accuracy `0.6786` over `28` pairs.
+Strong categories are `ask_clarification`, `direct_answer`, and `safe_redirect`;
+weak categories are `continue_reasoning` / `lost_fork_state` at `0.0000` and
+`partial_allowed` / `wrong_scope` at `0.2500`.

@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-06-30 23:55 +08:00
+Last updated: 2026-07-01 00:39 +08:00
 
 ## Current Objective
 
@@ -64,6 +64,10 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Constrained scoring result: both runs remain `0.4286` all-mode accuracy; normalized adapter improves macro-F1 `0.2880 -> 0.3293` and top-2 allowed accuracy `0.5714 -> 0.7143`.
 - Added pairwise judgment-delta data builder and tests.
 - Generated pairwise v0 data: `76` train pairs from `38` source examples and `28` dev pairs from `14` source examples, with no forbidden source-id or prompt-hash overlap.
+- Added pairwise winner-scoring and evaluation tooling with unit tests.
+- Ran Qwen3-8B 4-bit base pairwise scoring on the v0 dev pairs: winner accuracy `0.6786` (`19/28`) with about `7217 MB` peak allocated CUDA memory.
+- Generated `reports/pairwise_v0_dev_base_eval.md`, `reports/pairwise_v0_dev_base_eval.json`, and `reports/pairwise_v0_dev_base_errors.csv`.
+- Pairwise weak spots are concentrated in `continue_reasoning` / `lost_fork_state` (`0/4`) and `partial_allowed` / `wrong_scope` (`1/4`).
 
 ## Current Blockers
 
@@ -82,7 +86,7 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 ## Next Actions
 
-- Audit the pairwise v0 data for template quality before training.
-- Add pairwise scoring/evaluation for Qwen3-8B base before any pairwise QLoRA.
+- Audit the pairwise v0 data and base errors for template/taxonomy quality before training.
+- Ask Pro/subagents to review whether the next step should be pairwise QLoRA, fork-state retargeting, or data revision.
 - Split `continue_reasoning` out of root terminal action-mode evaluation and into a prefix-level fork-state target.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

@@ -260,3 +260,22 @@ python scripts/build_pairwise_judgment_data.py \
 
 Do not merge dev pairwise data into training. The builder checks source-id and
 prompt-hash overlap against the forbidden split.
+
+Pairwise base scoring:
+
+```bash
+eval "$(python scripts/gpu_status.py --export)"
+python scripts/score_pairwise_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_dev_pairwise.jsonl \
+  --output outputs/pairwise_scores/qwen3_8b_v0_dev_pairwise_base_4bit.jsonl \
+  --load-in-4bit \
+  --attn-implementation eager
+
+python scripts/evaluate_pairwise_scores.py \
+  --dataset data/pairwise/reconcilebench_v0_dev_pairwise.jsonl \
+  --scores base=outputs/pairwise_scores/qwen3_8b_v0_dev_pairwise_base_4bit.jsonl \
+  --output-md reports/pairwise_v0_dev_base_eval.md \
+  --output-json reports/pairwise_v0_dev_base_eval.json \
+  --output-csv reports/pairwise_v0_dev_base_errors.csv
+```

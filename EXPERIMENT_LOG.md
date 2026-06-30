@@ -605,3 +605,70 @@ Interpretation:
 - It keeps dev pairwise data separate for evaluation and prevents source-id or
   prompt-hash leakage across splits.
 - Next step is pairwise base scoring/evaluation before any pairwise QLoRA.
+
+## 2026-07-01 00:39 +08:00 - Qwen3-8B Pairwise Base Scoring
+
+Commit before action: `c0c8827 data: add pairwise judgment draft`
+Branch: `main`
+Machine: remote `/data03/liang/mjy/reconcile_opsd`
+Model path: `/data/LLM/Qwen3-8B`
+
+Change:
+
+- Added `src/reconcile_opsd/pairwise_eval.py`.
+- Added `scripts/score_pairwise_judgments.py`.
+- Added `scripts/evaluate_pairwise_scores.py`.
+- Added tests for pairwise metric computation, score parsing, error export, and
+  CLI report generation.
+
+Commands:
+
+```bash
+python scripts/score_pairwise_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_dev_pairwise.jsonl \
+  --output outputs/pairwise_scores/qwen3_8b_v0_dev_pairwise_base_4bit.jsonl \
+  --load-in-4bit \
+  --attn-implementation eager
+
+python scripts/evaluate_pairwise_scores.py \
+  --dataset data/pairwise/reconcilebench_v0_dev_pairwise.jsonl \
+  --scores base=outputs/pairwise_scores/qwen3_8b_v0_dev_pairwise_base_4bit.jsonl \
+  --output-md reports/pairwise_v0_dev_base_eval.md \
+  --output-json reports/pairwise_v0_dev_base_eval.json \
+  --output-csv reports/pairwise_v0_dev_base_errors.csv
+```
+
+Result:
+
+```text
+Pairwise v0 dev, 28 pairs:
+  winner accuracy = 0.6786
+  correct = 19
+  missing = 0
+  average winner margin = 1.3772
+
+By delta tag:
+  lost_fork_state = 0/4
+  missing_clarification = 4/4
+  over_refusal = 2/2
+  under_refusal = 3/4
+  unnecessary_clarification = 2/2
+  wrong_granularity = 5/6
+  wrong_redirect = 2/2
+  wrong_scope = 1/4
+
+Peak allocated CUDA memory:
+  base pairwise scoring = 7216.79 MB
+```
+
+Interpretation:
+
+- The base model can often choose the safer/better response when the contrast is
+  local and explicit.
+- The remaining errors are concentrated in `lost_fork_state` and `wrong_scope`,
+  which matches the earlier conclusion that `continue_reasoning` should become
+  a fork-state/prefix target instead of a terminal action label.
+- The next methodological choice should be reviewed with Pro/subagents before
+  launching pairwise QLoRA: train now on the current pairs, or first refine the
+  fork-state and allowed-scope targets.
