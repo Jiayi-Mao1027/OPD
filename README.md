@@ -162,6 +162,9 @@ Current adapter eval result: both the 4-bit base control and the 2-step smoke ad
 
 Labeling reference: `docs/action_mode_label_guide.md`.
 
+Common remote paths, CUDA exports, GPU policy, proxy recovery, and GitHub push
+checks are centralized in `docs/common_configs.md`.
+
 Run a v0 train/dev QLoRA pass:
 
 ```bash

@@ -31,6 +31,9 @@ export LD_LIBRARY_PATH=$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}
 
 Use those exports before deepspeed or flash-attn related runs.
 
+Common defaults for paths, CUDA, GPU policy, Qwen3-8B evaluation, proxy
+recovery, and GitHub checks are also recorded in `docs/common_configs.md`.
+
 Server proxy for GitHub/network operations:
 
 ```bash
