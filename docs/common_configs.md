@@ -218,6 +218,12 @@ Current pairwise dev base result:
 - `wrong_scope`: `1/4`;
 - peak allocated CUDA memory: about `7217 MB`.
 
+Next-stage pairwise plan:
+
+- see `docs/pairwise_v0_1_plan.md`;
+- repair `fork_state` and `scope_contract` before full QLoRA;
+- re-score Qwen3-8B 4-bit base on pairwise v0.1 before training adapters.
+
 ## Proxy And GitHub
 
 The server uses `mihomo` with local ports:

@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 00:39 +08:00
+Last updated: 2026-07-01 00:52 +08:00
 
 ## Current Objective
 
@@ -68,6 +68,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Ran Qwen3-8B 4-bit base pairwise scoring on the v0 dev pairs: winner accuracy `0.6786` (`19/28`) with about `7217 MB` peak allocated CUDA memory.
 - Generated `reports/pairwise_v0_dev_base_eval.md`, `reports/pairwise_v0_dev_base_eval.json`, and `reports/pairwise_v0_dev_base_errors.csv`.
 - Pairwise weak spots are concentrated in `continue_reasoning` / `lost_fork_state` (`0/4`) and `partial_allowed` / `wrong_scope` (`1/4`).
+- Reviewed the latest pairwise result with Pro and a method subagent.
+- Added `docs/pairwise_v0_1_plan.md` to pin the next-stage decision: repair fork-state/scope-contract targets and eval before structured pairwise QLoRA.
 
 ## Current Blockers
 
@@ -86,7 +88,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 ## Next Actions
 
-- Audit the pairwise v0 data and base errors for template/taxonomy quality before training.
-- Ask Pro/subagents to review whether the next step should be pairwise QLoRA, fork-state retargeting, or data revision.
-- Split `continue_reasoning` out of root terminal action-mode evaluation and into a prefix-level fork-state target.
+- Implement v0.1 schema repair: move `continue_reasoning` out of final `primary_action` and into `fork_state` / `needs_more_reasoning`.
+- Add `scope_contract` fields and wrong-scope direction metrics.
+- Regenerate pairwise v0.1 data and re-score Qwen3-8B 4-bit base before structured pairwise QLoRA.
+- Add pairwise v0.1 data audit reporting and hard-axis/source-level eval metrics.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

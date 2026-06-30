@@ -672,3 +672,45 @@ Interpretation:
 - The next methodological choice should be reviewed with Pro/subagents before
   launching pairwise QLoRA: train now on the current pairs, or first refine the
   fork-state and allowed-scope targets.
+
+## 2026-07-01 00:52 +08:00 - Pairwise v0.1 Planning Review
+
+Commit before action: `c406d2e eval: add pairwise winner scoring`
+Branch: `main`
+Machine: local mirror plus remote sync target `/data03/liang/mjy/reconcile_opsd`
+
+Inputs:
+
+- Qwen3-8B 4-bit pairwise v0 dev result: `19/28 = 0.6786`.
+- Hard failures: `lost_fork_state = 0/4`, `wrong_scope = 1/4`.
+- Prior negative action-mode/REASON QLoRA result.
+
+Review sources:
+
+- ChatGPT Pro planning review in the `行动模式评审与训练策略` conversation.
+- Method subagent review.
+
+Decision:
+
+- Do not proceed directly to a full pairwise QLoRA run.
+- Move from pairwise v0 to v0.1 by repairing the target and eval around
+  `fork_state` and `scope_contract`.
+- Re-score Qwen3-8B 4-bit base on the repaired v0.1 data before adapter
+  training.
+- Then run a small structured pairwise QLoRA smoke rather than treating overall
+  winner accuracy as the only objective.
+
+Artifacts:
+
+- Added `docs/pairwise_v0_1_plan.md`.
+- Updated `PROJECT_STATUS.md`, `TODO.md`, `README.md`, `RUNBOOK.md`, and
+  `docs/common_configs.md` to point at the v0.1 plan.
+
+Interpretation:
+
+- The project contribution should not be framed as generic refusal tuning or a
+  safety classifier.
+- The central claim should be fork-preserving judgment-delta supervision for
+  action-boundary decisions under competing response forks.
+- `continue_reasoning` should become fork-state metadata, not a terminal
+  user-visible action.

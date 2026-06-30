@@ -279,3 +279,9 @@ python scripts/evaluate_pairwise_scores.py \
   --output-json reports/pairwise_v0_dev_base_eval.json \
   --output-csv reports/pairwise_v0_dev_base_errors.csv
 ```
+
+Next pairwise stage:
+
+- Follow `docs/pairwise_v0_1_plan.md`.
+- Do not run full pairwise QLoRA before v0.1 fork-state and scope-contract
+  fields are inspectable and the Qwen3-8B 4-bit base has been re-scored.

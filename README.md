@@ -314,3 +314,7 @@ Current pairwise dev base result: winner accuracy `0.6786` over `28` pairs.
 Strong categories are `ask_clarification`, `direct_answer`, and `safe_redirect`;
 weak categories are `continue_reasoning` / `lost_fork_state` at `0.0000` and
 `partial_allowed` / `wrong_scope` at `0.2500`.
+
+Next-stage pairwise plan: `docs/pairwise_v0_1_plan.md`. Do not run full
+pairwise QLoRA before fork-state and scope-contract fields are inspectable and
+the Qwen3-8B 4-bit base has been re-scored on v0.1.
