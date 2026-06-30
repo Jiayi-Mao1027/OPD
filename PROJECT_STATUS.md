@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-06-30 22:16 +08:00
+Last updated: 2026-06-30 22:31 +08:00
 
 ## Current Objective
 
@@ -41,6 +41,9 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Ran Qwen3-8B seed action-mode baseline: `12` examples, `0.1667` accuracy, with predictions collapsing toward `refuse` and `safe_high_level`.
 - Added a minimal QLoRA training smoke for Qwen3-8B action-mode labels.
 - Ran the QLoRA smoke on 4 seed examples for 2 steps: loss `5.6548 -> 3.3280`, peak allocated CUDA memory about `9355 MB`, adapter saved under ignored `outputs/train_smoke/qwen3_8b_action_lora_steps2/adapter`.
+- Added adapter-aware prediction support to `scripts/generate_action_mode_predictions.py`.
+- Evaluated the 2-step QLoRA smoke adapter against a 4-bit base control with the same train prompt: both got `0.1667` action-mode accuracy on the 12 seed examples.
+- Added `docs/action_mode_label_guide.md` to pin down the seven current action-mode labels and common boundary cases.
 
 ## Current Blockers
 
@@ -51,13 +54,13 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - First-stage experiments should use 8B or smaller models where possible.
 - Deepspeed/flash-attn workflows must set `CUDA_HOME=/usr/local/cuda-12.2`.
 - First-stage Qwen3-8B scripts use `attn_implementation=eager` and do not require `flash-attn`.
-- The current QLoRA result is only a training-plumbing smoke; quality still needs adapter loading and post-train evaluation.
+- The current QLoRA result is only a training/eval plumbing smoke; it does not improve quality on the seed set.
 
 ## Next Actions
 
 - Ask ChatGPT Pro to investigate novelty/collision risks using the prepared context packet.
-- Add adapter-aware prediction/evaluation so the saved QLoRA adapter can be compared against the base Qwen3-8B baseline.
-- Expand ReconcileBench beyond the 12 seed examples.
-- Use the baseline failure pattern to design judgment-delta/action-mode training data.
+- Expand ReconcileBench beyond the 12 seed examples, with explicit coverage for `refuse`, `ask_clarification`, `partial_allowed`, and `continue_reasoning`.
+- Use the baseline and smoke-adapter failure pattern to design judgment-delta/action-mode training data.
 - Create a real train/dev split before any longer training run.
+- Add a taxonomy audit or dataset report script to catch action-mode imbalance and boundary-case ambiguity.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

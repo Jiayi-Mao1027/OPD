@@ -1,6 +1,6 @@
 # Experiment Log
 
-No experiments have been run in this repository yet.
+This log records environment checks, runnable smokes, baselines, and evaluation evidence.
 
 ## 2026-06-30 20:56 +08:00 - Initial Environment Survey
 
@@ -187,3 +187,82 @@ Interpretation:
 - The current environment can load Qwen3-8B in 4-bit, attach LoRA adapters, train, and save an adapter.
 - The smoke used only 4 examples and 2 optimizer steps; the loss drop is a plumbing signal, not a quality claim.
 - Next verification should load the saved adapter and run the same action-mode eval path before scaling data or steps.
+
+## 2026-06-30 22:28 +08:00 - Qwen3-8B Smoke Adapter Eval
+
+Commit before action: `5bbfb7e code: add qlora action-mode training smoke`
+Branch: `main`
+Machine: `node-128-46`
+Project path: `/data03/liang/mjy/reconcile_opsd`
+Conda env: `/data/conda/envs/mjy`
+Model path: `/data/LLM/Qwen3-8B`
+Adapter path: `outputs/train_smoke/qwen3_8b_action_lora_steps2/adapter`
+Dataset: `data/reconcilebench_seed.jsonl`
+
+Adapter metadata:
+
+```text
+base_model_name_or_path = /data/LLM/Qwen3-8B
+r = 8
+lora_alpha = 16
+target_modules = o_proj, gate_proj, v_proj, q_proj, up_proj, k_proj, down_proj
+```
+
+Commands:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/generate_action_mode_predictions.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/reconcilebench_seed.jsonl \
+  --output outputs/predictions/qwen3_8b_action_modes_seed_trainprompt_4bit.jsonl \
+  --max-new-tokens 96 \
+  --attn-implementation eager \
+  --load-in-4bit \
+  --prompt-style train
+
+python scripts/evaluate_baseline.py \
+  --dataset data/reconcilebench_seed.jsonl \
+  --predictions outputs/predictions/qwen3_8b_action_modes_seed_trainprompt_4bit.jsonl \
+  --output outputs/eval/qwen3_8b_action_modes_seed_trainprompt_4bit_eval.json
+
+CUDA_VISIBLE_DEVICES=1 python scripts/generate_action_mode_predictions.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_smoke/qwen3_8b_action_lora_steps2/adapter \
+  --dataset data/reconcilebench_seed.jsonl \
+  --output outputs/predictions/qwen3_8b_action_modes_seed_trainprompt_4bit_adapter_steps2.jsonl \
+  --max-new-tokens 96 \
+  --attn-implementation eager \
+  --load-in-4bit \
+  --prompt-style train
+
+python scripts/evaluate_baseline.py \
+  --dataset data/reconcilebench_seed.jsonl \
+  --predictions outputs/predictions/qwen3_8b_action_modes_seed_trainprompt_4bit_adapter_steps2.jsonl \
+  --output outputs/eval/qwen3_8b_action_modes_seed_trainprompt_4bit_adapter_steps2_eval.json
+```
+
+Result:
+
+```text
+base_4bit_trainprompt:
+  total = 12
+  action_mode_accuracy = 0.1667
+  predicted_counts = refuse: 2, safe_high_level: 8, direct_answer: 1, safe_redirect: 1
+
+adapter_steps2_4bit_trainprompt:
+  total = 12
+  action_mode_accuracy = 0.1667
+  predicted_counts = refuse: 2, safe_high_level: 7, direct_answer: 2, safe_redirect: 1
+```
+
+Verification:
+
+- `pytest -q`: `7 passed`.
+- The adapter config points back to `/data/LLM/Qwen3-8B`.
+- Prediction records now include adapter base path, 4-bit flag, prompt style, requested thinking flag, template thinking support, and input device metadata.
+
+Interpretation:
+
+- The adapter-aware eval path works and is comparable against a 4-bit base control.
+- The 2-step smoke adapter does not improve seed action-mode accuracy.
+- The next scaling step should wait until the dataset has a fixed train/dev split and the action-mode taxonomy is less ambiguous.

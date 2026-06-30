@@ -91,6 +91,16 @@ No DeepSeek-R1-Distill-Qwen model was found locally. R1-style experiments are de
 5. Judgment-delta same-prefix teacher prototype.
 6. 32B-class high-VRAM run after the method is stable.
 
+## Latest Engineering Evidence
+
+- Qwen3-8B chat template supports thinking mode; a short smoke with `--enable-thinking` emitted `<think>`.
+- The current action-mode eval prompt runs with explicit `ACTION_MODE` output and thinking disabled for classifier-style comparability.
+- Seed ReconcileBench currently has 12 examples across harmful, benign-sensitive, dual-use, ambiguous, long-context distraction, and non-safety uncertainty cases.
+- Base Qwen3-8B action-mode baseline on the 12 seed examples: `0.1667` accuracy, mostly collapsing to `refuse` or `safe_high_level`.
+- A 4-bit QLoRA smoke trained Qwen3-8B for 2 steps on 4 seed examples and saved a PEFT adapter successfully.
+- Adapter-aware eval is now wired: same 4-bit base, same train prompt, same 12 seed examples. The 2-step smoke adapter also gets `0.1667`, so it proves the training/eval loop, not quality.
+- A label guide now exists at `docs/action_mode_label_guide.md`; current priority is expanding data, fixing a train/dev split, and auditing taxonomy boundaries before longer training.
+
 ## Specific Questions
 
 1. Which existing papers most threaten the novelty of judgment-delta self-distillation?

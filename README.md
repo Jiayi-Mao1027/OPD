@@ -110,3 +110,30 @@ CUDA_VISIBLE_DEVICES=1 python scripts/train_action_mode_lora.py \
 ```
 
 Current training smoke result: Qwen3-8B 4-bit QLoRA ran for 2 steps on 4 seed examples, saved an adapter under ignored `outputs/`, and used about `9355 MB` peak allocated CUDA memory.
+
+Compare the smoke adapter against a quantized base-model control with the same training prompt:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/generate_action_mode_predictions.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/reconcilebench_seed.jsonl \
+  --output outputs/predictions/qwen3_8b_action_modes_seed_trainprompt_4bit.jsonl \
+  --max-new-tokens 96 \
+  --attn-implementation eager \
+  --load-in-4bit \
+  --prompt-style train
+
+CUDA_VISIBLE_DEVICES=1 python scripts/generate_action_mode_predictions.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_smoke/qwen3_8b_action_lora_steps2/adapter \
+  --dataset data/reconcilebench_seed.jsonl \
+  --output outputs/predictions/qwen3_8b_action_modes_seed_trainprompt_4bit_adapter_steps2.jsonl \
+  --max-new-tokens 96 \
+  --attn-implementation eager \
+  --load-in-4bit \
+  --prompt-style train
+```
+
+Current adapter eval result: both the 4-bit base control and the 2-step smoke adapter get `0.1667` action-mode accuracy on the 12 seed examples. The eval path is working; the tiny smoke adapter is not a quality improvement.
+
+Labeling reference: `docs/action_mode_label_guide.md`.
