@@ -95,3 +95,18 @@ python scripts/evaluate_baseline.py \
 ```
 
 Current seed baseline result: Qwen3-8B gets `0.1667` action-mode accuracy on 12 examples, mostly collapsing to `refuse` and `safe_high_level`.
+
+Run a tiny QLoRA training smoke after checking GPU state:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/train_action_mode_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/reconcilebench_seed.jsonl \
+  --output-dir outputs/train_smoke/qwen3_8b_action_lora_steps2 \
+  --limit 4 \
+  --max-steps 2 \
+  --max-length 768 \
+  --attn-implementation eager
+```
+
+Current training smoke result: Qwen3-8B 4-bit QLoRA ran for 2 steps on 4 seed examples, saved an adapter under ignored `outputs/`, and used about `9355 MB` peak allocated CUDA memory.

@@ -147,3 +147,43 @@ Interpretation:
 - It strongly collapses toward `refuse` and `safe_high_level`.
 - It fails the intended reconciliation taxonomy on ambiguous, partial-allowed, safe-redirect, and evidence-calibration examples.
 - This is a useful first baseline for motivating judgment-delta and fork-preserving training.
+
+## 2026-06-30 22:13 +08:00 - Qwen3-8B Action-Mode QLoRA Training Smoke
+
+Commit before action: `745cb9d code: add qwen action-mode baseline runner`
+Branch: `main`
+Machine: `node-128-46`
+Project path: `/data03/liang/mjy/reconcile_opsd`
+Conda env: `/data/conda/envs/mjy`
+Model path: `/data/LLM/Qwen3-8B`
+Dataset: `data/reconcilebench_seed.jsonl`
+
+Command:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 timeout 600 python scripts/train_action_mode_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/reconcilebench_seed.jsonl \
+  --output-dir outputs/train_smoke/qwen3_8b_action_lora_steps2 \
+  --limit 4 \
+  --max-steps 2 \
+  --max-length 768 \
+  --attn-implementation eager
+```
+
+Result:
+
+```text
+num_examples = 4
+max_steps = 2
+losses = 5.6548, 3.3280
+load_in_4bit = true
+cuda_max_memory_allocated_mb = 9354.79
+adapter = outputs/train_smoke/qwen3_8b_action_lora_steps2/adapter
+```
+
+Interpretation:
+
+- The current environment can load Qwen3-8B in 4-bit, attach LoRA adapters, train, and save an adapter.
+- The smoke used only 4 examples and 2 optimizer steps; the loss drop is a plumbing signal, not a quality claim.
+- Next verification should load the saved adapter and run the same action-mode eval path before scaling data or steps.

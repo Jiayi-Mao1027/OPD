@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-06-30 21:33 +08:00
+Last updated: 2026-06-30 22:16 +08:00
 
 ## Current Objective
 
@@ -39,6 +39,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Added runnable package skeleton, seed ReconcileBench data, template inspection, smoke generation, and action-mode baseline scripts.
 - Verified `pytest -q`: `7 passed`.
 - Ran Qwen3-8B seed action-mode baseline: `12` examples, `0.1667` accuracy, with predictions collapsing toward `refuse` and `safe_high_level`.
+- Added a minimal QLoRA training smoke for Qwen3-8B action-mode labels.
+- Ran the QLoRA smoke on 4 seed examples for 2 steps: loss `5.6548 -> 3.3280`, peak allocated CUDA memory about `9355 MB`, adapter saved under ignored `outputs/train_smoke/qwen3_8b_action_lora_steps2/adapter`.
 
 ## Current Blockers
 
@@ -49,13 +51,13 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - First-stage experiments should use 8B or smaller models where possible.
 - Deepspeed/flash-attn workflows must set `CUDA_HOME=/usr/local/cuda-12.2`.
 - First-stage Qwen3-8B scripts use `attn_implementation=eager` and do not require `flash-attn`.
+- The current QLoRA result is only a training-plumbing smoke; quality still needs adapter loading and post-train evaluation.
 
 ## Next Actions
 
 - Ask ChatGPT Pro to investigate novelty/collision risks using the prepared context packet.
-- Decide the first implementation target: data schema + action-mode labels, or baseline eval harness.
-- Prefer `Qwen3-8B` for the first thinking-model smoke test; keep Qwen2.5 Instruct as a non-thinking baseline.
-- Run a template/generation smoke check for `Qwen3-8B`.
-- Start implementing the dataset schema and baseline evaluation harness.
+- Add adapter-aware prediction/evaluation so the saved QLoRA adapter can be compared against the base Qwen3-8B baseline.
 - Expand ReconcileBench beyond the 12 seed examples.
 - Use the baseline failure pattern to design judgment-delta/action-mode training data.
+- Create a real train/dev split before any longer training run.
+- Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.
