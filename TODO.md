@@ -6,7 +6,6 @@
 - Decide first-stage method name: `Reconcile-OPSD`, `Judgment-Delta Self-OPD`, or `Fork-Preserving Safety Distillation`.
 - Define seed ReconcileBench schema and 20-50 examples.
 - Decide first smoke model, with `Qwen3-8B` as the current default thinking-capable candidate.
-- Decide whether to install missing training dependencies in `mjy`.
 - Run generation/template smoke checks before using any model in training or evaluation.
 - Keep R1/DeepSeek-R1-Distill out of first-stage experiments.
 
@@ -18,6 +17,7 @@
 - Add model metadata and chat-template inspection utilities.
 - Add a dry-run training script that loads a small model and one synthetic batch.
 - Add experiment config templates.
+- Add a helper that exports `CUDA_HOME=/usr/local/cuda-12.2` for deepspeed/flash-attn runs.
 
 ## Research
 

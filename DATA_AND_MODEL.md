@@ -102,17 +102,34 @@ Installed packages in `mjy`:
 - `peft==0.18.1`
 - `trl==0.29.1`
 - `datasets==4.6.1`
+- `bitsandbytes==0.49.2`
+- `deepspeed==0.19.2`
+- `flash-attn==2.8.3.post1`
 - `vllm==0.8.5.post1`
 - `sentencepiece==0.2.1`
 - `safetensors==0.7.0`
 - `tokenizers==0.22.2`
 - `xformers==0.0.29.post2`
+- `packaging==25.0`
 
-Missing packages relevant to planned experiments:
+CUDA toolkit note:
 
-- `bitsandbytes`
-- `deepspeed`
-- `flash-attn`
+- Default shell PATH did not expose `nvcc`.
+- `/usr/local/cuda-12.2/bin/nvcc` exists and was used to build `flash-attn`.
+- For deepspeed or CUDA extension work, export:
+
+```bash
+export CUDA_HOME=/usr/local/cuda-12.2
+export PATH=$CUDA_HOME/bin:$PATH
+export LD_LIBRARY_PATH=$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}
+```
+
+Without `CUDA_HOME`, importing deepspeed can fail with `MissingCUDAException`.
+
+Proxy note:
+
+- A local `mihomo` proxy listens on `127.0.0.1:7890` and `127.0.0.1:7891`.
+- GitHub push succeeded after setting HTTP/HTTPS proxy to `http://127.0.0.1:7890`.
 
 ## Initial GPU State
 

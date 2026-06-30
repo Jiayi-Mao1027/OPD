@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-06-30 20:56 +08:00
+Last updated: 2026-06-30 21:33 +08:00
 
 ## Current Objective
 
@@ -10,6 +10,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 - Branch: `main`
 - Initial commit: `b12406a docs: initialize reconcile opsd project`
+- GitHub remote: `https://github.com/Jiayi-Mao1027/OPD.git`
+- Latest pushed branch: `main`
 
 ## Current Location
 
@@ -29,21 +31,24 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Created the initial Git repo and first commit.
 - Rechecked GPU topology: `node-128-46` exposes 4 H100 PCIe devices; no A100 devices are visible from this OS/session.
 - Inspected candidate chat templates and marked Qwen3 thinking-capable candidates as the first-priority student models.
+- Configured GitHub remote and pushed `main` to `Jiayi-Mao1027/OPD`.
+- Found the server proxy at `127.0.0.1:7890/7891` and used it for GitHub push.
+- Installed `bitsandbytes==0.49.2`, `deepspeed==0.19.2`, and `flash-attn==2.8.3.post1` in `mjy`.
+- Verified `deepspeed` imports when `CUDA_HOME=/usr/local/cuda-12.2` is set.
 
 ## Current Blockers
 
-- No GitHub remote URL has been configured yet.
 - No DeepSeek-R1-Distill-Qwen model was found under `/data/LLM`.
-- `mjy` currently lacks `bitsandbytes`, `deepspeed`, and `flash-attn`; this matters for QLoRA, multi-GPU training, and high-throughput long-context training.
 - All 4 H100 GPUs had active processes during the initial survey, so no training should start without a fresh GPU check.
 - Some local model names are ambiguous; every chosen model still needs a generation smoke test before training/evaluation.
 - R1/DeepSeek-R1-Distill experiments are deferred for now.
 - First-stage experiments should use 8B or smaller models where possible.
+- Deepspeed/flash-attn workflows must set `CUDA_HOME=/usr/local/cuda-12.2`.
 
 ## Next Actions
 
 - Ask ChatGPT Pro to investigate novelty/collision risks using the prepared context packet.
 - Decide the first implementation target: data schema + action-mode labels, or baseline eval harness.
 - Prefer `Qwen3-8B` for the first thinking-model smoke test; keep Qwen2.5 Instruct as a non-thinking baseline.
-- Configure and push to GitHub repo `Jiayi-Mao1027/OPD`.
-- Before high-VRAM runs, decide whether to install `bitsandbytes`, `deepspeed`, and `flash-attn` into `mjy`.
+- Run a template/generation smoke check for `Qwen3-8B`.
+- Start implementing the dataset schema and baseline evaluation harness.

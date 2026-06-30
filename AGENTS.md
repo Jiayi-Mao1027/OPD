@@ -30,6 +30,7 @@ Model root: `/data/LLM`.
 - First-stage experiments should prefer 8B or smaller models unless the user explicitly approves a larger run.
 - Keep credentials in `.secrets/PROJECT_CREDENTIALS.md` or environment variables. Do not paste them into conversation replies.
 - Do not commit `.secrets/`, `.env*`, model checkpoints, raw model weights, or large generated outputs.
+- For deepspeed or flash-attn related runs, export `CUDA_HOME=/usr/local/cuda-12.2` and prepend `$CUDA_HOME/bin` to `PATH`.
 
 ## Work Start Checklist
 
@@ -56,6 +57,19 @@ Model root: `/data/LLM`.
 - Safety-specialized models such as guard/classifier checkpoints may be used for judging or auxiliary labels, but not as default student reasoning models unless their generation behavior is verified.
 - When a model's name or metadata is ambiguous, inspect the tokenizer template and generate a small sample before adding it to an experiment matrix.
 - Dataset prompts must match the model's actual chat template and expected output format; do not train a template mismatch into the model.
+
+## Environment Rules
+
+- Use `/data/conda/envs/mjy`.
+- For CUDA extension paths:
+
+```bash
+export CUDA_HOME=/usr/local/cuda-12.2
+export PATH=$CUDA_HOME/bin:$PATH
+export LD_LIBRARY_PATH=$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}
+```
+
+- For GitHub/network operations from the server, the local proxy is available at `http://127.0.0.1:7890`.
 
 ## Pro Interaction Rules
 
