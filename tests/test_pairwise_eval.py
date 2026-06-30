@@ -200,6 +200,40 @@ def test_evaluate_pairwise_scores_reports_position_bias_and_swap_consistency():
     assert result["position_bias_gate"]["status"] == "fail"
 
 
+def test_evaluate_pairwise_scores_counts_generation_parse_failures():
+    examples = load_jsonl("data/splits/reconcilebench_v0_1_train.jsonl")[:1]
+    records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=17, builder_version="pairwise_v0_1")
+    record = records[0]
+    score_rows = {
+        record["pair_id"]: {
+            "pair_id": record["pair_id"],
+            "predicted_winner": "invalid",
+            "scores": {},
+            "score_mode": "compact_structured_generation",
+            "field_comparison": {
+                "total": 2,
+                "correct": 1,
+                "by_field": {
+                    "WINNER": {"expected": record["winner"], "parsed": None, "correct": False},
+                    "DELTA_TAG": {"expected": record["delta_tag"], "parsed": record["delta_tag"], "correct": True},
+                },
+            },
+        }
+    }
+
+    result = evaluate_pairwise_scores(records, score_rows)
+
+    assert result["winner_accuracy"] == 0.0
+    assert result["parse_failures"] == 1
+    assert result["missing_scores"] == 0
+    assert result["errors"][0]["pair_id"] == record["pair_id"]
+    assert result["score_mode_counts"]["compact_structured_generation"] == 1
+    assert result["compact_field_examples"] == 1
+    assert result["compact_field_accuracy"] == 0.5
+    assert result["compact_field_full_match_rate"] == 0.0
+    assert result["by_compact_field"]["DELTA_TAG"]["accuracy"] == 1.0
+
+
 def test_pairwise_data_audit_cli_writes_outputs(tmp_path: Path):
     examples = load_jsonl("data/splits/reconcilebench_v0_train.jsonl")[:2]
     records = build_pairwise_records(examples, split_name="train", max_pairs_per_example=1, seed=10)

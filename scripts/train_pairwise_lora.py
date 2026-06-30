@@ -13,6 +13,7 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
+from reconcile_opsd.compact_generation import compact_structured_target
 from reconcile_opsd.gpu_utils import gpu_report, query_gpu_status
 from reconcile_opsd.pairwise_eval import load_pairwise_jsonl
 
@@ -251,27 +252,6 @@ def build_target(record: dict[str, Any], target_style: str, eos_token: str) -> s
     else:
         raise ValueError(f"unknown target_style: {target_style}")
     return f"{target}{eos_token}"
-
-
-def compact_structured_target(record: dict[str, Any]) -> str:
-    lines = [
-        f"WINNER: {record['winner']}",
-        f"GOLD_ACTION: {record.get('gold_action_mode', record.get('gold_action', ''))}",
-        f"HARD_AXIS: {record.get('hard_axis', 'other')}",
-        f"DELTA_TAG: {record['delta_tag']}",
-    ]
-    direction = record.get("scope_error_direction")
-    if isinstance(direction, str) and direction:
-        lines.append(f"SCOPE_ERROR_DIRECTION: {direction}")
-    judgment = record.get("gold_judgment")
-    if isinstance(judgment, dict):
-        granularity = judgment.get("required_granularity")
-        if isinstance(granularity, str) and granularity:
-            lines.append(f"REQUIRED_GRANULARITY: {granularity}")
-        fork_policy = judgment.get("fork_policy")
-        if isinstance(fork_policy, str) and fork_policy:
-            lines.append(f"FORK_POLICY: {fork_policy}")
-    return "\n".join(lines)
 
 
 def write_render_samples(path: Path, tokenizer: Any, records: list[dict[str, Any]], target_style: str, limit: int) -> None:

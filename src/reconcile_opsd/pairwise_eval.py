@@ -64,6 +64,11 @@ def evaluate_pairwise_scores(
     score_diffs: list[float] = []
     chosen_action_counts: Counter[str] = Counter()
     score_mode_counts: Counter[str] = Counter()
+    compact_field_stats: dict[str, Counter[str]] = defaultdict(Counter)
+    compact_field_total = 0
+    compact_field_correct = 0
+    compact_examples = 0
+    compact_full_match = 0
     errors: list[dict[str, Any]] = []
 
     for record in records:
@@ -84,6 +89,20 @@ def evaluate_pairwise_scores(
         score_mode = row.get("score_mode") if row else None
         if isinstance(score_mode, str) and score_mode:
             score_mode_counts[score_mode] += 1
+        field_comparison = row.get("field_comparison") if row else None
+        if isinstance(field_comparison, dict):
+            by_field = field_comparison.get("by_field")
+            total_fields = field_comparison.get("total")
+            correct_fields = field_comparison.get("correct")
+            if isinstance(by_field, dict) and isinstance(total_fields, int) and isinstance(correct_fields, int):
+                compact_examples += 1
+                compact_field_total += total_fields
+                compact_field_correct += correct_fields
+                if total_fields == correct_fields:
+                    compact_full_match += 1
+                for field_name, field_stats in by_field.items():
+                    if isinstance(field_name, str) and isinstance(field_stats, dict):
+                        add_group_stat(compact_field_stats[field_name], bool(field_stats.get("correct")))
 
         is_correct = predicted == expected
         if is_correct:
@@ -149,6 +168,10 @@ def evaluate_pairwise_scores(
         "score_side_bias": score_bias,
         "chosen_action_distribution": dict(sorted(chosen_action_counts.items())),
         "score_mode_counts": dict(sorted(score_mode_counts.items())),
+        "compact_field_examples": compact_examples,
+        "compact_field_accuracy": compact_field_correct / compact_field_total if compact_field_total else None,
+        "compact_field_full_match_rate": compact_full_match / compact_examples if compact_examples else None,
+        "by_compact_field": grouped_accuracy(compact_field_stats),
         "swap_consistency": swap_consistency,
         "swap_diagnostics": swap_diagnostics,
         "position_bias_flag": position_bias_flag,

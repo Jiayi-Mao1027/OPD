@@ -101,6 +101,21 @@ def render_markdown(dataset: str, run_results: list[dict[str, Any]]) -> str:
         lines.append(
             f"| {run['name']} | {gold_counts.get('A', 0)}/{gold_counts.get('B', 0)} | {pred_counts.get('A', 0)}/{pred_counts.get('B', 0)} | {side_bias['predicted_majority_side']} | {format_metric(side_bias['predicted_majority_rate'])} | {format_metric(side_bias['predicted_a_rate_minus_gold_a_rate'])} | {format_metric(side_bias['side_entropy_bits'])} | {format_metric(side_bias['min_expected_side_accuracy'])} | {metrics['position_bias_gate']['status']} |"
         )
+    if uses_compact_field_metrics(run_results):
+        lines.extend(
+            [
+                "",
+                "## Compact Field Summary",
+                "",
+                "| run | examples | field acc | full target match |",
+                "| --- | ---: | ---: | ---: |",
+            ]
+        )
+        for run in run_results:
+            metrics = run["metrics"]
+            lines.append(
+                f"| {run['name']} | {metrics.get('compact_field_examples', 0)} | {format_metric(metrics.get('compact_field_accuracy'))} | {format_metric(metrics.get('compact_field_full_match_rate'))} |"
+            )
     for run in run_results:
         metrics = run["metrics"]
         lines.extend(["", f"## {run['name']}", "", f"Source: `{run['path']}`", "", "### By Delta Tag", ""])
@@ -115,6 +130,9 @@ def render_markdown(dataset: str, run_results: list[dict[str, Any]]) -> str:
         lines.extend(render_group_table(metrics["by_gold_action_mode"]))
         lines.extend(["", "### By Source Id", ""])
         lines.extend(render_group_table(metrics["by_source_id"]))
+        if metrics.get("compact_field_examples"):
+            lines.extend(["", "### By Compact Field", ""])
+            lines.extend(render_group_table(metrics["by_compact_field"]))
         lines.extend(["", "### Swap Diagnostics", ""])
         lines.extend(render_swap_diagnostics(metrics.get("swap_diagnostics", {})))
         lines.extend(["", "### Confusion Matrix", "", "```json", json.dumps(metrics["confusion_matrix"], ensure_ascii=False, indent=2), "```"])
@@ -130,6 +148,10 @@ def uses_compact_structured_score(run_results: list[dict[str, Any]]) -> bool:
         if "compactscore" in run["name"]:
             return True
     return False
+
+
+def uses_compact_field_metrics(run_results: list[dict[str, Any]]) -> bool:
+    return any(bool(run["metrics"].get("compact_field_examples")) for run in run_results)
 
 
 def render_group_table(group: dict[str, dict[str, float | int]]) -> list[str]:
