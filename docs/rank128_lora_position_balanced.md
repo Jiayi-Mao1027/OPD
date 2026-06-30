@@ -67,6 +67,18 @@ refusal_boundary >= 4/5
 position_bias_gate = pass
 ```
 
+## Latest Diagnostic Result
+
+The first position-balanced compact run is documented in
+`reports/pairwise_v0_1_r128_posbalanced_compact_summary.md`.
+
+Status: mixed positive diagnostic. It improves original dev from `22/28` to
+`23/28`, improves fork-state from `1/3` to `2/3`, preserves original-dev
+scope-contract at `11/13`, and removes the prior all-A/all-B collapse. It is
+not a final positive result because posbalanced dev swap consistency remains
+`18/28 = 0.6429`, below the current `0.70` gate, while posbalanced
+scope-contract and refusal-boundary accuracy regress.
+
 ## Scoring
 
 Score both original dev and position-balanced dev:
