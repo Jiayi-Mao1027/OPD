@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 01:15 +08:00
+Last updated: 2026-07-01 01:34 +08:00
 
 ## Current Objective
 
@@ -74,6 +74,10 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Generated ReconcileBench v0.1 data and pairwise v0.1 data: `76` train pairs and `28` dev pairs, both audit-clean.
 - Ran Qwen3-8B 4-bit base scoring on pairwise v0.1 dev: winner accuracy `0.7500` (`21/28`), missing `0`, parse failures `0`, average winner margin `1.8103`, peak allocated CUDA memory about `7217 MB`.
 - v0.1 hard-axis result: fork-state remains `0/3`; scope-contract is `11/13 = 0.8462`.
+- User clarified the training policy: do not use QLoRA or full-parameter fine-tuning; use rank-128 LoRA and control memory with batch size / gradient accumulation.
+- Added `scripts/train_pairwise_lora.py` with default rank-128 non-quantized LoRA plus `--batch-size` and `--gradient-accumulation-steps`.
+- Ran Qwen3-8B full/BF16 pairwise v0.1 control scoring: winner accuracy `0.7857`, fork-state `1/3`, scope-contract `11/13`, peak allocated CUDA memory about `15954 MB`.
+- Ran rank-128 LoRA pairwise smoke tests on v0.1: structured target improves fork-state to `2/3` but drops overall winner accuracy to `0.6429`; winner-only target collapses toward `B` and drops to `0.3929`.
 
 ## Current Blockers
 
@@ -92,7 +96,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 ## Next Actions
 
-- Add `scripts/train_pairwise_lora.py` for a small structured judgment-delta QLoRA smoke.
-- Use v0.1 hard-axis metrics as the acceptance gate: improve fork-state from `0/3` without collapsing scope-contract accuracy.
-- Add a balanced structured pairwise target or sampler that upweights fork-state and wrong-scope examples.
+- Treat the rank-128 LoRA smoke as a diagnostic negative/mixed result, not a final method win.
+- Ask Pro to analyze the rank-128 LoRA collapse and choose the next LoRA-only run design.
+- Use v0.1 hard-axis metrics as the acceptance gate: improve fork-state without collapsing scope-contract or overall winner accuracy.
+- Add a balanced structured pairwise target or sampler that addresses A/B position bias.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

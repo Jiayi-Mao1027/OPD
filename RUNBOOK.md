@@ -294,3 +294,35 @@ Pairwise v0.1 base result:
 - fork-state accuracy: `0/3`;
 - scope-contract accuracy: `11/13`;
 - peak allocated CUDA memory: about `7217 MB`.
+
+## Pairwise Rank-128 LoRA
+
+Training policy:
+
+- Do not use QLoRA for first-stage pairwise runs.
+- Do not use full-parameter fine-tuning.
+- Use rank-128 LoRA and tune memory with `--batch-size`,
+  `--gradient-accumulation-steps`, and `--max-length`.
+
+Structured target example:
+
+```bash
+python scripts/train_pairwise_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_train_pairwise.jsonl \
+  --output-dir outputs/train_pairwise_smoke/qwen3_8b_pairwise_v0_1_lora_r128_structured_steps20 \
+  --max-steps 20 \
+  --batch-size 1 \
+  --target-style structured_judgment_delta \
+  --lora-r 128 \
+  --lora-alpha 256 \
+  --attn-implementation eager
+```
+
+Current smoke report:
+
+- `reports/pairwise_v0_1_dev_lora_r128_smoke.md`;
+- structured target improves fork-state from `1/3` to `2/3` but drops overall
+  winner accuracy from `0.7857` to `0.6429`;
+- winner-only target collapses toward one candidate side and is not useful as
+  the next direction.

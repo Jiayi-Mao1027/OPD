@@ -822,3 +822,103 @@ Interpretation:
 - The next training smoke should use structured judgment-delta targets or
   balanced sampling that explicitly upweights fork-state examples; overall
   winner accuracy alone is not an acceptable success criterion.
+
+## 2026-07-01 01:34 +08:00 - Pairwise v0.1 Rank-128 LoRA Smoke
+
+Commit before action: `afc261c data: add pairwise v0.1 fork scope eval`
+Branch: `main`
+Machine: remote `/data03/liang/mjy/reconcile_opsd`
+Model path: `/data/LLM/Qwen3-8B`
+
+Policy:
+
+- Do not use QLoRA.
+- Do not use full-parameter fine-tuning.
+- Use rank-128 LoRA and adjust memory with batch size, gradient accumulation,
+  and sequence length.
+
+Change:
+
+- Added `scripts/train_pairwise_lora.py`.
+- Default training path is non-quantized rank-128 LoRA.
+- Added `--batch-size` and `--gradient-accumulation-steps`.
+- Persisted `preflight_gpu.json`, `config_resolved.json`, `train_losses.jsonl`,
+  adapter, tokenizer, and `metrics.json` under ignored `outputs/`.
+
+Commands:
+
+```bash
+python scripts/score_pairwise_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl \
+  --output outputs/pairwise_scores/qwen3_8b_v0_1_dev_pairwise_full_base_bf16.jsonl \
+  --attn-implementation eager
+
+python scripts/train_pairwise_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_train_pairwise.jsonl \
+  --output-dir outputs/train_pairwise_smoke/qwen3_8b_pairwise_v0_1_lora_r128_structured_steps20 \
+  --max-steps 20 \
+  --batch-size 1 \
+  --gradient-accumulation-steps 1 \
+  --target-style structured_judgment_delta \
+  --lora-r 128 \
+  --lora-alpha 256 \
+  --attn-implementation eager
+
+python scripts/train_pairwise_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_train_pairwise.jsonl \
+  --output-dir outputs/train_pairwise_smoke/qwen3_8b_pairwise_v0_1_lora_r128_winner_steps20 \
+  --max-steps 20 \
+  --batch-size 1 \
+  --gradient-accumulation-steps 1 \
+  --target-style winner_only \
+  --lora-r 128 \
+  --lora-alpha 256 \
+  --attn-implementation eager
+
+python scripts/evaluate_pairwise_scores.py \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl \
+  --scores full_base=outputs/pairwise_scores/qwen3_8b_v0_1_dev_pairwise_full_base_bf16.jsonl \
+  --scores lora_r128_structured=outputs/pairwise_scores/qwen3_8b_v0_1_dev_pairwise_lora_r128_structured_steps20_bf16.jsonl \
+  --scores lora_r128_winner=outputs/pairwise_scores/qwen3_8b_v0_1_dev_pairwise_lora_r128_winner_steps20_bf16.jsonl \
+  --output-md reports/pairwise_v0_1_dev_lora_r128_smoke.md \
+  --output-json reports/pairwise_v0_1_dev_lora_r128_smoke.json \
+  --output-csv reports/pairwise_v0_1_dev_lora_r128_smoke_errors.csv
+```
+
+Result:
+
+```text
+Full/BF16 control:
+  winner accuracy = 0.7857
+  fork_state = 1/3
+  scope_contract = 11/13
+  peak allocated CUDA memory = 15953.83 MB
+
+Rank-128 LoRA, structured_judgment_delta:
+  first loss = 4.6346
+  last loss = 0.1935
+  winner accuracy = 0.6429
+  fork_state = 2/3
+  scope_contract = 9/13
+  peak allocated CUDA memory = 27426.33 MB
+
+Rank-128 LoRA, winner_only:
+  first loss = 8.2261
+  last loss = 0.0325
+  winner accuracy = 0.3929
+  fork_state = 1/3
+  scope_contract = 5/13
+  peak allocated CUDA memory = 26414.34 MB
+```
+
+Interpretation:
+
+- Structured rank-128 LoRA improves the core fork-state axis, but hurts overall
+  winner accuracy and scope-contract accuracy.
+- Winner-only rank-128 LoRA collapses toward candidate side `B` and is not a
+  useful target.
+- The next LoRA-only run should fix A/B side bias and hard-axis sampling before
+  increasing steps or claiming improvement.

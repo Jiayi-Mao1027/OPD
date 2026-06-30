@@ -234,6 +234,38 @@ Current pairwise v0.1 base result:
 - missing/parse failures: `0/0`;
 - peak allocated CUDA memory: about `7217 MB`.
 
+## Rank-128 LoRA Policy
+
+Use rank-128 LoRA for first-stage pairwise training:
+
+```bash
+$PY scripts/train_pairwise_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_train_pairwise.jsonl \
+  --output-dir outputs/train_pairwise_smoke/qwen3_8b_pairwise_v0_1_lora_r128_structured_steps20 \
+  --max-steps 20 \
+  --batch-size 1 \
+  --gradient-accumulation-steps 1 \
+  --target-style structured_judgment_delta \
+  --lora-r 128 \
+  --lora-alpha 256 \
+  --attn-implementation eager
+```
+
+Do not use QLoRA or full-parameter fine-tuning for this stage. If memory becomes
+the bottleneck, lower `--batch-size`, increase `--gradient-accumulation-steps`,
+or lower `--max-length`.
+
+Current rank-128 LoRA smoke report:
+
+- `reports/pairwise_v0_1_dev_lora_r128_smoke.md`;
+- full/BF16 control: `0.7857` winner accuracy, fork-state `1/3`,
+  scope-contract `11/13`;
+- structured LoRA: `0.6429` winner accuracy, fork-state `2/3`,
+  scope-contract `9/13`;
+- winner-only LoRA: `0.3929` winner accuracy, fork-state `1/3`,
+  scope-contract `5/13`.
+
 ## Proxy And GitHub
 
 The server uses `mihomo` with local ports:

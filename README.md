@@ -322,3 +322,16 @@ the Qwen3-8B 4-bit base has been re-scored on v0.1.
 Current pairwise v0.1 draft: train `76` pairs, dev `28` pairs, both audit-clean.
 Qwen3-8B 4-bit base gets winner accuracy `0.7500` on v0.1 dev, with fork-state
 accuracy `0.0000` (`0/3`) and scope-contract accuracy `0.8462` (`11/13`).
+
+Training policy from this point: rank-128 LoRA only. Do not use QLoRA or
+full-parameter fine-tuning for the first-stage runs; manage memory with
+`--batch-size`, `--gradient-accumulation-steps`, and `--max-length`.
+
+Current rank-128 LoRA smoke result on Qwen3-8B full/BF16 scoring:
+
+- full/BF16 control: winner accuracy `0.7857`, fork-state `1/3`,
+  scope-contract `11/13`;
+- structured judgment-delta LoRA: winner accuracy `0.6429`, fork-state `2/3`,
+  scope-contract `9/13`;
+- winner-only LoRA: winner accuracy `0.3929`, fork-state `1/3`,
+  scope-contract `5/13`.
