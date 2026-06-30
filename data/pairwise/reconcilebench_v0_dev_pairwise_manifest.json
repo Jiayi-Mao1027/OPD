@@ -1,0 +1,60 @@
+{
+  "dataset": "data\\splits\\reconcilebench_v0_dev.jsonl",
+  "delta_tag_counts": {
+    "lost_fork_state": 4,
+    "missing_clarification": 4,
+    "over_refusal": 2,
+    "under_refusal": 4,
+    "unnecessary_clarification": 2,
+    "wrong_granularity": 6,
+    "wrong_redirect": 2,
+    "wrong_scope": 4
+  },
+  "expanded_delta_tag_counts": {
+    "authorization_boundary": 4,
+    "context_drift_guard": 6,
+    "evidence_calibration": 4,
+    "fork_preservation": 4,
+    "hard_refusal_boundary": 4,
+    "lost_fork_state": 4,
+    "missing_clarification": 4,
+    "over_refusal": 2,
+    "partial_allowed_split": 4,
+    "professional_boundary": 8,
+    "safe_high_level_boundary": 4,
+    "safe_redirect_boundary": 4,
+    "under_refusal": 4,
+    "unnecessary_clarification": 2,
+    "wrong_granularity": 6,
+    "wrong_redirect": 2,
+    "wrong_scope": 4
+  },
+  "forbid_source_datasets": [
+    "data\\splits\\reconcilebench_v0_train.jsonl"
+  ],
+  "forbidden_prompt_hash_overlap": [],
+  "forbidden_source_id_overlap": [],
+  "gold_action_counts": {
+    "ask_clarification": 4,
+    "continue_reasoning": 4,
+    "direct_answer": 4,
+    "partial_allowed": 4,
+    "refuse": 4,
+    "safe_high_level": 4,
+    "safe_redirect": 4
+  },
+  "max_pairs_per_example": 2,
+  "negative_action_counts": {
+    "ask_clarification": 2,
+    "direct_answer": 10,
+    "partial_allowed": 2,
+    "refuse": 4,
+    "safe_high_level": 6,
+    "safe_redirect": 4
+  },
+  "score_file": null,
+  "seed": 20260630,
+  "source_examples": 14,
+  "split_name": "dev",
+  "total_pairs": 28
+}

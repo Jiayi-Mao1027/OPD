@@ -229,3 +229,34 @@ python scripts/compare_action_mode_runs.py \
   --output-md reports/reconcile_v0_eval_terminal_only.md \
   --output-csv reports/reconcile_v0_error_table_terminal_only.csv
 ```
+
+## Pairwise Judgment-Delta Data
+
+Build train pairs only from the train split and forbid the dev split:
+
+```bash
+python scripts/build_pairwise_judgment_data.py \
+  --dataset data/splits/reconcilebench_v0_train.jsonl \
+  --forbid-source-dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output data/pairwise/reconcilebench_v0_train_pairwise.jsonl \
+  --manifest-output data/pairwise/reconcilebench_v0_train_pairwise_manifest.json \
+  --split-name train \
+  --max-pairs-per-example 2 \
+  --seed 20260630
+```
+
+Build dev pairs separately for pairwise evaluation:
+
+```bash
+python scripts/build_pairwise_judgment_data.py \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --forbid-source-dataset data/splits/reconcilebench_v0_train.jsonl \
+  --output data/pairwise/reconcilebench_v0_dev_pairwise.jsonl \
+  --manifest-output data/pairwise/reconcilebench_v0_dev_pairwise_manifest.json \
+  --split-name dev \
+  --max-pairs-per-example 2 \
+  --seed 20260630
+```
+
+Do not merge dev pairwise data into training. The builder checks source-id and
+prompt-hash overlap against the forbidden split.

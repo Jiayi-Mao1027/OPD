@@ -546,3 +546,62 @@ Interpretation:
   split out rather than treated as a final user-visible action.
 - Next step: audit the error table, then build pairwise judgment-delta examples
   from the clean/confusable cases.
+
+## 2026-07-01 00:24 +08:00 - Pairwise Judgment-Delta Data v0
+
+Commit before action: `bb252af docs: record common run configs`
+Branch: `main`
+Machine: local mirror plus remote sync target `/data03/liang/mjy/reconcile_opsd`
+
+Change:
+
+- Added `src/reconcile_opsd/pairwise_data.py`.
+- Added `scripts/build_pairwise_judgment_data.py`.
+- Added tests for required pair fields, winner-side randomization, action-mode
+  coverage, delta-tag coverage, and train/dev leakage checks.
+
+Commands:
+
+```bash
+python scripts/build_pairwise_judgment_data.py \
+  --dataset data/splits/reconcilebench_v0_train.jsonl \
+  --forbid-source-dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output data/pairwise/reconcilebench_v0_train_pairwise.jsonl \
+  --manifest-output data/pairwise/reconcilebench_v0_train_pairwise_manifest.json \
+  --split-name train \
+  --max-pairs-per-example 2 \
+  --seed 20260630
+
+python scripts/build_pairwise_judgment_data.py \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --forbid-source-dataset data/splits/reconcilebench_v0_train.jsonl \
+  --output data/pairwise/reconcilebench_v0_dev_pairwise.jsonl \
+  --manifest-output data/pairwise/reconcilebench_v0_dev_pairwise_manifest.json \
+  --split-name dev \
+  --max-pairs-per-example 2 \
+  --seed 20260630
+```
+
+Result:
+
+```text
+train pairwise:
+  source examples = 38
+  pairs = 76
+  forbidden_source_id_overlap = []
+  forbidden_prompt_hash_overlap = []
+
+dev pairwise:
+  source examples = 14
+  pairs = 28
+  forbidden_source_id_overlap = []
+  forbidden_prompt_hash_overlap = []
+```
+
+Interpretation:
+
+- This is a deterministic template-hard-negative draft, not model-generated
+  pairwise data.
+- It keeps dev pairwise data separate for evaluation and prevents source-id or
+  prompt-hash leakage across splits.
+- Next step is pairwise base scoring/evaluation before any pairwise QLoRA.

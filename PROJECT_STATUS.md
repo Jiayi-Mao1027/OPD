@@ -62,6 +62,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Ran constrained scoring on the v0 dev split for the Qwen3-8B 4-bit base control and normalized-reason adapter.
 - Generated `reports/reconcile_v0_eval_base_vs_qlora.md`, `reports/reconcile_v0_error_table.csv`, and terminal-only variants.
 - Constrained scoring result: both runs remain `0.4286` all-mode accuracy; normalized adapter improves macro-F1 `0.2880 -> 0.3293` and top-2 allowed accuracy `0.5714 -> 0.7143`.
+- Added pairwise judgment-delta data builder and tests.
+- Generated pairwise v0 data: `76` train pairs from `38` source examples and `28` dev pairs from `14` source examples, with no forbidden source-id or prompt-hash overlap.
 
 ## Current Blockers
 
@@ -80,7 +82,7 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 ## Next Actions
 
-- Audit the dev errors into clean, ambiguous, taxonomy-problem, and likely-mislabeled groups.
-- Build the first pairwise judgment-delta draft from audited examples.
+- Audit the pairwise v0 data for template quality before training.
+- Add pairwise scoring/evaluation for Qwen3-8B base before any pairwise QLoRA.
 - Split `continue_reasoning` out of root terminal action-mode evaluation and into a prefix-level fork-state target.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

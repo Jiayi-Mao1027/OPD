@@ -157,6 +157,40 @@ $PY scripts/compare_action_mode_runs.py \
   --output-json reports/reconcile_v0_eval_terminal_only.json
 ```
 
+## Pairwise Data Defaults
+
+Build pairwise train data from train only:
+
+```bash
+$PY scripts/build_pairwise_judgment_data.py \
+  --dataset data/splits/reconcilebench_v0_train.jsonl \
+  --forbid-source-dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --output data/pairwise/reconcilebench_v0_train_pairwise.jsonl \
+  --manifest-output data/pairwise/reconcilebench_v0_train_pairwise_manifest.json \
+  --split-name train \
+  --max-pairs-per-example 2 \
+  --seed 20260630
+```
+
+Build pairwise dev data for evaluation only:
+
+```bash
+$PY scripts/build_pairwise_judgment_data.py \
+  --dataset data/splits/reconcilebench_v0_dev.jsonl \
+  --forbid-source-dataset data/splits/reconcilebench_v0_train.jsonl \
+  --output data/pairwise/reconcilebench_v0_dev_pairwise.jsonl \
+  --manifest-output data/pairwise/reconcilebench_v0_dev_pairwise_manifest.json \
+  --split-name dev \
+  --max-pairs-per-example 2 \
+  --seed 20260630
+```
+
+Current pairwise v0 draft:
+
+- train: `76` pairs from `38` source examples;
+- dev: `28` pairs from `14` source examples;
+- both manifests have empty forbidden source-id and prompt-hash overlap.
+
 ## Proxy And GitHub
 
 The server uses `mihomo` with local ports:
