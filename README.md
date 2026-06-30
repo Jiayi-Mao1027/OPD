@@ -49,6 +49,13 @@ Validate the seed data and utilities:
 pytest -q
 ```
 
+Check GPU state before loading a model:
+
+```bash
+python scripts/gpu_status.py
+eval "$(python scripts/gpu_status.py --export)"
+```
+
 Audit the expanded v0 data and fixed split:
 
 ```bash
@@ -187,3 +194,9 @@ CUDA_VISIBLE_DEVICES=1 python scripts/train_action_mode_lora.py \
 ```
 
 Current normalized-target result: dev accuracy returns to `0.4286`, matching the 4-bit base control and avoiding most repetitive reason generation, but still not beating the base model.
+
+The reproducible wrapper for the same path is:
+
+```bash
+TARGET_STYLE=normalized_reason MAX_STEPS=20 scripts/run_qwen3_v0_qlora.sh
+```

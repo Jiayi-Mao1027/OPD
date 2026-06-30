@@ -12,12 +12,12 @@
 
 ## Engineering
 
-- Add GPU logging utilities.
 - Add experiment config templates.
 - Add a helper that exports `CUDA_HOME=/usr/local/cuda-12.2` for deepspeed/flash-attn runs.
 - Add a training data builder for action-mode labels and judgment-delta fields.
 - Add response-level generation/eval for `final_response`.
 - Add a classification-style or pairwise judgment-delta target option.
+- Extend GPU/run helpers to write structured experiment preflight snapshots into each output directory.
 
 ## Research
 

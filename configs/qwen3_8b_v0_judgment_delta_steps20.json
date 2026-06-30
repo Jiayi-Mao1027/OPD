@@ -1,0 +1,17 @@
+{
+  "name": "qwen3_8b_v0_judgment_delta_steps20",
+  "model": "/data/LLM/Qwen3-8B",
+  "train_dataset": "data/splits/reconcilebench_v0_train.jsonl",
+  "eval_dataset": "data/splits/reconcilebench_v0_dev.jsonl",
+  "output_dir": "outputs/train_v0/qwen3_8b_action_lora_steps20",
+  "max_steps": 20,
+  "max_length": 768,
+  "eval_max_new_tokens": 96,
+  "attn_implementation": "eager",
+  "target_style": "judgment_delta",
+  "load_in_4bit": true,
+  "result": {
+    "dev_action_mode_accuracy": 0.35714285714285715,
+    "base_control_dev_action_mode_accuracy": 0.42857142857142855
+  }
+}

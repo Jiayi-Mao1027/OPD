@@ -56,7 +56,13 @@ GPU:
 nvidia-smi
 nvidia-smi --query-gpu=index,name,memory.total,memory.used,memory.free,utilization.gpu --format=csv
 nvidia-smi --query-compute-apps=gpu_uuid,pid,process_name,used_memory --format=csv
+python scripts/gpu_status.py
+python scripts/gpu_status.py --export
 ```
+
+The project GPU helper selects a device with at least `20000 MB` free and at most
+`70000 MB` already used by default. Override with `--min-free-mb` and
+`--max-used-mb` only when the reason is logged.
 
 Models:
 
@@ -135,3 +141,29 @@ High-VRAM target experiments must exceed 70GB actual GPU memory usage. If they d
 4. Check sequence length and micro batch size.
 5. Check whether gradient checkpointing, LoRA, or CPU offload changed memory usage.
 6. Mark the result as suspect until explained.
+
+For first-stage 8B QLoRA runs, use the inverse safety rule: avoid devices that
+already have more than `70000 MB` used, and log the selected device before
+starting. The helper script enforces this default policy.
+
+## Standard v0 QLoRA Runner
+
+Use this wrapper for reproducible Qwen3-8B v0 action-mode runs:
+
+```bash
+TARGET_STYLE=normalized_reason MAX_STEPS=20 scripts/run_qwen3_v0_qlora.sh
+```
+
+Common overrides:
+
+```bash
+TARGET_STYLE=judgment_delta OUTPUT_DIR=outputs/train_v0/qwen3_8b_action_lora_steps20 scripts/run_qwen3_v0_qlora.sh
+MIN_FREE_MB=20000 MAX_USED_MB=70000 scripts/run_qwen3_v0_qlora.sh
+```
+
+Current reference configs:
+
+```text
+configs/qwen3_8b_v0_judgment_delta_steps20.json
+configs/qwen3_8b_v0_normalized_reason_steps20.json
+```

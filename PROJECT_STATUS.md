@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-06-30 23:06 +08:00
+Last updated: 2026-06-30 23:24 +08:00
 
 ## Current Objective
 
@@ -51,6 +51,9 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Ran Qwen3-8B v0 20-step QLoRA: train loss dropped `5.9287 -> 1.7881`, but dev action-mode accuracy fell from the 4-bit base control `0.4286` to adapter `0.3571`.
 - Added `--target-style normalized_reason` to reduce noisy `judgment_delta` targets.
 - Ran Qwen3-8B v0 20-step QLoRA with normalized reasons: dev action-mode accuracy recovered to `0.4286`, matching but not beating the 4-bit base control; repeated reason generation mostly disappeared.
+- Added GPU status/selection utilities and tests.
+- Added a standard Qwen3-8B v0 QLoRA run wrapper that checks tests, selects a low-conflict GPU, exports CUDA env, and writes metrics.
+- Added reference experiment configs for the current judgment-delta and normalized-reason v0 runs.
 
 ## Current Blockers
 
@@ -70,7 +73,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 - Ask ChatGPT Pro to investigate novelty/collision risks using the prepared context packet.
 - Ask ChatGPT Pro to review the v0 negative result and recommend the next training target/ablation.
-- Add response-level evaluation beyond explicit action-mode classification.
-- Add a training data builder that uses `benign_allowed_parts`, `disallowed_parts`, `forks_to_keep`, `forks_to_prune`, and `final_response`.
+- Wait for ChatGPT Pro review before changing the main method target.
+- Add response-level evaluation beyond explicit action-mode classification after Pro confirms the metric shape.
+- Add a training data builder that uses `benign_allowed_parts`, `disallowed_parts`, `forks_to_keep`, `forks_to_prune`, and `final_response` after target design is settled.
 - Consider a classification-style or pairwise judgment-delta target for `ask_clarification` and `continue_reasoning`, which remain weak.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.
