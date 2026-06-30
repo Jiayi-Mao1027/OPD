@@ -6,6 +6,11 @@ Last updated: 2026-06-30 20:56 +08:00
 
 Create the initial project workspace for Reconcile-OPSD, turn the web-chat research idea into an actionable first-stage plan, and record the remote environment/model inventory.
 
+## Git State
+
+- Branch: `main`
+- Initial commit: `b12406a docs: initialize reconcile opsd project`
+
 ## Current Location
 
 - Remote project root: `/data03/liang/mjy/reconcile_opsd`
@@ -21,6 +26,7 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Confirmed the old `/data03/liang/mjy/safe_opd` directory already exists and should not be overwritten.
 - Confirmed the `mjy` conda environment exists and can see 4 H100 PCIe GPUs.
 - Confirmed several usable local models under `/data/LLM`.
+- Created the initial Git repo and first commit.
 
 ## Current Blockers
 
@@ -36,4 +42,3 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Choose first smoke model: `Qwen2.5-7B-Instruct`, `Qwen3-8B`, or `YuFeng-XGuard-Reason-8B`.
 - If DeepSeek-R1-Distill-Qwen is required, ask the user to download the 14B and/or 32B version.
 - Before high-VRAM runs, decide whether to install `bitsandbytes`, `deepspeed`, and `flash-attn` into `mjy`.
-

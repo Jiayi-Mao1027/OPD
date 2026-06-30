@@ -4,8 +4,8 @@ No experiments have been run in this repository yet.
 
 ## 2026-06-30 20:56 +08:00 - Initial Environment Survey
 
-Commit: pending initial commit
-Branch: pending
+Commit: `b12406a docs: initialize reconcile opsd project`
+Branch: `main`
 Machine: `node-128-46`
 Project path: `/data03/liang/mjy/reconcile_opsd`
 Conda env: `/data/conda/envs/mjy`
@@ -37,4 +37,3 @@ Result:
 Next step:
 
 - Prepare Pro literature/context packet and choose first smoke experiment after planning.
-
