@@ -27,6 +27,7 @@ Model root: `/data/LLM`.
 - Do not kill or displace existing GPU processes without explicit user approval.
 - For high-memory target experiments, expected and observed GPU memory occupation should exceed 70GB.
 - If a high-memory run uses less than 70GB, mark the run as suspect and investigate model size, precision, sharding, sequence length, batch size, and device placement.
+- First-stage experiments should prefer 8B or smaller models unless the user explicitly approves a larger run.
 - Keep credentials in `.secrets/PROJECT_CREDENTIALS.md` or environment variables. Do not paste them into conversation replies.
 - Do not commit `.secrets/`, `.env*`, model checkpoints, raw model weights, or large generated outputs.
 
@@ -50,6 +51,8 @@ Model root: `/data/LLM`.
 
 - Thinking experiments should prioritize verified Qwen3 thinking-capable models or other reasoning/chat models with explicit thinking support.
 - Qwen2.5 Instruct models are useful baselines but should not be treated as native thinking models.
+- The current default first-stage student is `/data/LLM/Qwen3-8B`.
+- Do not start R1/DeepSeek-R1-Distill experiments in the first stage; the user has deferred them.
 - Safety-specialized models such as guard/classifier checkpoints may be used for judging or auxiliary labels, but not as default student reasoning models unless their generation behavior is verified.
 - When a model's name or metadata is ambiguous, inspect the tokenizer template and generate a small sample before adding it to an experiment matrix.
 - Dataset prompts must match the model's actual chat template and expected output format; do not train a template mismatch into the model.

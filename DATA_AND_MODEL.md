@@ -59,9 +59,10 @@ Observed model categories:
 Working priority for method experiments:
 
 1. `/data/LLM/Qwen3-8B` for smoke tests because it has a thinking-capable template and manageable size.
-2. `/data/LLM/Qwen3-30B-A3B-Thinking` for the first stronger thinking-model experiment.
-3. `/data/LLM/Qwen3-Next-80B-A3B-Thinking` only after the pipeline is stable.
-4. `/data/LLM/Qwen2.5-32B-Instruct` or `/data/LLM/Llama-3.3-70B-Instruct` as non-thinking baselines, not as primary thinking students.
+2. `/data/LLM/Qwen2.5-7B-Instruct` as a non-thinking instruct baseline.
+3. `/data/LLM/Qwen3-30B-A3B-Thinking` only after the 8B/smaller pipeline is stable and the user approves a larger run.
+4. `/data/LLM/Qwen3-Next-80B-A3B-Thinking` only after the pipeline is stable and large-model resources are intentionally scheduled.
+5. `/data/LLM/Qwen2.5-32B-Instruct` or `/data/LLM/Llama-3.3-70B-Instruct` as later non-thinking large baselines, not first-stage targets.
 
 Before using any model in an experiment, run a small template/render/generation smoke check and record:
 
@@ -72,7 +73,9 @@ Before using any model in an experiment, run a small template/render/generation 
 
 ## Model Download Wishlist
 
-Only needed if the project decides to rely on R1-style distillation baselines:
+The user has deferred R1-style experiments for the first stage. Do not request these downloads now unless the project direction changes.
+
+Only needed later if the project decides to rely on R1-style distillation baselines:
 
 - `DeepSeek-R1-Distill-Qwen-14B`
 - `DeepSeek-R1-Distill-Qwen-32B`

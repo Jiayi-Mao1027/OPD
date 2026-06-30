@@ -55,6 +55,14 @@ Relevant action modes:
 
 ## MVP Experiment Plan
 
+Current first-stage scope:
+
+- Use 8B or smaller models whenever possible.
+- Default thinking student: `/data/LLM/Qwen3-8B`.
+- Keep Qwen2.5 7B Instruct as a non-thinking instruct baseline.
+- Do not run R1/DeepSeek-R1-Distill experiments in the first stage.
+- Do not start 30B/70B/80B runs until the small-model data, template, and evaluation loop is working.
+
 ### Phase 0: Setup and Literature Collision Scan
 
 - Create repo, docs, and Pro collaboration workflow.
@@ -113,7 +121,7 @@ Use a small model and LoRA-style training to validate:
 Candidate smoke models:
 
 - `/data/LLM/Qwen3-8B`
-- `/data/LLM/Qwen3-30B-A3B` if resource conditions allow
+- `/data/LLM/Qwen2.5-7B-Instruct` as a non-thinking baseline
 
 Use `/data/LLM/Qwen2.5-7B-Instruct` as a non-thinking instruct baseline, not as the primary thinking-model smoke target. Use `/data/LLM/YuFeng-XGuard-Reason-8B` only after confirming it behaves as a generative reasoning model rather than only a safety classifier/judge.
 
@@ -129,7 +137,7 @@ Implement same-prefix teacher scoring and compare:
 
 ### Phase 5: High-VRAM Main Run
 
-Run at least one >70GB VRAM experiment using:
+Defer high-VRAM main runs until the 8B/smaller loop is stable. Later, run at least one >70GB VRAM experiment using:
 
 - `/data/LLM/Qwen3-30B-A3B-Thinking`, or
 - `/data/LLM/Qwen3-Next-80B-A3B-Thinking`, or

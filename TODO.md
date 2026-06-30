@@ -8,6 +8,7 @@
 - Decide first smoke model, with `Qwen3-8B` as the current default thinking-capable candidate.
 - Decide whether to install missing training dependencies in `mjy`.
 - Run generation/template smoke checks before using any model in training or evaluation.
+- Keep R1/DeepSeek-R1-Distill out of first-stage experiments.
 
 ## Engineering
 

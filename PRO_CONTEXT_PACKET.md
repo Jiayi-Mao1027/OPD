@@ -61,7 +61,7 @@ GPU:
 Important constraint:
 
 ```text
-High-VRAM target experiments should actually use more than 70GB GPU memory.
+First-stage experiments should prefer 8B or smaller models. High-VRAM target experiments should eventually use more than 70GB GPU memory, but only after the small-model loop is stable.
 ```
 
 ## Verified Local Models
@@ -80,14 +80,14 @@ High-VRAM target experiments should actually use more than 70GB GPU memory.
 /data/LLM/Meta-SecAlign-70B
 ```
 
-No DeepSeek-R1-Distill-Qwen model was found locally.
+No DeepSeek-R1-Distill-Qwen model was found locally. R1-style experiments are deferred for the first stage.
 
 ## Proposed MVP
 
 1. Literature collision scan.
 2. Seed ReconcileBench schema.
 3. Baseline evaluation on harmful, benign-sensitive, dual-use, ambiguous, long-context distraction, and non-safety uncertainty tasks.
-4. LoRA smoke training on Qwen2.5-7B, Qwen3-8B, or YuFeng-XGuard-Reason-8B.
+4. LoRA smoke training on Qwen3-8B as the default thinking candidate, with Qwen2.5-7B-Instruct only as a non-thinking baseline.
 5. Judgment-delta same-prefix teacher prototype.
 6. 32B-class high-VRAM run after the method is stable.
 
@@ -99,5 +99,4 @@ No DeepSeek-R1-Distill-Qwen model was found locally.
 4. Which benchmarks can measure harmful compliance, over-refusal, clarification accuracy, safe completion, deliberation drift, and fork preservation?
 5. What is the strongest minimal ablation matrix?
 6. Should the first smoke model be Qwen2.5-7B-Instruct, Qwen3-8B, or YuFeng-XGuard-Reason-8B?
-7. If no R1-Distill model is local, is it worth downloading DeepSeek-R1-Distill-Qwen-14B/32B for the first phase?
-
+7. Given the first-stage preference for 8B or smaller thinking models, what is the strongest small-model experimental setup?
