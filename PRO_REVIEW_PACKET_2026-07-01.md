@@ -7,8 +7,8 @@ pairwise stage. Do not include credentials or server tokens.
 
 Repository: `https://github.com/Jiayi-Mao1027/OPD`
 
-Review baseline commit: `83cf7c1 eval: add compact generation parsing`, plus
-the later mismatch-analysis commit that updates this packet.
+Review baseline commit: `ebf9af8 eval: add ontology compact prompt`, plus
+the later ontology-result docs commit that updates this packet.
 
 Working direction: Reconcile-OPSD / fork-preserving judgment-delta
 self-distillation for safety boundary decisions. First-stage experiments use
@@ -105,6 +105,24 @@ Raw-generation mismatch analysis:
 - This points to target/prompt/label-ontology redesign before more rank-128
   LoRA steps on the same compact target.
 
+Ontology prompt diagnostic:
+
+- Script option: `scripts/generate_pairwise_compact_judgments.py
+  --prompt-style ontology`
+- Summary: `reports/pairwise_v0_1_compact_ontology_generation_summary.md`
+- The ontology prompt lists exact labels for every compact field and keeps the
+  target unchanged.
+- It removes schema-confusion labels and improves `r128_lr1e5` strict full
+  target match from `0.0000` to `0.1071` on original dev and `0.0893` on
+  position-balanced dev.
+- It harms winner selection and position consistency:
+  - full base posbalanced winner accuracy: `0.7679 -> 0.6071`
+  - `r128_lr1e5` posbalanced winner accuracy: `0.6964 -> 0.6429`
+  - `r128_lr1e5` posbalanced swap consistency: `0.5357 -> 0.3571`
+  - `r128_lr3e6_len1024` posbalanced winner accuracy: `0.7500 -> 0.6250`
+- This suggests the one-shot compact generation target is overloaded. It is not
+  enough to add a longer label ontology prompt.
+
 Parent-level swap diagnostics:
 
 - `lr1e-5`: 10 inconsistent parents out of 28.
@@ -143,18 +161,18 @@ Updated claim:
 > Current rank-128 compact LoRA is not yet a positive method result. It is a
 > useful diagnostic showing that compact target alignment does not
 > automatically transfer to stronger generated pairwise judgment. Mismatch
-> analysis suggests the current compact target asks for too many unsupported
-> gold metadata fields and needs a clearer label ontology.
+> analysis and the ontology prompt diagnostic suggest the current compact target
+> asks for too many metadata fields at once and should be decomposed.
 
 ## Questions For Pro
 
 1. Given the negative greedy generation result, is there any defensible way to
    use compact structured logprob scoring beyond target-alignment diagnostics?
-2. Should the compact target be reduced to `WINNER` plus one or two observable
-   rationale tags, or should the prompt explicitly include the label ontology
-   and ask for full metadata prediction?
-3. Should the next validation be a fresh held-out fork/scope pairwise set,
-   external/human audit of assistant-facing responses, or a paired-consistency
-   training objective?
+2. Since explicit label ontology improves metadata shape but worsens winner
+   selection, should the next target be reduced to `WINNER` plus one observable
+   rationale tag, or should metadata be moved to separate constrained scorers?
+3. What is the best primary validation path now: fresh held-out fork/scope
+   pairwise set, external/human audit of assistant-facing responses, or a
+   paired-consistency training objective?
 4. What contribution framing remains defensible if current rank-128 LoRA does
    not beat full BF16 base?

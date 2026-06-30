@@ -88,10 +88,19 @@ standalone behavioral metric. It is still a useful schema diagnostic:
 - the next fix should target prompt/label ontology and target design, not more
   training steps on the same compact target.
 
+Follow-up ontology-prompt analysis is in
+`reports/pairwise_v0_1_compact_ontology_generation_summary.md`.
+
+The ontology prompt lists exact labels and reduces schema-level confusions, but
+it harms the primary winner gate. On position-balanced dev, `r128_lr1e5`
+winner accuracy drops from `0.6964` to `0.6429`, and swap consistency drops
+from `0.5357` to `0.3571`. The compact target should therefore be decomposed
+rather than fixed only by a longer prompt.
+
 ## Next Actions
 
-1. Redesign the compact target/prompt so the label ontology is explicit and the
-   model is not asked to infer arbitrary gold metadata fields without support.
+1. Decompose the compact target: keep winner selection primary, and move
+   metadata fields to a reduced generation target or constrained scorer.
 2. Keep `winner_only` and position-balanced swap consistency as the primary
    gate. Do not promote compactscore or compact field accuracy to the main
    safety metric.

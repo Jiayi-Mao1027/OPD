@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 04:18 +08:00
+Last updated: 2026-07-01 04:35 +08:00
 
 ## Current Objective
 
@@ -90,6 +90,10 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Added `scripts/analyze_compact_generation_mismatches.py` and compact mismatch analysis support.
 - Generated `reports/pairwise_v0_1_compact_generation_mismatch_analysis.md/json` and `reports/pairwise_v0_1_compact_generation_mismatch_samples.csv`.
 - Mismatch finding: `full target match = 0.0000` is too strict as a standalone behavioral metric. Base and `r128_lr3e6_len1024` mostly emit only `WINNER` plus a schema-confused `DELTA_TAG`; `r128_lr1e5` emits nearly all fields but confuses `HARD_AXIS`, `DELTA_TAG`, and `SCOPE_ERROR_DIRECTION`.
+- Added `--prompt-style ontology` for compact generation. It lists exact labels without changing the shared compact target or training target.
+- Ran eval-only ontology-prompt compact generation for full BF16 base and both rank-128 compact adapters on original and position-balanced dev.
+- Ontology prompt result: it removes schema-level confusion and gives `r128_lr1e5` a small strict full-target match (`0.1071` original, `0.0893` posbalanced), but it sharply worsens winner selection and side balance. On position-balanced dev, full base drops from `43/56 = 0.7679` to `34/56 = 0.6071`; `r128_lr1e5` drops from `39/56 = 0.6964` to `36/56 = 0.6429`; `r128_lr3e6_len1024` drops from `42/56 = 0.7500` to `35/56 = 0.6250`.
+- Documented the ontology prompt result in `reports/pairwise_v0_1_compact_ontology_generation_summary.md`.
 
 ## Current Blockers
 
@@ -105,12 +109,12 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - The current v0 QLoRA run is a negative result: lower dev accuracy and repetitive reason generation.
 - Normalized reasons fix the repetition issue but still do not produce a positive dev signal.
 - The next contribution signal must come from structured judgment/audit or pairwise ranking, not from continuing the same SFT target.
-- The current compact target/prompt asks for gold metadata fields without enough explicit label ontology; continuing the same compact target with more steps is not justified before redesign.
+- The current one-shot compact target is overloaded: explicit label ontology improves some metadata-field formatting but harms winner selection, so continuing the same compact target with more steps is not justified before redesign.
 
 ## Next Actions
 
-- Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore results were useful diagnostics, and mismatch analysis shows the compact field target needs redesign before more training steps.
-- Ask Pro to review the compact generation and mismatch result once browser access is stable.
-- Next validation should be target/prompt redesign with explicit label ontology, a newly held-out fork/scope pairwise set, or human/external audit of assistant-facing responses.
+- Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore/ontology results were useful diagnostics, and they show the one-shot compact field target needs decomposition before more training steps.
+- Ask Pro to review the compact generation, mismatch, and ontology-prompt result once browser access is stable.
+- Next validation should be a reduced generation target (`WINNER` plus one observable rationale tag), a constrained multi-field scorer, a newly held-out fork/scope pairwise set, or human/external audit of assistant-facing responses.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

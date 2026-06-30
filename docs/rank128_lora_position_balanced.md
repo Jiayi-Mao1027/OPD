@@ -110,6 +110,8 @@ The generation-side check is documented in
 `reports/pairwise_v0_1_compact_generation_summary.md`.
 Raw-generation mismatch analysis is documented in
 `reports/pairwise_v0_1_compact_generation_mismatch_analysis.md`.
+Ontology-prompt generation is documented in
+`reports/pairwise_v0_1_compact_ontology_generation_summary.md`.
 
 It asks the model to generate the compact target directly and parses the output.
 This is a stricter check than `score-mode=compact_structured_judgment` because
@@ -144,7 +146,16 @@ Do not claim that rank-128 LoRA is effective from the current compact runs. The
 defensible claim is narrower: compactscore exposed target alignment, greedy
 generation showed that target alignment does not yet transfer to stronger
 pairwise judgment behavior, and mismatch analysis shows the compact target
-needs a clearer label ontology before more training on the same target.
+needs decomposition before more training on the same target.
+
+The `--prompt-style ontology` diagnostic lists exact labels for every compact
+field. It reduces schema-confusion labels and gives `r128_lr1e5` a small strict
+full-target match (`0.0893` on posbalanced dev), but it worsens the primary
+winner-selection gate: posbalanced winner accuracy drops from `0.6964` to
+`0.6429` for `r128_lr1e5`, and swap consistency drops from `0.5357` to
+`0.3571`. Do not use ontology prompt as the default generation prompt. It shows
+that the one-shot compact target is overloaded, not that prompt wording alone
+fixes the method.
 
 ## Scoring
 

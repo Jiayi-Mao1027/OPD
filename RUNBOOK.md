@@ -355,6 +355,7 @@ Current position-balanced compact reports:
 - `reports/pairwise_v0_1_compactscore_alignment_summary.md`;
 - `reports/pairwise_v0_1_compact_generation_summary.md`;
 - `reports/pairwise_v0_1_compact_generation_mismatch_analysis.md`;
+- `reports/pairwise_v0_1_compact_ontology_generation_summary.md`;
 - winner-only scoring: adapters improve fork-state and avoid simple side
   collapse, but still fail the position-balanced swap-consistency gate;
 - compact structured scoring: adapters reach 100% label-conditioned
@@ -364,8 +365,11 @@ Current position-balanced compact reports:
   current rank-128 compact LoRA result is not a positive method result;
 - mismatch analysis: strict full-target match is too harsh as a standalone
   behavioral metric, but it reveals the current compact target/prompt causes
-  field omission and schema confusion. Redesign label ontology before more
-  training steps on this target.
+  field omission and schema confusion;
+- ontology prompt: explicit labels reduce schema-confusion labels, but winner
+  selection and swap consistency regress. Do not use ontology prompt as the
+  default compact generation prompt; decompose the one-shot compact target
+  before more training steps.
 
 Compact generation check:
 
@@ -375,7 +379,6 @@ python scripts/generate_pairwise_compact_judgments.py \
   --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
   --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_compact_lr3e6_s24_len1024/adapter \
   --output outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_posbalanced_compact_lr3e6_s24_len1024_compact_gen.jsonl \
-  --max-length 1024 \
   --max-new-tokens 96 \
   --attn-implementation eager
 
@@ -388,6 +391,22 @@ python scripts/evaluate_pairwise_scores.py \
 ```
 
 Official first-stage compact generation checks must omit `--load-in-4bit`.
+
+Ontology prompt diagnostic:
+
+```bash
+python scripts/generate_pairwise_compact_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_compact_lr1e5_s24/adapter \
+  --output outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_posbalanced_compact_lr1e5_s24_ontology_gen.jsonl \
+  --prompt-style ontology \
+  --max-new-tokens 128 \
+  --attn-implementation eager
+```
+
+Treat this as an eval-only diagnostic. It keeps the target unchanged and should
+not be connected to `scripts/train_pairwise_lora.py` as a training prompt.
 
 Compact generation mismatch analysis:
 
