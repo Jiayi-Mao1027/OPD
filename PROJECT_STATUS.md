@@ -78,6 +78,10 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Added `scripts/train_pairwise_lora.py` with default rank-128 non-quantized LoRA plus `--batch-size` and `--gradient-accumulation-steps`.
 - Ran Qwen3-8B full/BF16 pairwise v0.1 control scoring: winner accuracy `0.7857`, fork-state `1/3`, scope-contract `11/13`, peak allocated CUDA memory about `15954 MB`.
 - Ran rank-128 LoRA pairwise smoke tests on v0.1: structured target improves fork-state to `2/3` but drops overall winner accuracy to `0.6429`; winner-only target collapses toward `B` and drops to `0.3929`.
+- Added position-balanced pairwise train/dev data and rank-128 non-QLoRA LoRA runs with compact structured targets.
+- Current position-balanced compact LoRA status: mixed diagnostic under `score-mode=winner_only`; original dev improves to `23/28` with fork-state `2/3`, but position-balanced dev swap consistency remains below gate (`18/28` for `lr1e-5`, `19/28` for `lr3e-6_len1024`) and scope/refusal regressions remain.
+- Added `score-mode=compact_structured_judgment` as a label-conditioned target-alignment diagnostic. It gives `28/28` original dev and `56/56` position-balanced dev for both rank-128 adapters, but this confirms compact target learning only and is not a standalone safety metric.
+- Added parent-level swap diagnostics to pairwise evaluation reports.
 
 ## Current Blockers
 
@@ -96,8 +100,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 ## Next Actions
 
-- Treat the rank-128 LoRA smoke as a diagnostic negative/mixed result, not a final method win.
-- Ask Pro to analyze the rank-128 LoRA collapse and choose the next LoRA-only run design.
-- Use v0.1 hard-axis metrics as the acceptance gate: improve fork-state without collapsing scope-contract or overall winner accuracy.
-- Add a balanced structured pairwise target or sampler that addresses A/B position bias.
+- Treat position-balanced compact rank-128 LoRA as a mixed diagnostic: winner-only improves fork-state and avoids simple side collapse, but swap consistency remains below gate and scope/refusal regress on position-balanced dev. Compactscore confirms target alignment only.
+- Ask Pro to review the score-mode interpretation and next validation path.
+- Next validation should be greedy compact-target generation parsing, a newly held-out fork/scope pairwise set, or human/external audit of assistant-facing responses.
+- Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

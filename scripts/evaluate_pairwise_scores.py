@@ -25,7 +25,7 @@ def main() -> None:
     for name, path in parse_specs(args.scores):
         score_rows = read_pairwise_score_rows(path)
         metrics = evaluate_pairwise_scores(records, score_rows)
-        run_results.append({"name": name, "path": str(path), "metrics": metrics})
+        run_results.append({"name": name, "path": display_path(path), "metrics": metrics})
         for row in metrics["errors"]:
             error_rows.append({"run": name, **row})
 
@@ -53,17 +53,32 @@ def parse_specs(specs: list[str]) -> list[tuple[str, Path]]:
     return parsed
 
 
+def display_path(path: Path) -> str:
+    return str(path).replace("\\", "/")
+
+
 def render_markdown(dataset: str, run_results: list[dict[str, Any]]) -> str:
     lines = [
         "# Pairwise Judgment-Delta Eval",
         "",
         f"Dataset: `{dataset}`",
         "",
+    ]
+    if uses_compact_structured_score(run_results):
+        lines.extend(
+            [
+                "Caveat: this report uses `score-mode=compact_structured_judgment` for at least one run. It is a label-conditioned target-alignment diagnostic because the scored continuation includes gold metadata fields. Use `winner_only` reports for the primary pairwise acceptance gate.",
+                "",
+            ]
+        )
+    lines.extend(
+        [
         "## Summary",
         "",
         "| run | total | missing | parse fail | winner acc | fork acc | scope acc | pred A | pred B | A recall | B recall | swap consistency | bias gate | avg winner margin |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |",
-    ]
+        ]
+    )
     for run in run_results:
         metrics = run["metrics"]
         lines.append(
@@ -100,15 +115,67 @@ def render_markdown(dataset: str, run_results: list[dict[str, Any]]) -> str:
         lines.extend(render_group_table(metrics["by_gold_action_mode"]))
         lines.extend(["", "### By Source Id", ""])
         lines.extend(render_group_table(metrics["by_source_id"]))
+        lines.extend(["", "### Swap Diagnostics", ""])
+        lines.extend(render_swap_diagnostics(metrics.get("swap_diagnostics", {})))
         lines.extend(["", "### Confusion Matrix", "", "```json", json.dumps(metrics["confusion_matrix"], ensure_ascii=False, indent=2), "```"])
     lines.append("")
     return "\n".join(lines)
+
+
+def uses_compact_structured_score(run_results: list[dict[str, Any]]) -> bool:
+    for run in run_results:
+        score_modes = run["metrics"].get("score_mode_counts", {})
+        if isinstance(score_modes, dict) and score_modes.get("compact_structured_judgment"):
+            return True
+        if "compactscore" in run["name"]:
+            return True
+    return False
 
 
 def render_group_table(group: dict[str, dict[str, float | int]]) -> list[str]:
     lines = ["| group | total | correct | acc |", "| --- | ---: | ---: | ---: |"]
     for name, stats in group.items():
         lines.append(f"| {name} | {stats['total']} | {stats['correct']} | {format_metric(stats['accuracy'])} |")
+    return lines
+
+
+def render_swap_diagnostics(swap_diagnostics: object) -> list[str]:
+    if not isinstance(swap_diagnostics, dict) or not swap_diagnostics.get("comparable"):
+        return ["No comparable original/swapped pairs in this dataset."]
+    lines = [
+        f"Comparable original/swapped parents: `{swap_diagnostics['comparable']}`; inconsistent: `{swap_diagnostics['inconsistent']}`; consistency: `{format_metric(swap_diagnostics['consistency'])}`.",
+        "",
+    ]
+    inconsistent = swap_diagnostics.get("inconsistent_rows")
+    if not isinstance(inconsistent, list) or not inconsistent:
+        lines.append("No inconsistent swapped pairs.")
+        return lines
+    lines.extend(
+        [
+            "| parent pair | axis | delta | scope direction | original pred | swapped pred | original margin | swapped margin | near tie |",
+            "| --- | --- | --- | --- | --- | --- | ---: | ---: | --- |",
+        ]
+    )
+    for row in inconsistent:
+        if not isinstance(row, dict):
+            continue
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    str(row.get("parent_pair_id", "")),
+                    str(row.get("hard_axis", "")),
+                    str(row.get("delta_tag", "")),
+                    str(row.get("scope_error_direction", "")),
+                    f"{row.get('original_expected', '')}->{row.get('original_predicted', '')}",
+                    f"{row.get('swapped_expected', '')}->{row.get('swapped_predicted', '')}",
+                    format_metric(row.get("original_margin")),
+                    format_metric(row.get("swapped_margin")),
+                    str(row.get("near_tie", "")),
+                ]
+            )
+            + " |"
+        )
     return lines
 
 

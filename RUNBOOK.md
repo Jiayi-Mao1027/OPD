@@ -310,21 +310,33 @@ Training policy:
   predicted majority side is above `0.80`, the predicted A-rate differs from
   gold A-rate by more than `0.20`, min A/B recall is below `0.50`, or swap
   consistency is below `0.70`.
+- Use `winner_only` scoring for continuity with earlier pairwise reports. Use
+  `--score-mode compact_structured_judgment` only as an auxiliary
+  target-alignment diagnostic because it scores gold metadata fields from the
+  pair record.
+- Do not compare compactscore winner accuracy directly against earlier
+  winner-only reports as the main method result. Report compactscore only as
+  target-alignment evidence beside the winner-only gate.
 
-Structured target example:
+Current preferred position-balanced compact target example:
 
 ```bash
 python scripts/train_pairwise_lora.py \
   --model /data/LLM/Qwen3-8B \
-  --dataset data/pairwise/reconcilebench_v0_1_train_pairwise.jsonl \
-  --output-dir outputs/train_pairwise_smoke/qwen3_8b_pairwise_v0_1_lora_r128_structured_steps20 \
-  --max-steps 20 \
+  --dataset data/pairwise/reconcilebench_v0_1_train_pairwise_posbalanced.jsonl \
+  --output-dir outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_compact_lr3e6_s24_len1024 \
+  --target-style compact_structured_judgment \
+  --max-length 1024 \
+  --max-steps 24 \
   --batch-size 1 \
-  --target-style structured_judgment_delta \
+  --gradient-accumulation-steps 16 \
+  --lr 3e-6 \
   --lora-r 128 \
   --lora-alpha 256 \
   --attn-implementation eager
 ```
+
+Official first-stage pairwise runs must omit `--load-in-4bit`.
 
 Current smoke report:
 
@@ -333,3 +345,14 @@ Current smoke report:
   winner accuracy from `0.7857` to `0.6429`;
 - winner-only target collapses toward one candidate side and is not useful as
   the next direction.
+
+Current position-balanced compact reports:
+
+- `reports/pairwise_v0_1_r128_posbalanced_compact_summary.md`;
+- `reports/pairwise_v0_1_compactscore_alignment_summary.md`;
+- winner-only scoring: adapters improve fork-state and avoid simple side
+  collapse, but still fail the position-balanced swap-consistency gate;
+- compact structured scoring: adapters reach 100% label-conditioned
+  target-aligned dev scores, which confirms target learning but remains an
+  optimistic diagnostic until generation parsing or an external held-out audit
+  passes.

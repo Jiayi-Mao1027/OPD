@@ -32,7 +32,11 @@ Dataset: `data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl` (`28` pairs)
 | full_base_bf16 | 22/28 | 1/3 | 11/13 | 5/5 | 19/9 | 15/17 | 7/11 | pass | 2.3660 |
 | r128_posbalanced_compact | 23/28 | 2/3 | 11/13 | 4/5 | 16/12 | 14/17 | 9/11 | pass | 0.3848 |
 
-Interpretation: this is a real improvement over the earlier collapsed LoRA smoke on the original dev slice. It improves overall winner accuracy and fork-state while preserving scope-contract accuracy. The remaining regression is refusal boundary, from `5/5` to `4/5`.
+Interpretation: this is a limited diagnostic improvement over the earlier
+collapsed LoRA smoke on the original dev slice. It improves overall winner
+accuracy and fork-state while preserving scope-contract accuracy. The remaining
+regression is refusal boundary, from `5/5` to `4/5`, so it is not a clean
+model-quality result.
 
 ## Posbalanced Dev Result
 
@@ -70,3 +74,27 @@ python scripts/train_pairwise_lora.py \
 ```
 
 The swap-consistency gate should remain a hard diagnostic gate for now, but this result suggests it is also partly a base-model/scoring stability issue rather than pure adapter collapse.
+
+## Follow-up: LR and Score-Mode Comparison
+
+The conservative follow-up run was completed as
+`qwen3_8b_v0_1_r128_posbalanced_compact_lr3e6_s24_len1024` with
+`--max-length 1024`, `--gradient-accumulation-steps 16`, `--lr 3e-6`,
+rank-128 LoRA, and no QLoRA/full-parameter tuning.
+
+Winner-only scoring on original dev stayed at `23/28`, with fork-state `2/3`,
+scope-contract `11/13`, refusal-boundary `4/5`, and side gate pass. On
+position-balanced dev it reached `43/56`, fork-state `5/6`, scope-contract
+`19/26`, refusal-boundary `9/10`, `pred A/B = 29/27`, and swap consistency
+`19/28`, still below the hard `0.70` gate.
+
+A target-aligned compact scoring mode was then added to
+`scripts/score_pairwise_judgments.py` as
+`--score-mode compact_structured_judgment`. Under that auxiliary diagnostic, both
+rank-128 adapters reach `28/28` on original dev and `56/56` on
+position-balanced dev, including `28/28` swap consistency. This confirms that
+the adapters learned the compact structured target, but it should be treated as
+optimistic because the scored continuation contains gold metadata fields.
+
+Detailed results are in
+`reports/pairwise_v0_1_compactscore_alignment_summary.md`.

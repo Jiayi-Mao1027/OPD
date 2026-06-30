@@ -63,6 +63,7 @@ def evaluate_pairwise_scores(
     expected_side_margins: dict[str, list[float]] = defaultdict(list)
     score_diffs: list[float] = []
     chosen_action_counts: Counter[str] = Counter()
+    score_mode_counts: Counter[str] = Counter()
     errors: list[dict[str, Any]] = []
 
     for record in records:
@@ -80,6 +81,9 @@ def evaluate_pairwise_scores(
         score_diff = score_a_minus_b(row.get("scores", {}) if row else {})
         if score_diff is not None:
             score_diffs.append(score_diff)
+        score_mode = row.get("score_mode") if row else None
+        if isinstance(score_mode, str) and score_mode:
+            score_mode_counts[score_mode] += 1
 
         is_correct = predicted == expected
         if is_correct:
@@ -107,7 +111,8 @@ def evaluate_pairwise_scores(
     by_hard_axis = grouped_accuracy(hard_axis_stats)
     pred_a_rate = predicted_winner_counts["A"] / total if total else 0.0
     pred_b_rate = predicted_winner_counts["B"] / total if total else 0.0
-    swap_consistency = compute_swap_consistency(records, score_rows)
+    swap_diagnostics = compute_swap_diagnostics(records, score_rows)
+    swap_consistency = swap_diagnostics["consistency"]
     by_expected_side = grouped_accuracy_with_margins(expected_side_stats, expected_side_margins)
     side_bias = side_bias_metrics(
         total=total,
@@ -143,7 +148,9 @@ def evaluate_pairwise_scores(
         "side_bias": side_bias,
         "score_side_bias": score_bias,
         "chosen_action_distribution": dict(sorted(chosen_action_counts.items())),
+        "score_mode_counts": dict(sorted(score_mode_counts.items())),
         "swap_consistency": swap_consistency,
+        "swap_diagnostics": swap_diagnostics,
         "position_bias_flag": position_bias_flag,
         "position_bias_gate": {
             "pred_rate_threshold": 0.75,
@@ -175,27 +182,77 @@ def predicted_from_score_row(row: dict[str, Any] | None) -> str:
 
 
 def compute_swap_consistency(records: list[dict[str, Any]], score_rows: dict[str, dict[str, Any]]) -> float | None:
-    grouped: dict[str, dict[str, str]] = defaultdict(dict)
+    return compute_swap_diagnostics(records, score_rows)["consistency"]
+
+
+def compute_swap_diagnostics(records: list[dict[str, Any]], score_rows: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    grouped: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
     for record in records:
         parent_pair_id = record.get("parent_pair_id")
         variant = record.get("position_variant")
         if not isinstance(parent_pair_id, str) or not isinstance(variant, str):
             continue
-        predicted = predicted_from_score_row(score_rows.get(record["pair_id"]))
-        if predicted not in {"A", "B"}:
+        if variant not in {"original", "swapped"}:
             continue
-        grouped[parent_pair_id][variant] = predicted
+        grouped[parent_pair_id][variant] = record
 
     comparable = 0
     consistent = 0
-    for variants in grouped.values():
+    rows: list[dict[str, Any]] = []
+    for parent_pair_id, variants in sorted(grouped.items()):
         original = variants.get("original")
         swapped = variants.get("swapped")
-        if original in {"A", "B"} and swapped in {"A", "B"}:
-            comparable += 1
-            if original != swapped:
-                consistent += 1
-    return consistent / comparable if comparable else None
+        if not original or not swapped:
+            continue
+        original_row = score_rows.get(original["pair_id"])
+        swapped_row = score_rows.get(swapped["pair_id"])
+        original_pred = predicted_from_score_row(original_row)
+        swapped_pred = predicted_from_score_row(swapped_row)
+        if original_pred not in {"A", "B"} or swapped_pred not in {"A", "B"}:
+            continue
+        original_margin = winner_margin(original_row.get("scores", {}) if original_row else {}, original["winner"])
+        swapped_margin = winner_margin(swapped_row.get("scores", {}) if swapped_row else {}, swapped["winner"])
+        original_correct = original_pred == original["winner"]
+        swapped_correct = swapped_pred == swapped["winner"]
+        is_consistent = original_pred != swapped_pred
+        comparable += 1
+        if is_consistent:
+            consistent += 1
+        rows.append(
+            {
+                "parent_pair_id": parent_pair_id,
+                "source_id": original["source_id"],
+                "hard_axis": record_hard_axis(original),
+                "delta_tag": original["delta_tag"],
+                "scope_error_direction": record_scope_error_direction(original),
+                "original_pair_id": original["pair_id"],
+                "swapped_pair_id": swapped["pair_id"],
+                "original_expected": original["winner"],
+                "original_predicted": original_pred,
+                "original_correct": original_correct,
+                "original_margin": original_margin,
+                "original_chosen_action": chosen_action(original, original_pred),
+                "swapped_expected": swapped["winner"],
+                "swapped_predicted": swapped_pred,
+                "swapped_correct": swapped_correct,
+                "swapped_margin": swapped_margin,
+                "swapped_chosen_action": chosen_action(swapped, swapped_pred),
+                "consistent": is_consistent,
+                "both_correct": original_correct and swapped_correct,
+                "both_wrong": (not original_correct) and (not swapped_correct),
+                "near_tie": is_near_tie(original_margin) or is_near_tie(swapped_margin),
+                "min_abs_margin": min_abs_margin(original_margin, swapped_margin),
+            }
+        )
+    inconsistent_rows = [row for row in rows if not row["consistent"]]
+    return {
+        "comparable": comparable,
+        "consistent": consistent,
+        "inconsistent": len(inconsistent_rows),
+        "consistency": consistent / comparable if comparable else None,
+        "rows": rows,
+        "inconsistent_rows": inconsistent_rows,
+    }
 
 
 def side_bias_metrics(
@@ -297,6 +354,15 @@ def score_a_minus_b(raw_scores: object) -> float | None:
     if score_a is None or score_b is None:
         return None
     return score_a - score_b
+
+
+def is_near_tie(margin: float | None, threshold: float = 0.01) -> bool:
+    return isinstance(margin, (int, float)) and abs(float(margin)) <= threshold
+
+
+def min_abs_margin(left: float | None, right: float | None) -> float | None:
+    values = [abs(float(value)) for value in [left, right] if isinstance(value, (int, float))]
+    return min(values) if values else None
 
 
 def extract_avg_logprob(value: object) -> float | None:

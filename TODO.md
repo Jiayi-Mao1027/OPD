@@ -10,8 +10,10 @@
 - Review v0.1 base errors, especially the three fork-state failures.
 - Keep all next training runs as rank-128 LoRA, not QLoRA and not full-parameter fine-tuning.
 - Use `--batch-size` and `--gradient-accumulation-steps` to manage memory.
-- Ask Pro to analyze why rank-128 structured LoRA improves fork-state but collapses overall/scope, and why winner-only collapses toward `B`.
-- Add a balanced structured target or sampler that addresses A/B position bias and hard-axis weighting.
+- Treat position-balanced compact rank-128 LoRA as a mixed diagnostic: winner-only improves fork-state and avoids simple side collapse, but swap consistency remains below gate and scope/refusal regress on position-balanced dev. Compactscore confirms target alignment only.
+- Ask Pro to review whether `compact_structured_judgment` should remain auxiliary and choose the next validation path.
+- Add greedy compact-target generation parsing, a newly held-out fork/scope pairwise set, or human/external audit of assistant-facing responses.
+- Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Redesign `continue_reasoning` as a prefix-level fork-state target, not a final response action.
 
 ## Engineering

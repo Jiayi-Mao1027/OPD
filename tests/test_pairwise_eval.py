@@ -190,6 +190,9 @@ def test_evaluate_pairwise_scores_reports_position_bias_and_swap_consistency():
     assert result["pred_A_rate"] == 1.0
     assert result["pred_B_rate"] == 0.0
     assert result["swap_consistency"] == 0.0
+    assert result["swap_diagnostics"]["comparable"] == len(records)
+    assert result["swap_diagnostics"]["inconsistent"] == len(records)
+    assert result["swap_diagnostics"]["inconsistent_rows"][0]["consistent"] is False
     assert result["side_bias"]["predicted_majority_side"] == "A"
     assert result["side_bias"]["predicted_majority_rate"] == 1.0
     assert result["side_bias"]["min_expected_side_accuracy"] == 0.0

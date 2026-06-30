@@ -67,9 +67,15 @@ Default small-model policy:
 - log the chosen GPU before the run.
 
 The user-level 70GB+ rule still matters for high-VRAM target experiments. For
-8B QLoRA and constrained scoring, low VRAM use is expected and should be logged
-as a small-model diagnostic run rather than treated as the final high-VRAM
-experiment.
+current Qwen3-8B rank-128 LoRA, older 8B QLoRA baselines, and constrained
+scoring, low VRAM use is expected and should be logged as a small-model
+diagnostic run rather than treated as the final high-VRAM experiment.
+
+The current Qwen3-8B rank-128 LoRA runs are not high-VRAM target experiments.
+Their own `torch.cuda.max_memory_allocated` around `29 GB` is expected and
+should not be marked suspect merely for being below `70 GB`. If total
+`nvidia-smi` usage exceeds `70 GB` because another process shares the card, do
+not count that as this run satisfying a high-VRAM target.
 
 ## First-Stage Model Defaults
 
@@ -271,6 +277,18 @@ Current rank-128 LoRA smoke report:
   scope-contract `9/13`;
 - winner-only LoRA: `0.3929` winner accuracy, fork-state `1/3`,
   scope-contract `5/13`.
+
+Current position-balanced rank-128 LoRA reports:
+
+- `reports/pairwise_v0_1_r128_posbalanced_compact_summary.md`;
+- `reports/pairwise_v0_1_compactscore_alignment_summary.md`;
+- use `winner_only` scoring as the continuity metric and
+  `compact_structured_judgment` scoring as an auxiliary target-alignment
+  diagnostic;
+- do not confuse `score-mode=winner_only` with the earlier rejected
+  `target-style=winner_only` training target;
+- do not claim a final safety improvement until generated compact targets or
+  assistant-facing responses pass a held-out fork/scope audit.
 
 ## Proxy And GitHub
 
