@@ -104,7 +104,6 @@ Installed packages in `mjy`:
 - `datasets==4.6.1`
 - `bitsandbytes==0.49.2`
 - `deepspeed==0.19.2`
-- `flash-attn==2.8.3.post1`
 - `vllm==0.8.5.post1`
 - `sentencepiece==0.2.1`
 - `safetensors==0.7.0`
@@ -125,6 +124,12 @@ export LD_LIBRARY_PATH=$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}
 ```
 
 Without `CUDA_HOME`, importing deepspeed can fail with `MissingCUDAException`.
+
+`flash-attn` status:
+
+- A first build installed but failed import with a C++ ABI symbol error.
+- A rebuild with `FLASH_ATTENTION_FORCE_CXX11_ABI=FALSE` timed out and left `flash-attn` uninstalled.
+- First-stage scripts default to `attn_implementation=eager`, so this is non-blocking for the small-model loop.
 
 Proxy note:
 

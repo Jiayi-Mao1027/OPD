@@ -97,7 +97,10 @@ export PATH=$CUDA_HOME/bin:$PATH
 python - <<'PY'
 import importlib.metadata as md
 for p in ["bitsandbytes", "deepspeed", "flash-attn", "packaging"]:
-    print(f"{p}=={md.version(p)}")
+    try:
+        print(f"{p}=={md.version(p)}")
+    except md.PackageNotFoundError:
+        print(f"{p}=MISSING")
 PY
 ```
 

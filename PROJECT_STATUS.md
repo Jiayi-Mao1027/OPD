@@ -33,7 +33,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Inspected candidate chat templates and marked Qwen3 thinking-capable candidates as the first-priority student models.
 - Configured GitHub remote and pushed `main` to `Jiayi-Mao1027/OPD`.
 - Found the server proxy at `127.0.0.1:7890/7891` and used it for GitHub push.
-- Installed `bitsandbytes==0.49.2`, `deepspeed==0.19.2`, and `flash-attn==2.8.3.post1` in `mjy`.
+- Installed `bitsandbytes==0.49.2` and `deepspeed==0.19.2` in `mjy`.
+- Attempted `flash-attn`; it is currently unavailable because the first build had an ABI import error and the ABI-forced rebuild timed out.
 - Verified `deepspeed` imports when `CUDA_HOME=/usr/local/cuda-12.2` is set.
 
 ## Current Blockers
@@ -44,6 +45,7 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - R1/DeepSeek-R1-Distill experiments are deferred for now.
 - First-stage experiments should use 8B or smaller models where possible.
 - Deepspeed/flash-attn workflows must set `CUDA_HOME=/usr/local/cuda-12.2`.
+- First-stage Qwen3-8B scripts use `attn_implementation=eager` and do not require `flash-attn`.
 
 ## Next Actions
 

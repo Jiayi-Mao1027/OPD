@@ -53,7 +53,8 @@ Actions:
 - Pushed `main` to GitHub using the local proxy.
 - Installed `bitsandbytes==0.49.2`.
 - Installed `deepspeed==0.19.2`.
-- Built and installed `flash-attn==2.8.3.post1`.
+- Built `flash-attn==2.8.3.post1`, but import failed with a C++ ABI symbol error.
+- Rebuild with `FLASH_ATTENTION_FORCE_CXX11_ABI=FALSE` timed out and left `flash-attn` unavailable.
 - Restored `packaging==25.0` after a transient upgrade conflicted with mlflow packages.
 
 Environment notes:
@@ -71,4 +72,29 @@ Result:
 - GitHub push succeeded.
 - `bitsandbytes` import succeeded.
 - `deepspeed` import succeeded with `CUDA_HOME=/usr/local/cuda-12.2`.
-- `flash-attn` built successfully with `/usr/local/cuda-12.2/bin/nvcc`.
+- `flash-attn` is not currently usable; first-stage scripts use eager attention.
+
+## 2026-06-30 22:00 +08:00 - First Runnable Skeleton Smoke
+
+Commit before action: `da51825 docs: record github push and dependency setup`
+Branch: `main`
+Machine: `node-128-46`
+Project path: `/data03/liang/mjy/reconcile_opsd`
+Conda env: `/data/conda/envs/mjy`
+Model path: `/data/LLM/Qwen3-8B`
+
+Checks:
+
+```bash
+pytest -q
+python scripts/inspect_model_template.py --model /data/LLM/Qwen3-8B --enable-thinking
+python scripts/smoke_generate.py --model /data/LLM/Qwen3-8B --enable-thinking --max-new-tokens 64 --attn-implementation eager
+```
+
+Result:
+
+- Unit tests passed: `6 passed`.
+- Qwen3-8B template has `chat_template`, mentions thinking, and rendered successfully.
+- Short generation succeeded on `CUDA_VISIBLE_DEVICES=1`.
+- Output began with `<think>`, confirming thinking-style generation.
+- Peak allocated memory for the smoke generation was about `15673 MB`.

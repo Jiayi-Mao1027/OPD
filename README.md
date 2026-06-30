@@ -29,3 +29,51 @@ The project should not be framed as "safe OPD". The intended direction is:
 
 Credentials are documented in the local private file `.secrets/PROJECT_CREDENTIALS.md`, which is intentionally not tracked by Git.
 
+## First Runnable Loop
+
+Use the small-model path first:
+
+```bash
+cd /data03/liang/mjy/reconcile_opsd
+source /data/conda/etc/profile.d/conda.sh
+conda activate mjy
+export CUDA_HOME=/usr/local/cuda-12.2
+export PATH=$CUDA_HOME/bin:$PATH
+export LD_LIBRARY_PATH=$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}
+export PYTHONPATH=$PWD/src
+```
+
+Validate the seed data and utilities:
+
+```bash
+pytest -q
+```
+
+Inspect the Qwen3-8B chat template:
+
+```bash
+python scripts/inspect_model_template.py \
+  --model /data/LLM/Qwen3-8B \
+  --enable-thinking \
+  --output outputs/inspect/qwen3_8b_template.json
+```
+
+Render a prompt without loading the model:
+
+```bash
+python scripts/smoke_generate.py \
+  --model /data/LLM/Qwen3-8B \
+  --enable-thinking \
+  --render-only \
+  --output outputs/smoke/qwen3_8b_render_only.json
+```
+
+Run a short generation only after checking GPU state:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/smoke_generate.py \
+  --model /data/LLM/Qwen3-8B \
+  --enable-thinking \
+  --max-new-tokens 64 \
+  --output outputs/smoke/qwen3_8b_generation.json
+```
