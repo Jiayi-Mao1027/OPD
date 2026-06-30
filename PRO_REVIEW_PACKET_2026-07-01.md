@@ -7,7 +7,7 @@ pairwise stage. Do not include credentials or server tokens.
 
 Repository: `https://github.com/Jiayi-Mao1027/OPD`
 
-Current commit: `f54b557 eval: add compactscore alignment diagnostics`
+Current commit: `f83a28a docs: add pro review packet`
 
 Working direction: Reconcile-OPSD / fork-preserving judgment-delta
 self-distillation for safety boundary decisions. First-stage experiments use
@@ -99,4 +99,3 @@ Current claim should be conservative:
 3. For the next run, should we avoid more LoRA steps and instead fix the
    evaluation/generation path first?
 4. What contribution framing remains defensible at this point?
-
