@@ -12,8 +12,9 @@
 - Use `--batch-size` and `--gradient-accumulation-steps` to manage memory.
 - Treat position-balanced compact rank-128 LoRA as a negative generation result until a stronger validation passes. Winner-only, compactscore, mismatch, and ontology-prompt diagnostics do not support the current one-shot compact target.
 - Ask Pro to review the compact generation mismatch, ontology-prompt result, and reduced-target next step once browser access is stable. The Chrome handoff packet is already prepared, but claiming the ChatGPT tab timed out on 2026-07-01.
-- Run the implemented reduced target `compact_winner_delta_tag` (`WINNER` plus observable `DELTA_TAG`) before adding more steps to the old one-shot compact target.
-- If reduced generation still improves only formatting, move `DELTA_TAG` to a separate constrained scorer instead of expanding the target again.
+- Treat the completed `compact_winner_delta_tag` run as a preliminary winner-generation signal, not a passed method result: generation beats reduced-prompt base, but swap consistency is still `19/28` and `DELTA_TAG` exact accuracy is `0`.
+- Move `DELTA_TAG` to a separate constrained scorer or rebuild rationale labels into observable natural labels before trying to generate them again.
+- Consider a batch-size 3 rank-128 LoRA probe only if a fresh GPU check shows enough free memory; batch size 2 reached about `35.8GB` process peak and around `67GB` total observed GPU1 usage, below the preferred `70GB+` target.
 - Build a newly held-out fork/scope pairwise set or run human/external audit of assistant-facing responses.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Redesign `continue_reasoning` as a prefix-level fork-state target, not a final response action.

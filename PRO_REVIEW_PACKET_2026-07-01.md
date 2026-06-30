@@ -10,10 +10,10 @@ Repository: `https://github.com/Jiayi-Mao1027/OPD`
 Review baseline commit: `ebf9af8 eval: add ontology compact prompt`, plus
 the later ontology-result docs commit that updates this packet.
 
-Implementation note: after the ontology diagnostic, the code now supports a
-reduced target style named `compact_winner_delta_tag`. It trains/generates only
-`WINNER` and `DELTA_TAG`, leaving the full compact target as a diagnostic.
-Please judge whether this is the right next ablation before we spend GPU time.
+Implementation note: after the ontology diagnostic, the code now supports and
+has run a reduced target style named `compact_winner_delta_tag`. It
+trains/generates only `WINNER` and `DELTA_TAG`, leaving the full compact target
+as a diagnostic.
 
 Working direction: Reconcile-OPSD / fork-preserving judgment-delta
 self-distillation for safety boundary decisions. First-stage experiments use
@@ -137,6 +137,31 @@ Parent-level swap diagnostics:
 - This looks more like position-invariant pairwise judgment instability than a
   simple A/B side collapse.
 
+Winner-delta reduced target result:
+
+- Summary: `reports/pairwise_v0_1_winner_delta_summary.md`
+- Training: rank-128 LoRA, no QLoRA, no full fine-tuning, batch `2`, grad
+  accum `8`, 24 steps, lr `3e-6`, max length `1024`.
+- Training loss: `4.3336 -> 0.7752`; peak allocated training memory:
+  `35752.42 MB`. Total observed GPU1 usage during training was about `67GB`,
+  below the preferred `70GB+` utilization target.
+- Winner-only scoring:
+  - original dev: full base `22/28`, adapter `22/28`
+  - posbalanced dev: full base `44/56`, swap `18/28`; adapter `43/56`,
+    swap `19/28`, pred A/B `27/29`
+- Reduced generation:
+  - original dev: reduced-prompt full base `22/28`; adapter `23/28`
+  - posbalanced dev: reduced-prompt full base `41/56`, swap `15/28`; adapter
+    `45/56`, fork `5/6`, swap `19/28`, pred A/B `31/25`
+- Negative metadata result: every reduced generation run emitted both fields,
+  but exact `DELTA_TAG` accuracy stayed `0`. Outputs use natural/action-like
+  labels such as `safety_boundaries`, `disallowed_scope`, `safe_redirect`, or
+  `direct_answer`, not the current discrete labels.
+- Interpretation: the adapter has a real preliminary winner-generation signal
+  and better side balance, but it is still not a passed method result because
+  swap consistency remains just below gate and generated `DELTA_TAG` is not
+  learned.
+
 ## Current Interpretation
 
 Main metric should remain `score-mode=winner_only`.
@@ -173,10 +198,10 @@ Updated claim:
 
 1. Given the negative greedy generation result, is there any defensible way to
    use compact structured logprob scoring beyond target-alignment diagnostics?
-2. Since explicit label ontology improves metadata shape but worsens winner
-   selection, is the implemented `compact_winner_delta_tag` target the right
-   next ablation, or should `DELTA_TAG` move directly to a separate constrained
-   scorer?
+2. Given the `compact_winner_delta_tag` result, should we now treat `WINNER`
+   generation as the behavior target and move `DELTA_TAG` to a separate
+   constrained scorer, or rebuild the rationale labels into observable natural
+   labels?
 3. What is the best primary validation path now: fresh held-out fork/scope
    pairwise set, external/human audit of assistant-facing responses, or a
    paired-consistency training objective?

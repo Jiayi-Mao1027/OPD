@@ -390,6 +390,23 @@ python scripts/generate_pairwise_compact_judgments.py \
   --attn-implementation eager
 ```
 
+Current reduced-target result:
+
+- `reports/pairwise_v0_1_winner_delta_summary.md`;
+- output dir:
+  `outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_winner_delta_lr3e6_s24_len1024_b2`;
+- batch size `2`, grad accumulation `8`, effective batch `16`;
+- no QLoRA and no full-parameter fine-tuning;
+- peak training allocation: `35752.42 MB`; total observed GPU1 usage during
+  training was about `67GB`, below the preferred `70GB+` utilization target;
+- winner-only scoring: original dev ties full base at `22/28`; position-balanced
+  dev is `43/56`, swap `19/28`, gate fail;
+- reduced generation: adapter beats reduced-prompt base (`23/28` vs `22/28`
+  original; `45/56` vs `41/56` position-balanced), but swap remains
+  `19/28` and exact `DELTA_TAG` accuracy is `0`;
+- next step: keep `WINNER` generation as behavior signal and move `DELTA_TAG`
+  to a constrained scorer or rebuild rationale labels before generating them.
+
 Current smoke report:
 
 - `reports/pairwise_v0_1_dev_lora_r128_smoke.md`;

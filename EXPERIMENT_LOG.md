@@ -922,3 +922,79 @@ Interpretation:
   useful target.
 - The next LoRA-only run should fix A/B side bias and hard-axis sampling before
   increasing steps or claiming improvement.
+
+## 2026-07-01 05:20 +08:00 - Pairwise v0.1 Winner-Delta Reduced Target
+
+Commit before action: `85eba50 tools: make pairwise CLIs path-stable`
+Branch: `main`
+Machine: remote `/data03/liang/mjy/reconcile_opsd`
+Model path: `/data/LLM/Qwen3-8B`
+
+Policy:
+
+- No QLoRA.
+- No full-parameter fine-tuning.
+- Rank-128 LoRA only.
+- Increase memory with `--batch-size`; this run used batch size `2`.
+
+Command summary:
+
+```bash
+python scripts/train_pairwise_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_train_pairwise_posbalanced.jsonl \
+  --output-dir outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_winner_delta_lr3e6_s24_len1024_b2 \
+  --target-style compact_winner_delta_tag \
+  --max-length 1024 \
+  --max-steps 24 \
+  --batch-size 2 \
+  --gradient-accumulation-steps 8 \
+  --lr 3e-6 \
+  --lora-r 128 \
+  --lora-alpha 256 \
+  --attn-implementation eager
+```
+
+Reports:
+
+- `reports/pairwise_v0_1_winner_delta_summary.md`
+- `reports/pairwise_v0_1_dev_r128_winner_delta_winneronly.md`
+- `reports/pairwise_v0_1_dev_posbalanced_r128_winner_delta_winneronly.md`
+- `reports/pairwise_v0_1_dev_r128_winner_delta_generation.md`
+- `reports/pairwise_v0_1_dev_posbalanced_r128_winner_delta_generation.md`
+- `reports/pairwise_v0_1_winner_delta_generation_mismatch_analysis.md`
+
+Result:
+
+```text
+Training:
+  first loss = 4.3336
+  last loss = 0.7752
+  peak allocated CUDA memory = 35752.42 MB
+  observed total GPU1 usage during training ~= 67GB
+
+Winner-only scoring:
+  original dev full base = 22/28
+  original dev adapter = 22/28
+  posbalanced full base = 44/56, swap = 18/28
+  posbalanced adapter = 43/56, swap = 19/28
+
+Reduced generation:
+  original dev full base = 22/28
+  original dev adapter = 23/28
+  posbalanced full base = 41/56, swap = 15/28
+  posbalanced adapter = 45/56, fork = 5/6, swap = 19/28
+  DELTA_TAG exact accuracy = 0
+```
+
+Interpretation:
+
+- The reduced target gives the first generation-side winner signal where the
+  rank-128 adapter beats the same reduced-prompt full BF16 base.
+- It is still not a passed method result because position-balanced swap
+  consistency remains below `0.70`.
+- `DELTA_TAG` generation is not learned; outputs are natural/action-like labels
+  instead of the current discrete labels.
+- Next step should keep `WINNER` generation as the behavior target and move
+  `DELTA_TAG` to constrained scoring, or rebuild rationale labels before
+  training them as generated text.
