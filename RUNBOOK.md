@@ -404,8 +404,10 @@ Current reduced-target result:
 - reduced generation: adapter beats reduced-prompt base (`23/28` vs `22/28`
   original; `45/56` vs `41/56` position-balanced), but swap remains
   `19/28` and exact `DELTA_TAG` accuracy is `0`;
-- next step: keep `WINNER` generation as behavior signal and move `DELTA_TAG`
-  to a constrained scorer or rebuild rationale labels before generating them.
+- constrained `DELTA_TAG` scoring also fails to recover the current discrete
+  labels: adapter gets `6/28` original and `10/56` position-balanced;
+- next step: keep `WINNER` generation as behavior signal and rebuild rationale
+  labels before generating or scoring them again.
 
 Current smoke report:
 

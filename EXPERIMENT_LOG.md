@@ -998,3 +998,20 @@ Interpretation:
 - Next step should keep `WINNER` generation as the behavior target and move
   `DELTA_TAG` to constrained scoring, or rebuild rationale labels before
   training them as generated text.
+
+Follow-up constrained `DELTA_TAG` scoring:
+
+```text
+Original dev:
+  full base = 6/28 = 0.2143
+  r128 winner-delta = 6/28 = 0.2143
+
+Position-balanced dev:
+  full base = 11/56 = 0.1964
+  r128 winner-delta = 10/56 = 0.1786
+```
+
+This confirms the metadata issue is not only free-generation formatting. The
+current discrete `DELTA_TAG` labels are weak targets even when scored from a
+fixed candidate set conditioned on the gold winner. Do not train more on this
+tag ontology before relabeling or redesigning it.

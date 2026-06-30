@@ -54,11 +54,25 @@ Interpretation: this is the first generation-side signal where the rank-128 adap
 
 The reduced target fixed the field-omission problem: all runs output exactly the two expected fields. It did not fix the rationale-label problem. `DELTA_TAG` values are usually natural/action-like labels such as `safety_boundaries`, `disallowed_scope`, `safe_redirect`, `direct_answer`, or `safe_high_level`, not the current discrete labels such as `wrong_scope`, `under_refusal`, or `lost_fork_state`.
 
+## Constrained DELTA_TAG Scoring
+
+After the reduced generation run, `DELTA_TAG` was evaluated as a separate constrained scorer conditioned on the gold winner.
+
+| run | dataset | DELTA_TAG acc | top predictions |
+| --- | --- | ---: | --- |
+| full base | original dev | `6/28 = 0.2143` | `wrong_granularity`, `over_refusal`, `wrong_redirect`, `wrong_scope` |
+| r128 winner-delta | original dev | `6/28 = 0.2143` | `wrong_granularity`, `over_refusal`, `lost_fork_state`, `wrong_scope` |
+| full base | posbalanced dev | `11/56 = 0.1964` | `wrong_granularity`, `over_refusal`, `wrong_scope` |
+| r128 winner-delta | posbalanced dev | `10/56 = 0.1786` | `wrong_granularity`, `over_refusal`, `lost_fork_state` |
+
+Interpretation: even constrained scoring does not recover the current discrete `DELTA_TAG` labels. The problem is not just free-generation formatting; the label ontology/data design is likely misaligned with what the model can infer from the pair prompt.
+
 ## Decision
 
 - Keep the winner improvement as a real but still preliminary generation signal.
 - Do not claim the current run as a passed method result because position-balanced swap consistency remains below gate.
 - Do not continue adding metadata fields back into generation.
+- Do not train more on the current discrete `DELTA_TAG` labels before redesigning or relabeling them.
 - Next method step should either:
-  - evaluate `WINNER` generation alone as the primary behavior target and move `DELTA_TAG` to a constrained scorer, or
+  - evaluate `WINNER` generation alone as the primary behavior target, or
   - rename/rebuild the rationale labels into observable natural labels before training them as generation targets.

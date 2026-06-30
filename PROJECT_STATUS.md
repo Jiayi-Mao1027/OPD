@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 05:20 +08:00
+Last updated: 2026-07-01 05:32 +08:00
 
 ## Current Objective
 
@@ -104,6 +104,7 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Winner-only result: original dev ties full base at `22/28 = 0.7857`; position-balanced dev gets `43/56 = 0.7679`, with better A/B balance (`27/29`) and slightly better swap consistency (`19/28 = 0.6786`) than full base (`18/28`), but still fails the `0.70` swap gate.
 - Reduced generation result: adapter beats reduced-prompt full base on winner accuracy (`23/28` vs `22/28` original; `45/56` vs `41/56` position-balanced), improves fork on position-balanced dev to `5/6`, and has better side balance (`31/25`). It still fails swap consistency by one parent pair (`19/28 = 0.6786`) and has `0` exact `DELTA_TAG` matches.
 - Documented this in `reports/pairwise_v0_1_winner_delta_summary.md` plus the winner-only, generation, and mismatch reports.
+- Added and ran a separate constrained `DELTA_TAG` scorer conditioned on the gold winner. It also failed to recover the current discrete tag labels: full base `6/28` original and `11/56` position-balanced; rank-128 winner-delta adapter `6/28` original and `10/56` position-balanced.
 
 ## Current Blockers
 
@@ -122,13 +123,14 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - The current one-shot compact target is overloaded: explicit label ontology improves some metadata-field formatting but harms winner selection, so continuing the same compact target with more steps is not justified before redesign.
 - ChatGPT Pro browser handoff is temporarily blocked by Chrome tab-claim timeouts, not by missing project context.
 - `compact_winner_delta_tag` gives a real preliminary winner-generation signal, but it is not a passed method result because position-balanced swap consistency is still below gate and `DELTA_TAG` exact accuracy is `0`.
+- The current discrete `DELTA_TAG` ontology is not learned even under constrained scoring, so additional training on the same tag labels is unlikely to be useful before relabeling/redesign.
 - The batch-2 run increased memory over batch-1 runs but still did not reach the preferred `70GB+` GPU utilization target; total observed GPU1 usage during training was around `67GB`.
 
 ## Next Actions
 
 - Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore/ontology results were useful diagnostics, and they show the one-shot compact field target needs decomposition before more training steps.
 - Ask Pro to review the compact generation, mismatch, ontology-prompt result, and reduced-target implementation once browser access is stable.
-- Next validation should treat `WINNER` generation as the behavior target and move `DELTA_TAG` to a constrained scorer, or rebuild the rationale labels into observable natural labels before training them as generated text.
+- Next validation should treat `WINNER` generation as the behavior target and rebuild rationale labels into observable natural labels before training or scoring them again.
 - If another training run is needed, use a larger micro-batch only after checking GPU1 free memory; batch size `3` is the next likely probe for the `70GB+` utilization target.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

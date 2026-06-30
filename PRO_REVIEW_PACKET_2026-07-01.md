@@ -157,6 +157,11 @@ Winner-delta reduced target result:
   but exact `DELTA_TAG` accuracy stayed `0`. Outputs use natural/action-like
   labels such as `safety_boundaries`, `disallowed_scope`, `safe_redirect`, or
   `direct_answer`, not the current discrete labels.
+- Separate constrained `DELTA_TAG` scoring also fails: full base gets `6/28`
+  original and `11/56` position-balanced; the rank-128 adapter gets `6/28`
+  original and `10/56` position-balanced. This suggests the issue is the
+  current rationale-label ontology/data design, not just free-generation
+  formatting.
 - Interpretation: the adapter has a real preliminary winner-generation signal
   and better side balance, but it is still not a passed method result because
   swap consistency remains just below gate and generated `DELTA_TAG` is not
@@ -198,10 +203,9 @@ Updated claim:
 
 1. Given the negative greedy generation result, is there any defensible way to
    use compact structured logprob scoring beyond target-alignment diagnostics?
-2. Given the `compact_winner_delta_tag` result, should we now treat `WINNER`
-   generation as the behavior target and move `DELTA_TAG` to a separate
-   constrained scorer, or rebuild the rationale labels into observable natural
-   labels?
+2. Given that constrained `DELTA_TAG` scoring also fails, should we now treat
+   `WINNER` generation as the behavior target and rebuild rationale labels into
+   observable natural labels?
 3. What is the best primary validation path now: fresh held-out fork/scope
    pairwise set, external/human audit of assistant-facing responses, or a
    paired-consistency training objective?
