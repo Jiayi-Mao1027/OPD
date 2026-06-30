@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 01:34 +08:00
+Last updated: 2026-07-01 03:38 +08:00
 
 ## Current Objective
 
@@ -82,6 +82,11 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Current position-balanced compact LoRA status: mixed diagnostic under `score-mode=winner_only`; original dev improves to `23/28` with fork-state `2/3`, but position-balanced dev swap consistency remains below gate (`18/28` for `lr1e-5`, `19/28` for `lr3e-6_len1024`) and scope/refusal regressions remain.
 - Added `score-mode=compact_structured_judgment` as a label-conditioned target-alignment diagnostic. It gives `28/28` original dev and `56/56` position-balanced dev for both rank-128 adapters, but this confirms compact target learning only and is not a standalone safety metric.
 - Added parent-level swap diagnostics to pairwise evaluation reports.
+- Added greedy compact-target generation parsing and evaluation.
+- Ran Qwen3-8B compact generation checks for full BF16 base and the two rank-128 LoRA compact adapters on both original dev and position-balanced dev.
+- Generation result: full BF16 base remains stronger than both adapters. On position-balanced dev, base gets `43/56 = 0.7679` winner accuracy and `19/28 = 0.6786` swap consistency; `r128_lr1e5` gets `39/56 = 0.6964` and `15/28 = 0.5357`; `r128_lr3e6_len1024` gets `42/56 = 0.7500` and `18/28 = 0.6429`.
+- Compact generation confirms the earlier 100% compactscore result was optimistic/label-conditioned: all generation runs have `0.0000` full compact-target match.
+- Documented this negative calibration result in `reports/pairwise_v0_1_compact_generation_summary.md`.
 
 ## Current Blockers
 
@@ -92,7 +97,7 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - First-stage experiments should use 8B or smaller models where possible.
 - Deepspeed/flash-attn workflows must set `CUDA_HOME=/usr/local/cuda-12.2`.
 - First-stage Qwen3-8B scripts use `attn_implementation=eager` and do not require `flash-attn`.
-- The current QLoRA result is only a training/eval plumbing smoke; it does not improve quality on the seed set.
+- The earlier QLoRA result is only a frozen training/eval plumbing smoke; it does not improve quality on the seed set and is not the current training path.
 - ReconcileBench v0 is synthetic/seed-quality data for method iteration, not a publishable benchmark yet.
 - The current v0 QLoRA run is a negative result: lower dev accuracy and repetitive reason generation.
 - Normalized reasons fix the repetition issue but still do not produce a positive dev signal.
@@ -100,8 +105,8 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 ## Next Actions
 
-- Treat position-balanced compact rank-128 LoRA as a mixed diagnostic: winner-only improves fork-state and avoids simple side collapse, but swap consistency remains below gate and scope/refusal regress on position-balanced dev. Compactscore confirms target alignment only.
-- Ask Pro to review the score-mode interpretation and next validation path.
-- Next validation should be greedy compact-target generation parsing, a newly held-out fork/scope pairwise set, or human/external audit of assistant-facing responses.
+- Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore results were useful diagnostics, but greedy compact generation does not show adapter improvement over full BF16 base.
+- Ask Pro to review the compact generation result and next validation path once browser access is stable.
+- Next validation should be generated-text error inspection, a newly held-out fork/scope pairwise set, or human/external audit of assistant-facing responses.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

@@ -104,6 +104,41 @@ learned the structured target format, not as standalone evidence of safer
 generated assistant behavior. See
 `reports/pairwise_v0_1_compactscore_alignment_summary.md`.
 
+## Greedy Compact Generation Check
+
+The generation-side check is documented in
+`reports/pairwise_v0_1_compact_generation_summary.md`.
+
+It asks the model to generate the compact target directly and parses the output.
+This is a stricter check than `score-mode=compact_structured_judgment` because
+the model must emit the fields instead of receiving a scored gold continuation.
+
+Current result: negative calibration.
+
+On original dev:
+
+- full BF16 base: `23/28 = 0.8214` winner accuracy;
+- `r128_lr1e5`: `20/28 = 0.7143`;
+- `r128_lr3e6_len1024`: `22/28 = 0.7857`.
+
+On position-balanced dev:
+
+- full BF16 base: `43/56 = 0.7679`, swap consistency `19/28 = 0.6786`;
+- `r128_lr1e5`: `39/56 = 0.6964`, swap consistency `15/28 = 0.5357`;
+- `r128_lr3e6_len1024`: `42/56 = 0.7500`, swap consistency
+  `18/28 = 0.6429`.
+
+All generation runs have `0.0000` full compact-target match. The `lr1e-5`
+adapter has higher compact field accuracy, but it regresses winner accuracy,
+scope-contract accuracy, and side balance. The `lr3e-6_len1024` adapter is
+closer to base and avoids the strong B skew, but it still does not pass the
+position-balanced gate or beat base.
+
+Do not claim that rank-128 LoRA is effective from the current compact runs. The
+defensible claim is narrower: compactscore exposed target alignment, and greedy
+generation showed that target alignment does not yet transfer to stronger
+pairwise judgment behavior.
+
 ## Scoring
 
 Score both original dev and position-balanced dev with the default

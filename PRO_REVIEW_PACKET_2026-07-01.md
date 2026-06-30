@@ -1,4 +1,4 @@
-# Pro Review Packet: Pairwise Compactscore Interpretation
+# Pro Review Packet: Pairwise Compact Generation Result
 
 Use this packet when asking ChatGPT Pro to review the current Reconcile-OPSD
 pairwise stage. Do not include credentials or server tokens.
@@ -7,8 +7,8 @@ pairwise stage. Do not include credentials or server tokens.
 
 Repository: `https://github.com/Jiayi-Mao1027/OPD`
 
-Review baseline commit: `f54b557 eval: add compactscore alignment diagnostics`.
-This packet itself is tracked in later docs-only commits.
+Review baseline commit: `83cf7c1 eval: add compact generation parsing`.
+This packet itself may be tracked in later docs-only commits.
 
 Working direction: Reconcile-OPSD / fork-preserving judgment-delta
 self-distillation for safety boundary decisions. First-stage experiments use
@@ -64,6 +64,28 @@ Compact structured scoring:
 - This is label-conditioned because the scored continuation includes gold
   metadata fields from the pair record.
 
+Greedy compact generation:
+
+- Script: `scripts/generate_pairwise_compact_judgments.py`
+- Summary report: `reports/pairwise_v0_1_compact_generation_summary.md`
+- Original dev:
+  - full BF16 base: `23/28 = 0.8214`, fork `1/3`, scope `11/13`
+  - `r128_lr1e5`: `20/28 = 0.7143`, fork `1/3`, scope `9/13`
+  - `r128_lr3e6_len1024`: `22/28 = 0.7857`, fork `1/3`, scope `11/13`
+- Position-balanced dev:
+  - full BF16 base: `43/56 = 0.7679`, fork `4/6`, scope `20/26`,
+    pred A/B `31/25`, swap consistency `19/28 = 0.6786`, gate fail
+  - `r128_lr1e5`: `39/56 = 0.6964`, fork `4/6`, scope `17/26`,
+    pred A/B `19/37`, swap consistency `15/28 = 0.5357`, gate fail
+  - `r128_lr3e6_len1024`: `42/56 = 0.7500`, fork `4/6`,
+    scope `19/26`, pred A/B `28/28`, swap consistency `18/28 = 0.6429`,
+    gate fail
+- Full compact-target match is `0.0000` for all generation runs.
+- `r128_lr1e5` has higher compact field accuracy, but lower winner accuracy,
+  worse scope accuracy, and worse position-balanced consistency.
+- `r128_lr3e6_len1024` is closer to base and avoids strong side skew, but it
+  still does not beat base or pass the position-balanced gate.
+
 Parent-level swap diagnostics:
 
 - `lr1e-5`: 10 inconsistent parents out of 28.
@@ -82,7 +104,14 @@ diagnostic only. It confirms that the adapter learned the compact target format,
 but it should not override a failed winner-only swap-consistency gate and should
 not be claimed as proof of safer generated assistant behavior.
 
-Current claim should be conservative:
+The generation check strengthens the conservative interpretation:
+
+> The compactscore result was optimistic/label-conditioned. Under greedy
+> compact generation, current rank-128 LoRA does not beat full BF16 Qwen3-8B
+> base on winner accuracy, scope accuracy, or position-balanced swap
+> consistency.
+
+Previous conservative winner-only claim:
 
 > Rank-128 non-QLoRA LoRA on position-balanced data can learn the compact
 > judgment-delta target and reduce simple candidate-side collapse. Under
@@ -90,13 +119,20 @@ Current claim should be conservative:
 > position-balanced swap consistency remains below gate and scope/refusal
 > regressions remain unresolved.
 
+Updated claim:
+
+> Current rank-128 compact LoRA is not yet a positive method result. It is a
+> useful diagnostic showing that compact target alignment does not automatically
+> transfer to stronger generated pairwise judgment.
+
 ## Questions For Pro
 
-1. Is the primary/auxiliary metric split above correct, or is there a better
-   way to use compact structured logprob scoring without label leakage?
-2. Should the next validation be greedy compact-target generation parsing,
-   a newly held-out fork/scope pairwise set, external/human audit of
-   assistant-facing responses, or a paired-consistency training objective?
-3. For the next run, should we avoid more LoRA steps and instead fix the
-   evaluation/generation path first?
-4. What contribution framing remains defensible at this point?
+1. Given the negative greedy generation result, is there any defensible way to
+   use compact structured logprob scoring beyond target-alignment diagnostics?
+2. Should the next step be generated-text/parser error inspection, a fresh
+   held-out fork/scope pairwise set, external/human audit of assistant-facing
+   responses, or a paired-consistency training objective?
+3. If training continues, should it stay near `lr3e-6_len1024` with seed/small
+   hyperparameter replication, or should the target/prompt be redesigned first?
+4. What contribution framing remains defensible if current rank-128 LoRA does
+   not beat full BF16 base?

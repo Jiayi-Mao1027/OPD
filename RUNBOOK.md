@@ -145,11 +145,14 @@ High-VRAM target experiments must exceed 70GB actual GPU memory usage. If they d
 5. Check whether gradient checkpointing, LoRA, or CPU offload changed memory usage.
 6. Mark the result as suspect until explained.
 
-For first-stage 8B QLoRA runs, use the inverse safety rule: avoid devices that
-already have more than `70000 MB` used, and log the selected device before
-starting. The helper script enforces this default policy.
+For first-stage 8B LoRA and evaluation runs, use the inverse safety rule:
+avoid devices that already have more than `70000 MB` used, and log the selected
+device before starting. The helper script enforces this default policy.
 
 ## Standard v0 QLoRA Runner
+
+This is a frozen legacy baseline path. Do not use QLoRA for the current
+pairwise rank-128 stage.
 
 Use this wrapper for reproducible Qwen3-8B v0 action-mode runs:
 
@@ -350,9 +353,34 @@ Current position-balanced compact reports:
 
 - `reports/pairwise_v0_1_r128_posbalanced_compact_summary.md`;
 - `reports/pairwise_v0_1_compactscore_alignment_summary.md`;
+- `reports/pairwise_v0_1_compact_generation_summary.md`;
 - winner-only scoring: adapters improve fork-state and avoid simple side
   collapse, but still fail the position-balanced swap-consistency gate;
 - compact structured scoring: adapters reach 100% label-conditioned
   target-aligned dev scores, which confirms target learning but remains an
-  optimistic diagnostic until generation parsing or an external held-out audit
-  passes.
+  optimistic diagnostic;
+- greedy compact generation: adapters do not beat the full BF16 base and all
+  runs have `0.0000` full compact-target match, so the current rank-128 compact
+  LoRA result is not a positive method result.
+
+Compact generation check:
+
+```bash
+python scripts/generate_pairwise_compact_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_compact_lr3e6_s24_len1024/adapter \
+  --output outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_posbalanced_compact_lr3e6_s24_len1024_compact_gen.jsonl \
+  --max-length 1024 \
+  --max-new-tokens 96 \
+  --attn-implementation eager
+
+python scripts/evaluate_pairwise_scores.py \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --scores r128_lr3e6_len1024_gen=outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_posbalanced_compact_lr3e6_s24_len1024_compact_gen.jsonl \
+  --output-md reports/pairwise_v0_1_dev_posbalanced_compact_generation_compare.md \
+  --output-json reports/pairwise_v0_1_dev_posbalanced_compact_generation_compare.json \
+  --output-csv reports/pairwise_v0_1_dev_posbalanced_compact_generation_compare_errors.csv
+```
+
+Official first-stage compact generation checks must omit `--load-in-4bit`.
