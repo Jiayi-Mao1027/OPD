@@ -347,7 +347,7 @@ Reduced target next ablation:
 
 ```text
 WINNER: A|B
-DELTA_TAG: <observable rationale tag>
+DELTA_TAG: <current discrete delta tag>
 ```
 
 - Keep `winner_only` constrained scoring as the primary gate.
@@ -408,6 +408,74 @@ Current reduced-target result:
   labels: adapter gets `6/28` original and `10/56` position-balanced;
 - next step: keep `WINNER` generation as behavior signal and rebuild rationale
   labels before generating or scoring them again.
+
+Observable target next ablation:
+
+- Use `--target-style compact_winner_obs_tag` to train/generate only:
+
+```text
+WINNER: A|B
+OBS_TAG: <observable winner-action tag>
+```
+
+- `OBS_TAG` labels:
+  `ask_clarification`, `direct_answer`, `partial_allowed`,
+  `preserve_fork_state`, `refuse`, `safe_high_level`, `safe_redirect`.
+- The tag is derived from the winner card's visible action mode; fork-state or
+  `lost_fork_state` records use `preserve_fork_state`.
+- This target is intentionally close to `GOLD_ACTION`, so do not treat label
+  accuracy as the main method result. Primary gates remain winner accuracy,
+  A/B side balance, and parent-level swap consistency on position-balanced dev.
+- Official training runs must stay rank-128 LoRA, omit `--load-in-4bit`, and
+  avoid full-parameter fine-tuning.
+
+Eval-only generation before training:
+
+```bash
+python scripts/generate_pairwise_compact_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --output outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_fullbase_obs_tag_gen.jsonl \
+  --target-style compact_winner_obs_tag \
+  --max-new-tokens 48 \
+  --attn-implementation eager
+
+python scripts/generate_pairwise_compact_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_winner_delta_lr3e6_s24_len1024_b2/adapter \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --output outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_winner_delta_obs_tag_gen.jsonl \
+  --target-style compact_winner_obs_tag \
+  --max-new-tokens 48 \
+  --attn-implementation eager
+
+python scripts/evaluate_pairwise_scores.py \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --scores fullbase_obs=outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_fullbase_obs_tag_gen.jsonl \
+  --scores r128_winner_delta_obs=outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_winner_delta_obs_tag_gen.jsonl \
+  --output-md reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation.md \
+  --output-json reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation.json \
+  --output-csv reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation_errors.csv
+```
+
+Candidate rank-128 LoRA run, only after a fresh GPU check:
+
+```bash
+eval "$(python scripts/gpu_status.py --export)"
+python scripts/train_pairwise_lora.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_train_pairwise_posbalanced.jsonl \
+  --output-dir outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_obs_tag_lr3e6_s24_len1024_b2 \
+  --target-style compact_winner_obs_tag \
+  --max-length 1024 \
+  --max-steps 24 \
+  --batch-size 2 \
+  --gradient-accumulation-steps 8 \
+  --lr 3e-6 \
+  --lora-r 128 \
+  --lora-alpha 256 \
+  --attn-implementation eager
+```
 
 Current smoke report:
 

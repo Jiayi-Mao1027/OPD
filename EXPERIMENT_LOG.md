@@ -1015,3 +1015,83 @@ This confirms the metadata issue is not only free-generation formatting. The
 current discrete `DELTA_TAG` labels are weak targets even when scored from a
 fixed candidate set conditioned on the gold winner. Do not train more on this
 tag ontology before relabeling or redesigning it.
+
+## 2026-07-01 05:45 +08:00 - Observable Winner-Action Tag Target
+
+Commit before action: `bf43b86 analysis: record constrained delta tag eval`
+Branch: `main`
+Machine: local Windows mirror, to be synced to remote `/data03/liang/mjy/reconcile_opsd`
+
+Policy:
+
+- No QLoRA.
+- No full-parameter fine-tuning.
+- Future training on this target must use rank-128 LoRA.
+- Use batch size, gradient accumulation, and max length to manage memory.
+
+Change:
+
+- Added `compact_winner_obs_tag` as a compact target style.
+- Target format:
+
+```text
+WINNER: A|B
+OBS_TAG: <observable winner-action tag>
+```
+
+- `OBS_TAG` labels are:
+  `ask_clarification`, `direct_answer`, `partial_allowed`,
+  `preserve_fork_state`, `refuse`, `safe_high_level`, `safe_redirect`.
+- `OBS_TAG` is derived from the winner card's visible action mode; records with
+  `hard_axis=fork_state`, `delta_tag=lost_fork_state`, or
+  `continue_reasoning` winner action map to `preserve_fork_state`.
+
+Local verification:
+
+```bash
+python -m pytest tests/test_compact_generation.py -q
+python -m pytest -q
+```
+
+Result:
+
+```text
+tests/test_compact_generation.py: 14 passed
+full suite: 60 passed
+```
+
+Local label coverage check:
+
+```text
+train_pos: ask_clarification 24, direct_answer 20, partial_allowed 20,
+  preserve_fork_state 22, refuse 20, safe_high_level 20, safe_redirect 26
+dev_pos: ask_clarification 8, direct_answer 8, partial_allowed 8,
+  preserve_fork_state 6, refuse 8, safe_high_level 8, safe_redirect 10
+dev: ask_clarification 4, direct_answer 4, partial_allowed 4,
+  preserve_fork_state 3, refuse 4, safe_high_level 4, safe_redirect 5
+```
+
+Remote verification:
+
+```bash
+cd /data03/liang/mjy/reconcile_opsd
+/data/conda/envs/mjy/bin/python -m pytest tests/test_compact_generation.py -q
+/data/conda/envs/mjy/bin/python -m pytest -q
+```
+
+Result:
+
+```text
+tests/test_compact_generation.py: 14 passed
+full suite: 60 passed
+```
+
+Interpretation:
+
+- This replaces the failed `DELTA_TAG` generation target with a behavior-visible
+  support tag.
+- Because `OBS_TAG` is intentionally close to `GOLD_ACTION`, it should not be
+  used as the primary success metric. Keep winner accuracy, A/B side balance,
+  and parent-level swap consistency as the main acceptance gates.
+- Next remote step is eval-only generation for full BF16 base and the existing
+  rank-128 winner-delta adapter before launching a new rank-128 LoRA run.

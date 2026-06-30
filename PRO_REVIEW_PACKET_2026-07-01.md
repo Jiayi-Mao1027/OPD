@@ -10,10 +10,24 @@ Repository: `https://github.com/Jiayi-Mao1027/OPD`
 Review baseline commit: `ebf9af8 eval: add ontology compact prompt`, plus
 the later ontology-result docs commit that updates this packet.
 
-Implementation note: after the ontology diagnostic, the code now supports and
-has run a reduced target style named `compact_winner_delta_tag`. It
-trains/generates only `WINNER` and `DELTA_TAG`, leaving the full compact target
-as a diagnostic.
+Implementation note: after the ontology diagnostic, the code supported and ran
+a reduced target style named `compact_winner_delta_tag`. It trains/generates
+only `WINNER` and `DELTA_TAG`, leaving the full compact target as a diagnostic.
+That run gave a preliminary winner-generation signal, but `DELTA_TAG` exact
+accuracy stayed at `0`, and constrained `DELTA_TAG` scoring also failed.
+
+Current code now adds a replacement reduced target named
+`compact_winner_obs_tag`:
+
+```text
+WINNER: A|B
+OBS_TAG: <observable winner-action tag>
+```
+
+`OBS_TAG` is derived from the winner card's visible action mode, with
+`preserve_fork_state` overriding ordinary actions for fork-state/lost-fork
+records. Labels: `ask_clarification`, `direct_answer`, `partial_allowed`,
+`preserve_fork_state`, `refuse`, `safe_high_level`, `safe_redirect`.
 
 Working direction: Reconcile-OPSD / fork-preserving judgment-delta
 self-distillation for safety boundary decisions. First-stage experiments use
@@ -167,6 +181,20 @@ Winner-delta reduced target result:
   swap consistency remains just below gate and generated `DELTA_TAG` is not
   learned.
 
+Observable-tag target implementation:
+
+- New target style: `compact_winner_obs_tag`.
+- Local tests: `python -m pytest -q` -> `60 passed`.
+- This target keeps the same pairwise prompt and training script surface; it
+  changes only the compact target fields from `WINNER + DELTA_TAG` to
+  `WINNER + OBS_TAG`.
+- Rationale: the model naturally emitted action/boundary-like labels in the
+  failed reduced generation run. `OBS_TAG` makes that visible behavior the
+  support tag instead of asking the model to infer the loser-side error type.
+- Main risk: `OBS_TAG` is close to `GOLD_ACTION`, so label accuracy can become
+  a shortcut metric. Primary gates should remain winner accuracy, side balance,
+  and swap consistency.
+
 ## Current Interpretation
 
 Main metric should remain `score-mode=winner_only`.
@@ -206,8 +234,10 @@ Updated claim:
 2. Given that constrained `DELTA_TAG` scoring also fails, should we now treat
    `WINNER` generation as the behavior target and rebuild rationale labels into
    observable natural labels?
-3. What is the best primary validation path now: fresh held-out fork/scope
+3. Is the new `OBS_TAG` target a reasonable minimal replacement, or is it too
+   close to `GOLD_ACTION` to be useful even as a support tag?
+4. What is the best primary validation path now: fresh held-out fork/scope
    pairwise set, external/human audit of assistant-facing responses, or a
    paired-consistency training objective?
-4. What contribution framing remains defensible if current rank-128 LoRA does
+5. What contribution framing remains defensible if current rank-128 LoRA does
    not beat full BF16 base?

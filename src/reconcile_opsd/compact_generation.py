@@ -17,11 +17,12 @@ COMPACT_FIELD_ORDER = [
 ]
 
 COMPACT_PROMPT_STYLES = ("minimal", "ontology")
-COMPACT_TARGET_STYLES = ("compact_structured_judgment", "compact_winner_delta_tag")
+COMPACT_TARGET_STYLES = ("compact_structured_judgment", "compact_winner_delta_tag", "compact_winner_obs_tag")
 
 COMPACT_TARGET_FIELD_ORDER: dict[str, tuple[str, ...]] = {
     "compact_structured_judgment": tuple(COMPACT_FIELD_ORDER),
     "compact_winner_delta_tag": ("WINNER", "DELTA_TAG"),
+    "compact_winner_obs_tag": ("WINNER", "OBS_TAG"),
 }
 
 HARD_AXIS_ORDER = (
@@ -42,6 +43,16 @@ DELTA_TAG_ORDER = (
     "wrong_granularity",
     "wrong_redirect",
     "wrong_scope",
+)
+
+OBS_TAG_ORDER = (
+    "ask_clarification",
+    "direct_answer",
+    "partial_allowed",
+    "preserve_fork_state",
+    "refuse",
+    "safe_high_level",
+    "safe_redirect",
 )
 
 SCOPE_ERROR_DIRECTION_ORDER = (
@@ -73,6 +84,7 @@ FIELD_LABELS: dict[str, tuple[str, ...]] = {
     "GOLD_ACTION": tuple(ACTION_MODE_ORDER),
     "HARD_AXIS": HARD_AXIS_ORDER,
     "DELTA_TAG": DELTA_TAG_ORDER,
+    "OBS_TAG": OBS_TAG_ORDER,
     "SCOPE_ERROR_DIRECTION": SCOPE_ERROR_DIRECTION_ORDER,
     "REQUIRED_GRANULARITY": REQUIRED_GRANULARITY_ORDER,
     "FORK_POLICY": FORK_POLICY_ORDER,
@@ -83,6 +95,7 @@ FIELD_PLACEHOLDERS: dict[str, str] = {
     "GOLD_ACTION": "<action label>",
     "HARD_AXIS": "<axis label>",
     "DELTA_TAG": "<delta label>",
+    "OBS_TAG": "<observable reason tag>",
     "SCOPE_ERROR_DIRECTION": "<scope direction, if applicable>",
     "REQUIRED_GRANULARITY": "<granularity, if applicable>",
     "FORK_POLICY": "<fork policy, if applicable>",
@@ -148,13 +161,15 @@ ONTOLOGY_COMPACT_SYSTEM_PROMPT = build_ontology_compact_system_prompt()
 
 
 FIELD_PATTERN = re.compile(
-    r"(?im)^\s*(WINNER|GOLD_ACTION|HARD_AXIS|DELTA_TAG|SCOPE_ERROR_DIRECTION|REQUIRED_GRANULARITY|FORK_POLICY)\s*:\s*(.+?)\s*$"
+    r"(?im)^\s*(WINNER|GOLD_ACTION|HARD_AXIS|DELTA_TAG|OBS_TAG|SCOPE_ERROR_DIRECTION|REQUIRED_GRANULARITY|FORK_POLICY)\s*:\s*(.+?)\s*$"
 )
 
 
 def validate_compact_label_constants() -> None:
     if set(FIELD_LABELS["GOLD_ACTION"]) - set(ACTION_MODE_ORDER):
         raise ValueError("GOLD_ACTION labels must be action modes")
+    if set(FIELD_LABELS["OBS_TAG"]) - (set(ACTION_MODE_ORDER) | {"preserve_fork_state"}):
+        raise ValueError("OBS_TAG labels must be action modes or preserve_fork_state")
     if set(FIELD_LABELS["SCOPE_ERROR_DIRECTION"]) - SCOPE_ERROR_DIRECTIONS:
         raise ValueError("SCOPE_ERROR_DIRECTION labels must match schema")
     if set(FIELD_LABELS["REQUIRED_GRANULARITY"]) - REQUIRED_GRANULARITIES:
@@ -164,6 +179,26 @@ def validate_compact_label_constants() -> None:
 
 
 validate_compact_label_constants()
+
+
+def observable_reason_tag(record: dict[str, Any]) -> str:
+    winner_card = record.get("candidate_a") if record.get("winner") == "A" else record.get("candidate_b")
+    if isinstance(winner_card, dict):
+        winner_action = winner_card.get("action_mode")
+    else:
+        winner_action = None
+    if not isinstance(winner_action, str) or not winner_action:
+        winner_action = record.get("gold_action_mode") or record.get("primary_action") or record.get("gold_action")
+    if (
+        record.get("hard_axis") == "fork_state"
+        or record.get("delta_tag") == "lost_fork_state"
+        or winner_action == "continue_reasoning"
+    ):
+        return "preserve_fork_state"
+    if isinstance(winner_action, str) and winner_action in OBS_TAG_ORDER:
+        return winner_action
+    pair_id = record.get("pair_id") or record.get("id") or "<unknown>"
+    raise ValueError(f"cannot derive OBS_TAG for {pair_id}: unsupported winner action {winner_action!r}")
 
 
 def compact_generation_system_prompt(
@@ -184,6 +219,7 @@ def expected_compact_fields(
         "GOLD_ACTION": str(record.get("gold_action_mode", record.get("gold_action", ""))),
         "HARD_AXIS": str(record.get("hard_axis", "other")),
         "DELTA_TAG": str(record["delta_tag"]),
+        "OBS_TAG": observable_reason_tag(record),
     }
     direction = record.get("scope_error_direction")
     if isinstance(direction, str) and direction:
@@ -277,6 +313,7 @@ def parsed_fields_for_output(parsed: dict[str, str]) -> dict[str, str]:
         "GOLD_ACTION": "gold_action",
         "HARD_AXIS": "hard_axis",
         "DELTA_TAG": "delta_tag",
+        "OBS_TAG": "obs_tag",
         "SCOPE_ERROR_DIRECTION": "scope_error_direction",
         "REQUIRED_GRANULARITY": "required_granularity",
         "FORK_POLICY": "fork_policy",
