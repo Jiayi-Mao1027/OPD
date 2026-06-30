@@ -477,6 +477,18 @@ python scripts/train_pairwise_lora.py \
   --attn-implementation eager
 ```
 
+Current observable-tag eval-only result:
+
+- summary: `reports/pairwise_v0_1_obs_tag_generation_summary.md`;
+- no new training was used; this evaluates the existing rank-128 winner-delta
+  adapter under the `compact_winner_obs_tag` generation target;
+- original dev: full base `22/28`, existing adapter `23/28`;
+- position-balanced dev: full base `42/56`, swap `16/28`, gate fail; existing
+  adapter `44/56`, swap `20/28`, gate pass;
+- position-balanced fork-state improves from `4/6` to `5/6`;
+- exact `OBS_TAG` accuracy is still weak (`8/56` for the adapter on
+  position-balanced dev), so use it only as an auxiliary support field.
+
 Current smoke report:
 
 - `reports/pairwise_v0_1_dev_lora_r128_smoke.md`;

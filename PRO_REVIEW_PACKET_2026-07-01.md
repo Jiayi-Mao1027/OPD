@@ -29,6 +29,10 @@ OBS_TAG: <observable winner-action tag>
 records. Labels: `ask_clarification`, `direct_answer`, `partial_allowed`,
 `preserve_fork_state`, `refuse`, `safe_high_level`, `safe_redirect`.
 
+Eval-only update: `compact_winner_obs_tag` generation has now been run for full
+BF16 Qwen3-8B and the existing rank-128 winner-delta adapter. No new training
+was used for this update.
+
 Working direction: Reconcile-OPSD / fork-preserving judgment-delta
 self-distillation for safety boundary decisions. First-stage experiments use
 Qwen3-8B as the thinking-capable student model.
@@ -195,6 +199,26 @@ Observable-tag target implementation:
   a shortcut metric. Primary gates should remain winner accuracy, side balance,
   and swap consistency.
 
+Observable-tag eval-only result:
+
+- Summary: `reports/pairwise_v0_1_obs_tag_generation_summary.md`
+- Original dev:
+  - full BF16 base: `22/28 = 0.7857`, fork `1/3`, scope `11/13`, gate pass
+  - existing rank-128 winner-delta adapter: `23/28 = 0.8214`, fork `2/3`,
+    scope `11/13`, gate pass
+- Position-balanced dev:
+  - full BF16 base: `42/56 = 0.7500`, fork `4/6`, scope `19/26`,
+    pred A/B `36/20`, swap consistency `16/28 = 0.5714`, gate fail
+  - existing rank-128 winner-delta adapter: `44/56 = 0.7857`, fork `5/6`,
+    scope `20/26`, pred A/B `30/26`, swap consistency `20/28 = 0.7143`,
+    gate pass
+- Exact `OBS_TAG` remains weak: full base `0/56` and adapter `8/56` on
+  position-balanced dev.
+- Interpretation: this is the first generation-side pairwise diagnostic where
+  the rank-128 adapter beats full BF16 base and passes the current
+  position-balanced bias gate, but it is still prompt-target-specific and does
+  not prove assistant-response safety.
+
 ## Current Interpretation
 
 Main metric should remain `score-mode=winner_only`.
@@ -236,8 +260,11 @@ Updated claim:
    observable natural labels?
 3. Is the new `OBS_TAG` target a reasonable minimal replacement, or is it too
    close to `GOLD_ACTION` to be useful even as a support tag?
-4. What is the best primary validation path now: fresh held-out fork/scope
+4. Given the obs-tag eval-only gate pass, should the next step be a new
+   `compact_winner_obs_tag` rank-128 LoRA run, or should we first validate this
+   prompt-target result on a fresh held-out fork/scope pairwise set?
+5. What is the best primary validation path now: fresh held-out fork/scope
    pairwise set, external/human audit of assistant-facing responses, or a
    paired-consistency training objective?
-5. What contribution framing remains defensible if current rank-128 LoRA does
+6. What contribution framing remains defensible if current rank-128 LoRA does
    not beat full BF16 base?

@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 05:45 +08:00
+Last updated: 2026-07-01 06:14 +08:00
 
 ## Current Objective
 
@@ -108,6 +108,9 @@ Validate a smaller pairwise target for Reconcile-OPSD: keep `WINNER` as the beha
 - Added `compact_winner_obs_tag`, a reduced generation/training target with only `WINNER` and `OBS_TAG`.
 - `OBS_TAG` is deterministically derived from the winner card's visible action mode, with `preserve_fork_state` overriding ordinary actions for fork-state/lost-fork cases.
 - Local and remote verification after the new target implementation: `python -m pytest -q` -> `60 passed`.
+- Ran eval-only `compact_winner_obs_tag` generation for full BF16 Qwen3-8B and the existing rank-128 winner-delta adapter.
+- Observable-tag generation result: the existing adapter beats full base on original dev (`23/28` vs `22/28`) and position-balanced dev (`44/56` vs `42/56`), improves fork-state on position-balanced dev (`5/6` vs `4/6`), and passes the current position-bias gate with swap consistency `20/28 = 0.7143`.
+- Documented this in `reports/pairwise_v0_1_obs_tag_generation_summary.md` and the original/position-balanced obs-tag generation reports.
 
 ## Current Blockers
 
@@ -128,15 +131,15 @@ Validate a smaller pairwise target for Reconcile-OPSD: keep `WINNER` as the beha
 - `compact_winner_delta_tag` gives a real preliminary winner-generation signal, but it is not a passed method result because position-balanced swap consistency is still below gate and `DELTA_TAG` exact accuracy is `0`.
 - The current discrete `DELTA_TAG` ontology is not learned even under constrained scoring, so additional training on the same tag labels is unlikely to be useful before relabeling/redesign.
 - The batch-2 run increased memory over batch-1 runs but still did not reach the preferred `70GB+` GPU utilization target; total observed GPU1 usage during training was around `67GB`.
-- `OBS_TAG` is close to `GOLD_ACTION`; use it as an observable support tag and keep winner accuracy, side balance, and parent-level swap consistency as the primary acceptance gates.
+- `OBS_TAG` is close to `GOLD_ACTION` and exact `OBS_TAG` accuracy remains low (`8/56` on position-balanced dev for the adapter); use it as an observable support tag and keep winner accuracy, side balance, and parent-level swap consistency as the primary acceptance gates.
 
 ## Next Actions
 
 - Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore/ontology results were useful diagnostics, and they show the one-shot compact field target needs decomposition before more training steps.
 - Ask Pro to review the compact generation, mismatch, ontology-prompt result, and reduced-target implementation once browser access is stable.
-- Next validation should use `compact_winner_obs_tag` before any more training on rationale labels.
-- First run eval-only generation for full BF16 base and the previous rank-128 winner-delta adapter on original and position-balanced dev.
-- If eval-only looks clean enough, run a new rank-128 LoRA with `--target-style compact_winner_obs_tag`; keep no QLoRA/no full-parameter fine-tuning.
+- Ask Pro to review the new obs-tag eval-only gate-pass result before treating it as a contribution claim.
+- If we train on the new target, run rank-128 LoRA with `--target-style compact_winner_obs_tag`; keep no QLoRA/no full-parameter fine-tuning.
+- Before training, decide whether to add a small held-out fork/scope set or a response-level audit so the result is not only prompt-format-specific.
 - If another training run is needed, use a larger micro-batch only after checking GPU free memory; batch size `3` is the next likely probe for the `70GB+` utilization target, but reduce it if the fresh GPU state is crowded.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

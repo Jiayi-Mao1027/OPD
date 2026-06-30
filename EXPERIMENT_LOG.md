@@ -1095,3 +1095,106 @@ Interpretation:
   and parent-level swap consistency as the main acceptance gates.
 - Next remote step is eval-only generation for full BF16 base and the existing
   rank-128 winner-delta adapter before launching a new rank-128 LoRA run.
+
+## 2026-07-01 06:14 +08:00 - Observable-Tag Generation Eval
+
+Commit before action: `294f45d fix: make gpu status cli path-stable`
+Branch: `main`
+Machine: remote `/data03/liang/mjy/reconcile_opsd`
+Model path: `/data/LLM/Qwen3-8B`
+Adapter: `outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_winner_delta_lr3e6_s24_len1024_b2/adapter`
+
+Policy:
+
+- Eval-only generation; no new training.
+- No QLoRA.
+- No full-parameter fine-tuning.
+- Existing adapter is rank-128 LoRA.
+
+GPU before:
+
+```text
+GPU 0: H100 PCIe, 75315 MB used, 5680 MB free
+GPU 1: H100 PCIe, 28321 MB used, 52674 MB free, selected by scripts/gpu_status.py
+GPU 2: H100 PCIe, 63427 MB used, 17568 MB free
+GPU 3: H100 PCIe, 75447 MB used, 5548 MB free
+```
+
+Commands summarized:
+
+```bash
+python scripts/generate_pairwise_compact_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --output outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_fullbase_obs_tag_gen.jsonl \
+  --target-style compact_winner_obs_tag \
+  --max-new-tokens 48 \
+  --attn-implementation eager
+
+python scripts/generate_pairwise_compact_judgments.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_winner_delta_lr3e6_s24_len1024_b2/adapter \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --output outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_winner_delta_obs_tag_gen.jsonl \
+  --target-style compact_winner_obs_tag \
+  --max-new-tokens 48 \
+  --attn-implementation eager
+
+python scripts/evaluate_pairwise_scores.py \
+  --dataset data/pairwise/reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl \
+  --scores fullbase_obs=outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_fullbase_obs_tag_gen.jsonl \
+  --scores r128_winner_delta_obs=outputs/pairwise_generations/qwen3_8b_v0_1_dev_posbalanced_r128_winner_delta_obs_tag_gen.jsonl \
+  --output-md reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation.md \
+  --output-json reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation.json \
+  --output-csv reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation_errors.csv
+```
+
+The same generation/evaluation path was also run on
+`data/pairwise/reconcilebench_v0_1_dev_pairwise.jsonl`.
+
+Reports:
+
+- `reports/pairwise_v0_1_obs_tag_generation_summary.md`
+- `reports/pairwise_v0_1_dev_obs_tag_generation.md`
+- `reports/pairwise_v0_1_dev_posbalanced_obs_tag_generation.md`
+
+Result:
+
+```text
+Original dev:
+  fullbase_obs = 22/28 = 0.7857, fork = 1/3, scope = 11/13, gate pass
+  r128_winner_delta_obs = 23/28 = 0.8214, fork = 2/3, scope = 11/13, gate pass
+
+Position-balanced dev:
+  fullbase_obs = 42/56 = 0.7500, fork = 4/6, scope = 19/26,
+    pred A/B = 36/20, swap = 16/28 = 0.5714, gate fail
+  r128_winner_delta_obs = 44/56 = 0.7857, fork = 5/6, scope = 20/26,
+    pred A/B = 30/26, swap = 20/28 = 0.7143, gate pass
+
+Compact field diagnostics:
+  fullbase_obs exact OBS_TAG = 0/56 on position-balanced dev
+  r128_winner_delta_obs exact OBS_TAG = 8/56 on position-balanced dev
+
+Peak allocated CUDA memory:
+  fullbase generation ~= 15791 MB
+  adapter generation ~= 18323 MB
+```
+
+GPU after:
+
+```text
+GPU 1: H100 PCIe, 28325 MB used, 52670 MB free
+```
+
+Interpretation:
+
+- This is the first generation-side pairwise diagnostic where the existing
+  rank-128 adapter beats full BF16 base and passes the current
+  position-balanced bias gate.
+- The result is still prompt-target-specific and not a final assistant-safety
+  claim.
+- `OBS_TAG` exact accuracy remains weak, so do not claim rationale-label
+  learning yet.
+- Next decision: ask Pro to review whether to train a new
+  `compact_winner_obs_tag` rank-128 LoRA or first validate this gate on a fresh
+  held-out fork/scope set.
