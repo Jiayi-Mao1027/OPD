@@ -33,6 +33,43 @@ Useful first-stage models found under `/data/LLM`:
 
 No `DeepSeek-R1-Distill-Qwen-*` directory was found in the initial scan.
 
+## Thinking / Template Verification
+
+Follow-up verification inspected `config.json`, `generation_config.json`, and `tokenizer_config.json` for the main candidates.
+
+Observed model categories:
+
+- Native thinking-template candidates:
+  - `/data/LLM/Qwen3-8B`
+  - `/data/LLM/Qwen3-30B-A3B`
+  - `/data/LLM/Qwen3-30B-A3B-Thinking`
+  - `/data/LLM/Qwen3-Next-80B-A3B-Thinking`
+  - `/data/LLM/Qwen3.5-4B` has a long chat template mentioning thinking, but its architecture/usage needs extra verification before use.
+- Ordinary instruct/chat baselines:
+  - `/data/LLM/Qwen2.5-7B-Instruct`
+  - `/data/LLM/Qwen2.5-14B-Instruct`
+  - `/data/LLM/Qwen2.5-32B-Instruct`
+  - `/data/LLM/Qwen3-4B-Instruct`
+  - `/data/LLM/Llama-3.3-70B-Instruct`
+- Safety-specialized or classifier-like candidates:
+  - `/data/LLM/YuFeng-XGuard-Reason-8B` uses a safety-evaluation-oriented template; verify generation behavior before using it as a student model.
+  - `/data/LLM/Meta-SecAlign-8B`
+  - `/data/LLM/Meta-SecAlign-70B`
+
+Working priority for method experiments:
+
+1. `/data/LLM/Qwen3-8B` for smoke tests because it has a thinking-capable template and manageable size.
+2. `/data/LLM/Qwen3-30B-A3B-Thinking` for the first stronger thinking-model experiment.
+3. `/data/LLM/Qwen3-Next-80B-A3B-Thinking` only after the pipeline is stable.
+4. `/data/LLM/Qwen2.5-32B-Instruct` or `/data/LLM/Llama-3.3-70B-Instruct` as non-thinking baselines, not as primary thinking students.
+
+Before using any model in an experiment, run a small template/render/generation smoke check and record:
+
+- whether `chat_template` exists;
+- whether the template includes thinking-specific controls or markers;
+- whether generated output shows the expected thinking/action-mode structure;
+- whether the prompt format matches training/evaluation data.
+
 ## Model Download Wishlist
 
 Only needed if the project decides to rely on R1-style distillation baselines:
@@ -85,3 +122,8 @@ Initial survey showed all 4 GPUs occupied:
 
 Always rerun `nvidia-smi` before experiments.
 
+## GPU Count Verification
+
+Follow-up verification with `nvidia-smi -L`, GPU UUID/bus IDs, and `lspci` showed 4 visible NVIDIA H100 PCIe devices on `node-128-46`.
+
+No A100 devices were visible on this machine during this check. If there are 2 A100 GPUs, they are likely on a different node or not exposed to this OS/session.

@@ -44,6 +44,23 @@ Models:
 find -L /data/LLM -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort
 ```
 
+Model template check:
+
+```bash
+python3 - <<'PY'
+import json, pathlib, re
+model = pathlib.Path("/data/LLM/Qwen3-8B")
+tok = json.loads((model / "tokenizer_config.json").read_text(errors="replace"))
+cfg = json.loads((model / "config.json").read_text(errors="replace"))
+tmpl = tok.get("chat_template") or ""
+print("model_type:", cfg.get("model_type"))
+print("architectures:", cfg.get("architectures"))
+print("has_chat_template:", bool(tmpl))
+print("template_mentions_thinking:", bool(re.search(r"think|reason|thinking|enable_thinking", tmpl, re.I)))
+print("template_preview:", " ".join(tmpl.split())[:500])
+PY
+```
+
 Environment packages:
 
 ```bash
@@ -81,4 +98,3 @@ High-VRAM target experiments must exceed 70GB actual GPU memory usage. If they d
 4. Check sequence length and micro batch size.
 5. Check whether gradient checkpointing, LoRA, or CPU offload changed memory usage.
 6. Mark the result as suspect until explained.
-

@@ -112,9 +112,10 @@ Use a small model and LoRA-style training to validate:
 
 Candidate smoke models:
 
-- `/data/LLM/Qwen2.5-7B-Instruct`
 - `/data/LLM/Qwen3-8B`
-- `/data/LLM/YuFeng-XGuard-Reason-8B`
+- `/data/LLM/Qwen3-30B-A3B` if resource conditions allow
+
+Use `/data/LLM/Qwen2.5-7B-Instruct` as a non-thinking instruct baseline, not as the primary thinking-model smoke target. Use `/data/LLM/YuFeng-XGuard-Reason-8B` only after confirming it behaves as a generative reasoning model rather than only a safety classifier/judge.
 
 ### Phase 4: Judgment-Delta Prototype
 
@@ -130,9 +131,9 @@ Implement same-prefix teacher scoring and compare:
 
 Run at least one >70GB VRAM experiment using:
 
-- `/data/LLM/Qwen2.5-32B-Instruct`, or
 - `/data/LLM/Qwen3-30B-A3B-Thinking`, or
-- `/data/LLM/Llama-3.3-70B-Instruct` with QLoRA/LoRA.
+- `/data/LLM/Qwen3-Next-80B-A3B-Thinking`, or
+- `/data/LLM/Llama-3.3-70B-Instruct` with QLoRA/LoRA as a non-thinking large baseline.
 
 Do not start until GPU availability and dependencies are checked.
 
@@ -146,4 +147,3 @@ Do not start until GPU availability and dependencies are checked.
 6. Which benchmarks can measure harmful compliance, over-refusal, clarification, safe completion, and deliberation drift?
 7. What is the strongest ablation matrix for proving this is not just safe SFT or safe OPD?
 8. What is the minimum credible model/data/benchmark setup for a 1-2 month first result?
-

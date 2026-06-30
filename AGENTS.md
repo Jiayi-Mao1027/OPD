@@ -20,6 +20,9 @@ Model root: `/data/LLM`.
 - Do not overwrite or repurpose `/data03/liang/mjy/safe_opd`; it is an older separate project.
 - Verify actual model paths under `/data/LLM` before using a model.
 - Do not assume DeepSeek or other models exist unless the path is verified.
+- Prefer models that are actually thinking-capable for method experiments; do not infer this from the directory name alone.
+- Before using a model, inspect `tokenizer_config.json` and `config.json`, verify the chat template, and run a short generation/template smoke check.
+- Record whether the model is `thinking`, `instruct/chat`, `safety-classifier`, or `unclear` in experiment logs.
 - Do not run long or GPU-heavy jobs without checking `nvidia-smi` first.
 - Do not kill or displace existing GPU processes without explicit user approval.
 - For high-memory target experiments, expected and observed GPU memory occupation should exceed 70GB.
@@ -43,6 +46,14 @@ Model root: `/data/LLM`.
 - For 70GB+ target runs, prefer 32B LoRA/QLoRA or 70B QLoRA class experiments.
 - Do not pad or cache merely to inflate memory usage; also track utilization, tokens/sec, and loss behavior.
 
+## Model And Template Rules
+
+- Thinking experiments should prioritize verified Qwen3 thinking-capable models or other reasoning/chat models with explicit thinking support.
+- Qwen2.5 Instruct models are useful baselines but should not be treated as native thinking models.
+- Safety-specialized models such as guard/classifier checkpoints may be used for judging or auxiliary labels, but not as default student reasoning models unless their generation behavior is verified.
+- When a model's name or metadata is ambiguous, inspect the tokenizer template and generate a small sample before adding it to an experiment matrix.
+- Dataset prompts must match the model's actual chat template and expected output format; do not train a template mismatch into the model.
+
 ## Pro Interaction Rules
 
 - Send Pro concise context packets, not raw working directories.
@@ -58,4 +69,3 @@ Model root: `/data/LLM`.
 - Keep code/config changes separate from experiment results where practical.
 - Commit failed experiment logs when they contain useful evidence.
 - Do not rewrite shared history unless explicitly requested.
-

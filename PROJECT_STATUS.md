@@ -21,12 +21,14 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 
 ## Done
 
-- Read the open ChatGPT conversation titled `OPD安全研究现状`.
+- Read the open ChatGPT conversation titled `OPD safety research current state`.
 - Extracted the main direction: Reconcile-OPSD / Fork-Preserving Judgment-Delta Self-Distillation.
 - Confirmed the old `/data03/liang/mjy/safe_opd` directory already exists and should not be overwritten.
 - Confirmed the `mjy` conda environment exists and can see 4 H100 PCIe GPUs.
 - Confirmed several usable local models under `/data/LLM`.
 - Created the initial Git repo and first commit.
+- Rechecked GPU topology: `node-128-46` exposes 4 H100 PCIe devices; no A100 devices are visible from this OS/session.
+- Inspected candidate chat templates and marked Qwen3 thinking-capable candidates as the first-priority student models.
 
 ## Current Blockers
 
@@ -34,11 +36,12 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - No DeepSeek-R1-Distill-Qwen model was found under `/data/LLM`.
 - `mjy` currently lacks `bitsandbytes`, `deepspeed`, and `flash-attn`; this matters for QLoRA, multi-GPU training, and high-throughput long-context training.
 - All 4 H100 GPUs had active processes during the initial survey, so no training should start without a fresh GPU check.
+- Some local model names are ambiguous; every chosen model still needs a generation smoke test before training/evaluation.
 
 ## Next Actions
 
 - Ask ChatGPT Pro to investigate novelty/collision risks using the prepared context packet.
 - Decide the first implementation target: data schema + action-mode labels, or baseline eval harness.
-- Choose first smoke model: `Qwen2.5-7B-Instruct`, `Qwen3-8B`, or `YuFeng-XGuard-Reason-8B`.
+- Prefer `Qwen3-8B` for the first thinking-model smoke test; keep Qwen2.5 Instruct as a non-thinking baseline.
 - If DeepSeek-R1-Distill-Qwen is required, ask the user to download the 14B and/or 32B version.
 - Before high-VRAM runs, decide whether to install `bitsandbytes`, `deepspeed`, and `flash-attn` into `mjy`.
