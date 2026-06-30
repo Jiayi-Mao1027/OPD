@@ -36,6 +36,9 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Installed `bitsandbytes==0.49.2` and `deepspeed==0.19.2` in `mjy`.
 - Attempted `flash-attn`; it is currently unavailable because the first build had an ABI import error and the ABI-forced rebuild timed out.
 - Verified `deepspeed` imports when `CUDA_HOME=/usr/local/cuda-12.2` is set.
+- Added runnable package skeleton, seed ReconcileBench data, template inspection, smoke generation, and action-mode baseline scripts.
+- Verified `pytest -q`: `7 passed`.
+- Ran Qwen3-8B seed action-mode baseline: `12` examples, `0.1667` accuracy, with predictions collapsing toward `refuse` and `safe_high_level`.
 
 ## Current Blockers
 
@@ -54,3 +57,5 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Prefer `Qwen3-8B` for the first thinking-model smoke test; keep Qwen2.5 Instruct as a non-thinking baseline.
 - Run a template/generation smoke check for `Qwen3-8B`.
 - Start implementing the dataset schema and baseline evaluation harness.
+- Expand ReconcileBench beyond the 12 seed examples.
+- Use the baseline failure pattern to design judgment-delta/action-mode training data.

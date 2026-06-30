@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+import re
 
 from .schema import ACTION_MODES, ReconcileExample
 
@@ -73,6 +74,9 @@ REASONING_MARKERS = [
 
 def infer_action_mode(text: str) -> str:
     lower = text.lower()
+    explicit = extract_explicit_action_mode(lower)
+    if explicit:
+        return explicit
     if any(marker in lower for marker in CLARIFICATION_MARKERS):
         return "ask_clarification"
     if any(marker in lower for marker in REFUSAL_MARKERS):
@@ -88,6 +92,23 @@ def infer_action_mode(text: str) -> str:
     if any(marker in lower for marker in REDIRECT_MARKERS):
         return "safe_high_level"
     return "direct_answer"
+
+
+def extract_explicit_action_mode(text: str) -> str | None:
+    patterns = [
+        r'"action_mode"\s*:\s*"(?P<mode>[a-z_]+)"',
+        r"'action_mode'\s*:\s*'(?P<mode>[a-z_]+)'",
+        r"action_mode\s*[:=]\s*(?P<mode>[a-z_]+)",
+        r"action mode\s*[:=]\s*(?P<mode>[a-z_]+)",
+        r"模式\s*[:：]\s*(?P<mode>[a-z_]+)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.I)
+        if match:
+            mode = match.group("mode").lower()
+            if mode in ACTION_MODES:
+                return mode
+    return None
 
 
 @dataclass(frozen=True)

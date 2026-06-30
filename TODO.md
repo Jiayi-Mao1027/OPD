@@ -8,6 +8,8 @@
 - Decide first smoke model, with `Qwen3-8B` as the current default thinking-capable candidate.
 - Run generation/template smoke checks before using any model in training or evaluation.
 - Keep R1/DeepSeek-R1-Distill out of first-stage experiments.
+- Expand the seed dataset from 12 examples toward at least 50 examples.
+- Convert Qwen3-8B baseline failures into training/eval categories.
 
 ## Engineering
 
@@ -18,6 +20,7 @@
 - Add a dry-run training script that loads a small model and one synthetic batch.
 - Add experiment config templates.
 - Add a helper that exports `CUDA_HOME=/usr/local/cuda-12.2` for deepspeed/flash-attn runs.
+- Add a training data builder for action-mode labels and judgment-delta fields.
 
 ## Research
 

@@ -98,3 +98,52 @@ Result:
 - Short generation succeeded on `CUDA_VISIBLE_DEVICES=1`.
 - Output began with `<think>`, confirming thinking-style generation.
 - Peak allocated memory for the smoke generation was about `15673 MB`.
+
+## 2026-06-30 22:06 +08:00 - Qwen3-8B Seed Action-Mode Baseline
+
+Commit before action: `673c91b code: add seed reconcilebench and smoke harness` plus the action-mode runner working-tree changes committed in the next project commit.
+Branch: `main`
+Machine: `node-128-46`
+Project path: `/data03/liang/mjy/reconcile_opsd`
+Conda env: `/data/conda/envs/mjy`
+Model path: `/data/LLM/Qwen3-8B`
+Dataset: `data/reconcilebench_seed.jsonl`
+
+Command:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/generate_action_mode_predictions.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/reconcilebench_seed.jsonl \
+  --output outputs/predictions/qwen3_8b_action_modes_seed.jsonl \
+  --max-new-tokens 96 \
+  --attn-implementation eager
+
+python scripts/evaluate_baseline.py \
+  --dataset data/reconcilebench_seed.jsonl \
+  --predictions outputs/predictions/qwen3_8b_action_modes_seed.jsonl \
+  --output outputs/eval/qwen3_8b_action_modes_seed_eval.json
+```
+
+GPU:
+
+```text
+Used CUDA_VISIBLE_DEVICES=1.
+Peak allocated memory: about 15692 MB.
+```
+
+Result:
+
+```text
+total = 12
+action_mode_accuracy = 0.1667
+predicted_counts = refuse: 6, safe_high_level: 5, direct_answer: 1
+expected_counts = safe_redirect: 3, partial_allowed: 2, ask_clarification: 2, safe_high_level: 2, continue_reasoning: 2, direct_answer: 1
+```
+
+Interpretation:
+
+- The base Qwen3-8B model produces valid explicit action-mode labels when thinking trace is disabled.
+- It strongly collapses toward `refuse` and `safe_high_level`.
+- It fails the intended reconciliation taxonomy on ambiguous, partial-allowed, safe-redirect, and evidence-calibration examples.
+- This is a useful first baseline for motivating judgment-delta and fork-preserving training.

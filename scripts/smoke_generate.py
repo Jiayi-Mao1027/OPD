@@ -67,8 +67,7 @@ def main() -> None:
 
 def apply_template(tokenizer, messages, enable_thinking: bool) -> str:
     kwargs = {"tokenize": False, "add_generation_prompt": True}
-    if enable_thinking:
-        kwargs["enable_thinking"] = True
+    kwargs["enable_thinking"] = enable_thinking
     try:
         return tokenizer.apply_chat_template(messages, **kwargs)
     except TypeError:
@@ -78,4 +77,3 @@ def apply_template(tokenizer, messages, enable_thinking: bool) -> str:
 
 if __name__ == "__main__":
     main()
-

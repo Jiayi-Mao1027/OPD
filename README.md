@@ -77,3 +77,21 @@ CUDA_VISIBLE_DEVICES=1 python scripts/smoke_generate.py \
   --max-new-tokens 64 \
   --output outputs/smoke/qwen3_8b_generation.json
 ```
+
+Run the seed action-mode baseline:
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python scripts/generate_action_mode_predictions.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/reconcilebench_seed.jsonl \
+  --output outputs/predictions/qwen3_8b_action_modes_seed.jsonl \
+  --max-new-tokens 96 \
+  --attn-implementation eager
+
+python scripts/evaluate_baseline.py \
+  --dataset data/reconcilebench_seed.jsonl \
+  --predictions outputs/predictions/qwen3_8b_action_modes_seed.jsonl \
+  --output outputs/eval/qwen3_8b_action_modes_seed_eval.json
+```
+
+Current seed baseline result: Qwen3-8B gets `0.1667` action-mode accuracy on 12 examples, mostly collapsing to `refuse` and `safe_high_level`.
