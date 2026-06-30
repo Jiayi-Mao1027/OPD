@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-06-30 22:31 +08:00
+Last updated: 2026-06-30 22:44 +08:00
 
 ## Current Objective
 
@@ -44,6 +44,9 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Added adapter-aware prediction support to `scripts/generate_action_mode_predictions.py`.
 - Evaluated the 2-step QLoRA smoke adapter against a 4-bit base control with the same train prompt: both got `0.1667` action-mode accuracy on the 12 seed examples.
 - Added `docs/action_mode_label_guide.md` to pin down the seven current action-mode labels and common boundary cases.
+- Added dataset audit/split tooling.
+- Expanded ReconcileBench to `data/reconcilebench_v0.jsonl`: 52 examples, all seven action modes covered, no duplicate ids.
+- Created a fixed split under `data/splits/`: 38 train examples and 14 dev examples, with exactly two dev examples per action mode.
 
 ## Current Blockers
 
@@ -55,12 +58,13 @@ Create the initial project workspace for Reconcile-OPSD, turn the web-chat resea
 - Deepspeed/flash-attn workflows must set `CUDA_HOME=/usr/local/cuda-12.2`.
 - First-stage Qwen3-8B scripts use `attn_implementation=eager` and do not require `flash-attn`.
 - The current QLoRA result is only a training/eval plumbing smoke; it does not improve quality on the seed set.
+- ReconcileBench v0 is synthetic/seed-quality data for method iteration, not a publishable benchmark yet.
 
 ## Next Actions
 
 - Ask ChatGPT Pro to investigate novelty/collision risks using the prepared context packet.
-- Expand ReconcileBench beyond the 12 seed examples, with explicit coverage for `refuse`, `ask_clarification`, `partial_allowed`, and `continue_reasoning`.
 - Use the baseline and smoke-adapter failure pattern to design judgment-delta/action-mode training data.
-- Create a real train/dev split before any longer training run.
-- Add a taxonomy audit or dataset report script to catch action-mode imbalance and boundary-case ambiguity.
+- Run the next Qwen3-8B QLoRA experiment on `data/splits/reconcilebench_v0_train.jsonl` and evaluate on `data/splits/reconcilebench_v0_dev.jsonl`.
+- Add response-level evaluation beyond explicit action-mode classification.
+- Add a training data builder that uses `benign_allowed_parts`, `disallowed_parts`, `forks_to_keep`, `forks_to_prune`, and `final_response`.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

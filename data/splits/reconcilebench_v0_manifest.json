@@ -1,0 +1,392 @@
+{
+  "dataset": "data/reconcilebench_v0.jsonl",
+  "sources": [
+    "data\\reconcilebench_seed.jsonl",
+    "data\\drafts\\reconcilebench_v0_batch_safety.jsonl",
+    "data\\drafts\\reconcilebench_v0_batch_reasoning.jsonl",
+    "data\\drafts\\reconcilebench_v0_batch_balance.jsonl"
+  ],
+  "seed": 20260630,
+  "dev_ratio": 0.25,
+  "train_path": "data/splits/reconcilebench_v0_train.jsonl",
+  "dev_path": "data/splits/reconcilebench_v0_dev.jsonl",
+  "full_audit": {
+    "total": 52,
+    "duplicate_ids": [],
+    "action_mode_counts": {
+      "ask_clarification": 8,
+      "continue_reasoning": 9,
+      "direct_answer": 7,
+      "partial_allowed": 7,
+      "refuse": 7,
+      "safe_high_level": 7,
+      "safe_redirect": 7
+    },
+    "scenario_type_counts": {
+      "ambiguous_intent": 5,
+      "benign_sensitive": 17,
+      "clear_harmful": 8,
+      "dual_use": 6,
+      "long_context_distraction": 7,
+      "non_safety_uncertainty": 9
+    },
+    "risk_category_counts": {
+      "analytics_compliance": 2,
+      "business_compliance": 1,
+      "business_uncertainty": 1,
+      "coercion_extortion": 4,
+      "cyber_compliance": 1,
+      "cyber_safety": 15,
+      "deliberation_drift": 3,
+      "evidence_calibration": 8,
+      "evidence_integrity": 1,
+      "financial_advice": 1,
+      "financial_compliance": 2,
+      "hr_compliance": 1,
+      "incident_response": 1,
+      "legal": 1,
+      "legal_finance": 1,
+      "medical": 4,
+      "privacy_compliance": 3,
+      "privacy_cyber_safety": 1,
+      "regulatory_compliance": 1
+    },
+    "language_counts": {
+      "zh": 52
+    },
+    "missing_action_modes": [],
+    "missing_scenario_types": [],
+    "action_mode_by_scenario_type": {
+      "ambiguous_intent": {
+        "ask_clarification": 5
+      },
+      "benign_sensitive": {
+        "ask_clarification": 1,
+        "direct_answer": 5,
+        "partial_allowed": 3,
+        "safe_high_level": 4,
+        "safe_redirect": 4
+      },
+      "clear_harmful": {
+        "refuse": 5,
+        "safe_redirect": 3
+      },
+      "dual_use": {
+        "partial_allowed": 3,
+        "safe_high_level": 3
+      },
+      "long_context_distraction": {
+        "continue_reasoning": 5,
+        "refuse": 2
+      },
+      "non_safety_uncertainty": {
+        "ask_clarification": 2,
+        "continue_reasoning": 4,
+        "direct_answer": 2,
+        "partial_allowed": 1
+      }
+    },
+    "action_mode_by_risk_category": {
+      "analytics_compliance": {
+        "direct_answer": 1,
+        "safe_high_level": 1
+      },
+      "business_compliance": {
+        "partial_allowed": 1
+      },
+      "business_uncertainty": {
+        "continue_reasoning": 1
+      },
+      "coercion_extortion": {
+        "refuse": 4
+      },
+      "cyber_compliance": {
+        "direct_answer": 1
+      },
+      "cyber_safety": {
+        "ask_clarification": 3,
+        "direct_answer": 2,
+        "partial_allowed": 3,
+        "refuse": 2,
+        "safe_high_level": 2,
+        "safe_redirect": 3
+      },
+      "deliberation_drift": {
+        "continue_reasoning": 3
+      },
+      "evidence_calibration": {
+        "ask_clarification": 2,
+        "continue_reasoning": 4,
+        "direct_answer": 2
+      },
+      "evidence_integrity": {
+        "partial_allowed": 1
+      },
+      "financial_advice": {
+        "ask_clarification": 1
+      },
+      "financial_compliance": {
+        "safe_high_level": 2
+      },
+      "hr_compliance": {
+        "ask_clarification": 1
+      },
+      "incident_response": {
+        "safe_high_level": 1
+      },
+      "legal": {
+        "partial_allowed": 1
+      },
+      "legal_finance": {
+        "partial_allowed": 1
+      },
+      "medical": {
+        "continue_reasoning": 1,
+        "safe_redirect": 3
+      },
+      "privacy_compliance": {
+        "ask_clarification": 1,
+        "direct_answer": 1,
+        "safe_high_level": 1
+      },
+      "privacy_cyber_safety": {
+        "refuse": 1
+      },
+      "regulatory_compliance": {
+        "safe_redirect": 1
+      }
+    }
+  },
+  "train_audit": {
+    "total": 38,
+    "duplicate_ids": [],
+    "action_mode_counts": {
+      "ask_clarification": 6,
+      "continue_reasoning": 7,
+      "direct_answer": 5,
+      "partial_allowed": 5,
+      "refuse": 5,
+      "safe_high_level": 5,
+      "safe_redirect": 5
+    },
+    "scenario_type_counts": {
+      "ambiguous_intent": 3,
+      "benign_sensitive": 12,
+      "clear_harmful": 7,
+      "dual_use": 4,
+      "long_context_distraction": 4,
+      "non_safety_uncertainty": 8
+    },
+    "risk_category_counts": {
+      "analytics_compliance": 2,
+      "business_compliance": 1,
+      "business_uncertainty": 1,
+      "coercion_extortion": 3,
+      "cyber_safety": 12,
+      "deliberation_drift": 2,
+      "evidence_calibration": 6,
+      "evidence_integrity": 1,
+      "financial_advice": 1,
+      "financial_compliance": 1,
+      "hr_compliance": 1,
+      "legal_finance": 1,
+      "medical": 2,
+      "privacy_compliance": 2,
+      "privacy_cyber_safety": 1,
+      "regulatory_compliance": 1
+    },
+    "language_counts": {
+      "zh": 38
+    },
+    "missing_action_modes": [],
+    "missing_scenario_types": [],
+    "action_mode_by_scenario_type": {
+      "ambiguous_intent": {
+        "ask_clarification": 3
+      },
+      "benign_sensitive": {
+        "ask_clarification": 1,
+        "direct_answer": 4,
+        "partial_allowed": 2,
+        "safe_high_level": 3,
+        "safe_redirect": 2
+      },
+      "clear_harmful": {
+        "refuse": 4,
+        "safe_redirect": 3
+      },
+      "dual_use": {
+        "partial_allowed": 2,
+        "safe_high_level": 2
+      },
+      "long_context_distraction": {
+        "continue_reasoning": 3,
+        "refuse": 1
+      },
+      "non_safety_uncertainty": {
+        "ask_clarification": 2,
+        "continue_reasoning": 4,
+        "direct_answer": 1,
+        "partial_allowed": 1
+      }
+    },
+    "action_mode_by_risk_category": {
+      "analytics_compliance": {
+        "direct_answer": 1,
+        "safe_high_level": 1
+      },
+      "business_compliance": {
+        "partial_allowed": 1
+      },
+      "business_uncertainty": {
+        "continue_reasoning": 1
+      },
+      "coercion_extortion": {
+        "refuse": 3
+      },
+      "cyber_safety": {
+        "ask_clarification": 2,
+        "direct_answer": 2,
+        "partial_allowed": 2,
+        "refuse": 1,
+        "safe_high_level": 2,
+        "safe_redirect": 3
+      },
+      "deliberation_drift": {
+        "continue_reasoning": 2
+      },
+      "evidence_calibration": {
+        "ask_clarification": 2,
+        "continue_reasoning": 3,
+        "direct_answer": 1
+      },
+      "evidence_integrity": {
+        "partial_allowed": 1
+      },
+      "financial_advice": {
+        "ask_clarification": 1
+      },
+      "financial_compliance": {
+        "safe_high_level": 1
+      },
+      "hr_compliance": {
+        "ask_clarification": 1
+      },
+      "legal_finance": {
+        "partial_allowed": 1
+      },
+      "medical": {
+        "continue_reasoning": 1,
+        "safe_redirect": 1
+      },
+      "privacy_compliance": {
+        "direct_answer": 1,
+        "safe_high_level": 1
+      },
+      "privacy_cyber_safety": {
+        "refuse": 1
+      },
+      "regulatory_compliance": {
+        "safe_redirect": 1
+      }
+    }
+  },
+  "dev_audit": {
+    "total": 14,
+    "duplicate_ids": [],
+    "action_mode_counts": {
+      "ask_clarification": 2,
+      "continue_reasoning": 2,
+      "direct_answer": 2,
+      "partial_allowed": 2,
+      "refuse": 2,
+      "safe_high_level": 2,
+      "safe_redirect": 2
+    },
+    "scenario_type_counts": {
+      "ambiguous_intent": 2,
+      "benign_sensitive": 5,
+      "clear_harmful": 1,
+      "dual_use": 2,
+      "long_context_distraction": 3,
+      "non_safety_uncertainty": 1
+    },
+    "risk_category_counts": {
+      "coercion_extortion": 1,
+      "cyber_compliance": 1,
+      "cyber_safety": 3,
+      "deliberation_drift": 1,
+      "evidence_calibration": 2,
+      "financial_compliance": 1,
+      "incident_response": 1,
+      "legal": 1,
+      "medical": 2,
+      "privacy_compliance": 1
+    },
+    "language_counts": {
+      "zh": 14
+    },
+    "missing_action_modes": [],
+    "missing_scenario_types": [],
+    "action_mode_by_scenario_type": {
+      "ambiguous_intent": {
+        "ask_clarification": 2
+      },
+      "benign_sensitive": {
+        "direct_answer": 1,
+        "partial_allowed": 1,
+        "safe_high_level": 1,
+        "safe_redirect": 2
+      },
+      "clear_harmful": {
+        "refuse": 1
+      },
+      "dual_use": {
+        "partial_allowed": 1,
+        "safe_high_level": 1
+      },
+      "long_context_distraction": {
+        "continue_reasoning": 2,
+        "refuse": 1
+      },
+      "non_safety_uncertainty": {
+        "direct_answer": 1
+      }
+    },
+    "action_mode_by_risk_category": {
+      "coercion_extortion": {
+        "refuse": 1
+      },
+      "cyber_compliance": {
+        "direct_answer": 1
+      },
+      "cyber_safety": {
+        "ask_clarification": 1,
+        "partial_allowed": 1,
+        "refuse": 1
+      },
+      "deliberation_drift": {
+        "continue_reasoning": 1
+      },
+      "evidence_calibration": {
+        "continue_reasoning": 1,
+        "direct_answer": 1
+      },
+      "financial_compliance": {
+        "safe_high_level": 1
+      },
+      "incident_response": {
+        "safe_high_level": 1
+      },
+      "legal": {
+        "partial_allowed": 1
+      },
+      "medical": {
+        "safe_redirect": 2
+      },
+      "privacy_compliance": {
+        "ask_clarification": 1
+      }
+    }
+  }
+}

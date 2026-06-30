@@ -49,6 +49,23 @@ Validate the seed data and utilities:
 pytest -q
 ```
 
+Audit the expanded v0 data and fixed split:
+
+```bash
+python scripts/audit_dataset.py \
+  --dataset data/reconcilebench_v0.jsonl \
+  --output outputs/audit/reconcilebench_v0_audit.json
+
+python scripts/split_dataset.py \
+  --dataset data/reconcilebench_v0.jsonl \
+  --output-dir data/splits \
+  --name reconcilebench_v0 \
+  --dev-ratio 0.25 \
+  --seed 20260630
+```
+
+Current ReconcileBench v0: `52` examples, all seven action modes covered. Fixed split: `38` train and `14` dev examples, with exactly two dev examples per action mode.
+
 Inspect the Qwen3-8B chat template:
 
 ```bash

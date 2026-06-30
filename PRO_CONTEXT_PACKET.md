@@ -100,6 +100,9 @@ No DeepSeek-R1-Distill-Qwen model was found locally. R1-style experiments are de
 - A 4-bit QLoRA smoke trained Qwen3-8B for 2 steps on 4 seed examples and saved a PEFT adapter successfully.
 - Adapter-aware eval is now wired: same 4-bit base, same train prompt, same 12 seed examples. The 2-step smoke adapter also gets `0.1667`, so it proves the training/eval loop, not quality.
 - A label guide now exists at `docs/action_mode_label_guide.md`; current priority is expanding data, fixing a train/dev split, and auditing taxonomy boundaries before longer training.
+- ReconcileBench v0 now has 52 synthetic/seed-quality examples. Action-mode counts are: `continue_reasoning: 9`, `ask_clarification: 8`, and `direct_answer`, `partial_allowed`, `refuse`, `safe_high_level`, `safe_redirect` each at `7`.
+- The fixed v0 split has 38 train and 14 dev examples; dev has exactly two examples per action mode.
+- The next engineering experiment can train Qwen3-8B QLoRA on `data/splits/reconcilebench_v0_train.jsonl` and evaluate on `data/splits/reconcilebench_v0_dev.jsonl`, but response-level evaluation and judgment-delta/fork metrics remain missing.
 
 ## Specific Questions
 

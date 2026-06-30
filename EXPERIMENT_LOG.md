@@ -266,3 +266,59 @@ Interpretation:
 - The adapter-aware eval path works and is comparable against a 4-bit base control.
 - The 2-step smoke adapter does not improve seed action-mode accuracy.
 - The next scaling step should wait until the dataset has a fixed train/dev split and the action-mode taxonomy is less ambiguous.
+
+## 2026-06-30 22:41 +08:00 - ReconcileBench v0 Dataset And Split
+
+Commit before action: `edb2914 code: add adapter-aware action eval`
+Branch: `main`
+Machine: local Windows mirror, then synced to `node-128-46`
+
+Actions:
+
+- Added dataset audit utilities in `src/reconcile_opsd/dataset_tools.py`.
+- Added CLI wrappers: `scripts/audit_dataset.py` and `scripts/split_dataset.py`.
+- Added three draft data batches under `data/drafts/`.
+- Built `data/reconcilebench_v0.jsonl` from the 12 seed examples plus 40 new draft examples.
+- Created fixed split files under `data/splits/`.
+
+Verification:
+
+```bash
+pytest -q
+python scripts/audit_dataset.py --dataset data/reconcilebench_v0.jsonl --output outputs/audit/reconcilebench_v0_audit.json
+python scripts/split_dataset.py --dataset data/reconcilebench_v0.jsonl --output-dir data/splits --name reconcilebench_v0 --dev-ratio 0.25 --seed 20260630
+```
+
+Result:
+
+```text
+full dataset:
+  total = 52
+  duplicate_ids = none
+  action_mode_counts =
+    ask_clarification: 8
+    continue_reasoning: 9
+    direct_answer: 7
+    partial_allowed: 7
+    refuse: 7
+    safe_high_level: 7
+    safe_redirect: 7
+  scenario_type_counts =
+    ambiguous_intent: 5
+    benign_sensitive: 17
+    clear_harmful: 8
+    dual_use: 6
+    long_context_distraction: 7
+    non_safety_uncertainty: 9
+
+split:
+  train = 38
+  dev = 14
+  dev action_mode_counts = 2 examples for each of the 7 action modes
+```
+
+Interpretation:
+
+- The project now has a small but usable v0 dataset with explicit `refuse` coverage and a fixed dev split.
+- The data is still synthetic/seed-quality and should be treated as a scaffold for method iteration, not as a publishable benchmark.
+- The next training run can use `data/splits/reconcilebench_v0_train.jsonl` and evaluate on `data/splits/reconcilebench_v0_dev.jsonl`.
