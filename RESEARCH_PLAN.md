@@ -45,6 +45,33 @@ Relevant action modes:
 5. Auxiliary action-mode distillation:
    - Learn structured response mode decisions without forcing the final model to expose training-only labels.
 
+## Current Pivot After Pro Review
+
+The current evidence does not yet support a method-success claim. Compact
+pairwise generation, boundary-plan prompting, and direct final-response SFT are
+negative diagnostics. The next main path is a candidate-local reconciliation
+scorer:
+
+1. Convert each pairwise record into independent candidate-level examples.
+2. Score each candidate with constrained labels:
+   - `ACCEPTABLE: yes/no`
+   - `ERROR_TAG: none | fork_state | scope_contract | wrong_scope | unsafe_specificity | over_refusal | missing_clarification`
+3. Induce pairwise winners by independently scoring candidate A and candidate B,
+   rather than asking the model to generate `WINNER` directly.
+4. Validate with position-invariant gates before training more generators:
+   - fresh induced winner accuracy around `>= 0.75`;
+   - swap consistency `>= 0.75`, preferably `>= 0.80`;
+   - small position gap;
+   - fork/scope accuracy above fullbase;
+   - no material scope/refusal regression.
+5. Only after the scorer passes pairwise gates, test assistant-facing transfer by
+   generating multiple fullbase candidate responses, selecting with the scorer,
+   and auditing selected responses against greedy fullbase.
+
+This keeps compact structured scoring as a target-alignment diagnostic only. It
+also avoids claiming novelty for generic OPD-for-safety or generic pairwise
+preference learning.
+
 ## First-Stage Research Contributions
 
 1. Define reconciliation ability as the target object for reasoning safety.
@@ -127,13 +154,15 @@ Use `/data/LLM/Qwen2.5-7B-Instruct` as a non-thinking instruct baseline, not as 
 
 ### Phase 4: Judgment-Delta Prototype
 
-Implement same-prefix teacher scoring and compare:
+Current priority is the candidate-local scorer prototype. Implement and compare:
 
 - base;
-- deliberative SFT;
-- naive privileged self-OPD;
-- judgment-delta self-OPD;
-- fork-preserving judgment-delta self-OPD.
+- prompted base with rubric or ontology;
+- current pairwise `WINNER` LoRA as a frozen negative/diagnostic baseline;
+- candidate-local `ACCEPTABLE + ERROR_TAG` scorer;
+- candidate-local scorer with position/paraphrase consistency data if the first scorer is promising;
+- compact structured label-conditioned scorer as a diagnostic upper bound / leakage trap;
+- response SFT and boundary-plan bridge as frozen negative baselines.
 
 ### Phase 5: High-VRAM Main Run
 

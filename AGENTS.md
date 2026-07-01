@@ -40,6 +40,19 @@ Model root: `/data/LLM`.
 4. If remote/GPU work is needed, check `nvidia-smi` and record the relevant state.
 5. If Pro input is needed, prepare a sanitized context packet from tracked docs and current evidence.
 
+## Delegation And Control Rules
+
+- For non-trivial project work, use subagents by default. The main Codex controller must coordinate the work, keep the research direction explicit, and clearly understand what is being changed, run, or claimed before accepting subagent output.
+- The main controller owns scope, acceptance criteria, final decisions, Git hygiene, and user-facing summaries. Do not let a subagent's output redefine the project direction without explicit main-controller review.
+- Before delegating, the main controller must state the task type, expected output, acceptance criteria, and whether the subagent may only inspect, edit files, run tests, or run experiments.
+- Web ChatGPT Pro interaction is owned by the main Codex controller. The main controller prepares sanitized context packets, asks Pro research questions, collects Pro answers, and decides what, if anything, becomes tracked project guidance.
+- Do not delegate Web ChatGPT Pro interaction to a subagent unless the user explicitly asks for that exception in the current task. Pro output must not directly overwrite code, configs, prompts, datasets, or experiment scripts; it remains advice until the main controller turns it into reviewed project decisions.
+- Code review, repository inspection, experiment-log analysis, and method/claim audits should be assigned to a dedicated analysis/review subagent. This subagent should operate read-only unless explicitly given a scoped edit task.
+- Code writing, script changes, config changes, and test implementation should be assigned to a dedicated implementation subagent with a clear file/module ownership boundary. The implementation subagent must report changed files and should not own research-direction decisions.
+- Use separate subagents for analysis/review and implementation when a task involves both roles. Avoid having one subagent both propose the research direction and implement it without independent review.
+- The main controller chooses the model and reasoning effort for each subagent based on task risk and difficulty. Use stronger or higher-reasoning models for research-direction review, safety/method audits, and complex code changes; use lighter models for bounded grep, file inventory, or mechanical checks.
+- Subagents must not commit, push, kill GPU processes, delete project files, or start long/GPU-heavy runs unless the main controller explicitly delegates that action and the user has approved it when required by the project rules.
+
 ## GPU Rules
 
 - Record GPU model, count, visible devices, memory usage, and running processes before major runs.
@@ -73,6 +86,7 @@ export LD_LIBRARY_PATH=$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}
 
 ## Pro Interaction Rules
 
+- The main Codex controller handles Web ChatGPT Pro interaction directly unless the user explicitly delegates it for the current task.
 - Send Pro concise context packets, not raw working directories.
 - Ask Pro research questions: novelty, literature collisions, benchmark design, contribution framing, ablation logic, and risk analysis.
 - Do not send Pro secrets, tokens, passwords, cookies, private keys, or raw service responses containing sensitive data.

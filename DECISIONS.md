@@ -40,3 +40,11 @@ Reason: the earlier train/dev pairwise files and all existing adapters were prod
 
 Impact: fresh heldout files use the fixed rendering. Historical train/dev results remain valid as their own logged artifacts, but must carry the old-rendering caveat.
 
+## 2026-07-01 - Pivot to candidate-local reconciliation scoring
+
+Decision: freeze the current compact pairwise generation, boundary-plan prompt bridge, and 38-example final-response SFT lines as negative diagnostics. The next main method path is a candidate-local constrained scorer that predicts `ACCEPTABLE` and one observable `ERROR_TAG` for each candidate independently.
+
+Reason: the latest response-level SFT and boundary-plan bridge do not transfer the pairwise signal to assistant-facing final responses. ChatGPT Pro reviewed the compact, heldout, response-level SFT, and boundary-bridge evidence and advised that the current result is diagnostic rather than method success. Pro also warned that generic "OPD for safety" and "reasoning safety beyond refusal" framing collides with prior OPSD/OPCD/OPSA, deliberative safety reasoning, RATIONAL-style safety reasoning, trace-safety, generic pairwise preference learning, and judge position-bias work.
+
+Impact: do not claim Reconcile-OPSD improves assistant-facing safety behavior yet. First build and evaluate v0.2 candidate-local data, induce pairwise winners from independent candidate scores, and require strict fresh heldout winner/swap gates before treating the scorer as a method signal. Assistant-facing transfer should be tested through response selection against greedy fullbase before any renewed generator distillation.
+

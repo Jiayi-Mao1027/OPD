@@ -11,7 +11,7 @@
 - Keep all next training runs as rank-128 LoRA, not QLoRA and not full-parameter fine-tuning.
 - Use `--batch-size` and `--gradient-accumulation-steps` to manage memory.
 - Treat position-balanced compact rank-128 LoRA as a negative generation result until a stronger validation passes. Winner-only, compactscore, mismatch, and ontology-prompt diagnostics do not support the current one-shot compact target.
-- Ask Pro to review the compact generation mismatch, ontology-prompt result, and reduced-target next step once browser access is stable. The Chrome handoff packet is already prepared, but claiming the ChatGPT tab timed out on 2026-07-01.
+- ChatGPT Pro reviewed the compact, heldout, response-level SFT, and boundary-bridge results on 2026-07-01. Treat the advice as research guidance: the current evidence is diagnostic, not method success.
 - Treat the completed `compact_winner_delta_tag` run as a preliminary winner-generation signal, not a passed method result: generation beats reduced-prompt base, but swap consistency is still `19/28` and `DELTA_TAG` exact accuracy is `0`.
 - Stop training/scoring the current discrete `DELTA_TAG` labels as a positive target: constrained scoring also failed (`6/28` original, `10/56` adapter posbalanced).
 - Treat the completed eval-only `compact_winner_obs_tag` result as the current best pairwise generation diagnostic: existing rank-128 winner-delta adapter gets `44/56` on position-balanced dev, swap `20/28 = 0.7143`, and passes the current position-bias gate.
@@ -26,7 +26,14 @@
 - Boundary-plan prompt bridge has been tested as eval-only and is negative under strict post-think / `FINAL_RESPONSE` auditing: fullbase `5/16 -> 1/16`, winner-delta `3/16 -> 2/16`, obs-tag `4/16 -> 1/16`.
 - Do not use the earlier 320-token boundary-plan smoke as evidence. It was confounded by truncated thinking and whole-generation fallback before strict final-answer parsing.
 - Do not continue the same pairwise target as a positive assistant-behavior path until response-level failures are manually or externally judged.
-- Send the response-level and boundary-bridge negative-transfer results to Pro and ask whether to move next to a human/LLM judge rubric, a prefix-level fork-preservation target, or paired-consistency training.
+- Response-level final-response SFT is also a negative diagnostic: on the 16-case fresh fork/scope heldout audit, fullbase beats response-SFT both with thinking (`5/16` vs `4/16`) and without thinking (`7/16` vs `5/16`).
+- Freeze the current proxy-training branches as negative diagnostics: action-mode SFT, compact pairwise generation, boundary-plan bridge, and 38-example final-response SFT.
+- Do not continue pairwise `WINNER` generation, compact multi-field generation, boundary-plan prompting, or final-response SFT as the main path.
+- Build v0.2 candidate-local data from pairwise records. Each candidate should be scored independently with `ACCEPTABLE: yes/no` and `ERROR_TAG: none | fork_state | scope_contract | wrong_scope | unsafe_specificity | over_refusal | missing_clarification`.
+- Evaluate fullbase and prompted-base candidate-local scoring before any new training. Track acceptable macro-F1, error-tag macro-F1, induced pairwise winner accuracy, swap consistency, per-stratum recall, and gold-vs-confuser margin.
+- Only if baseline scoring leaves room, train one rank-128 non-QLoRA candidate-local constrained scorer with short context and no final-response target.
+- Gate any method claim on fresh induced pairwise winner accuracy around `>= 0.75`, swap consistency `>= 0.75` preferably `>= 0.80`, small position gap, fork/scope accuracy above fullbase, and no material scope/refusal regression.
+- If candidate-local scoring passes pairwise gates, test assistant-facing transfer through response selection: generate multiple fullbase candidate responses, score/select with the candidate-local scorer, then audit selected responses against greedy fullbase.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Redesign `continue_reasoning` as a prefix-level fork-state target, not a final response action.
 
@@ -37,17 +44,17 @@
 - Keep `scripts/train_pairwise_lora.py` as the pairwise trainer; default rank-128 LoRA, no quantization.
 - Keep `scripts/generate_pairwise_compact_judgments.py` as the generation-side check for compact target claims.
 - Keep `scripts/analyze_compact_generation_mismatches.py` as the raw-generation mismatch report for compact target claims.
-- Use `--target-style compact_winner_obs_tag` for the next pairwise LoRA/generation ablation; `compact_winner_delta_tag` is retained only as a logged negative/reduced-label diagnostic, and full compact remains available as `compact_structured_judgment` for diagnostics.
+- Keep `compact_winner_obs_tag`, `compact_winner_delta_tag`, and full compact targets as logged diagnostics. Do not make them the next main training path without a new decision.
 - Keep `--prompt-style ontology` eval-only; do not make it the default compact generation prompt.
 - Persist `preflight_gpu.json`, `train_losses.jsonl`, and `metrics.json` for pairwise training runs.
 - Keep `scripts/generate_response_level_outputs.py` and `scripts/audit_response_level_outputs.py` as eval-only assistant-facing smoke tooling. The current audit is heuristic triage, not a final safety judge.
 - Keep strict response extraction: audit post-`</think>` visible text only, and for `boundary_plan` audit only `FINAL_RESPONSE`; parse failures should not fall back to scoring the plan.
-- Add a classification-style or pairwise judgment-delta target option.
+- Add a candidate-local constrained scoring target option for `ACCEPTABLE` plus `ERROR_TAG`.
 - Extend GPU/run helpers to write structured experiment preflight snapshots into each output directory.
 
 ## Research
 
-- Literature scan: OPCD, OPSD, OPD for safety, safety reasoning, deliberative alignment, over-refusal, process supervision, CoT monitorability.
+- Literature scan / framing guardrails: OPCD, OPSD, OPSA, RATIONAL-style context-aware safety reasoning, deliberative alignment, trace-level safety detection, pairwise preference learning, and LLM-as-judge position bias.
 - Define fork/backtracking/uncertainty metrics.
 - Define action-mode taxonomy.
 - Design ablations.

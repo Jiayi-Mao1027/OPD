@@ -1,10 +1,10 @@
 # Project Status
 
-Last updated: 2026-07-01 09:56 +08:00
+Last updated: 2026-07-01 13:17 +08:00
 
 ## Current Objective
 
-Validate whether rank-128 pairwise LoRA winner improvements transfer to assistant-facing fork/scope responses, while keeping response-level audits and position-balanced swap consistency as blocking gates.
+Freeze the current negative proxy-training lines and move to a candidate-local reconciliation scorer that is validated by position-invariant pairwise gates and assistant-facing response-selection audits.
 
 ## Git State
 
@@ -130,6 +130,11 @@ Validate whether rank-128 pairwise LoRA winner improvements transfer to assistan
 - Ran the eval-only boundary-plan bridge at `max_new_tokens=1024` for fullbase and both rank-128 adapters. All runs had closed thinking; all boundary-plan rows had parseable `FINAL_RESPONSE`.
 - Boundary-plan bridge result is negative: fullbase direct `5/16` vs boundary `1/16`; winner-delta direct `3/16` vs boundary `2/16`; obs-tag direct `4/16` vs boundary `1/16`.
 - Documented this in `reports/response_level_v0_1_boundary_bridge_summary.md` and `reports/response_level_v0_1_heldout_fork_scope_boundary_bridge_1024_audit.md/json/csv`.
+- Added and ran response-level rank-128 final-response LoRA SFT on the 38-example v0.1 train split.
+- Response-level SFT is negative: with thinking, fullbase direct1024 gets `5/16` overall while response-SFT gets `4/16`; without thinking, fullbase gets `7/16` while response-SFT gets `5/16`.
+- Documented this in `reports/response_level_v0_1_response_sft_summary.md` and the direct1024 response-SFT audit reports.
+- Sent the latest compact, heldout, response-level SFT, and boundary-bridge results to ChatGPT Pro from the main Codex controller.
+- Pro advice treated the current evidence as diagnostic rather than method-success evidence. The strongest recommended next path is a candidate-local constrained scorer that predicts `ACCEPTABLE` and one observable `ERROR_TAG`, then induces pairwise winners by independently scoring both candidates.
 
 ## Current Blockers
 
@@ -155,16 +160,22 @@ Validate whether rank-128 pairwise LoRA winner improvements transfer to assistan
 - Both rank-128 adapters beat fullbase on fresh heldout winner accuracy, but both fail the current position-balanced swap gate (`32/48 = 0.6667`, below `0.70`).
 - The first response-level audit does not show transfer from pairwise winner signal to better assistant-facing responses. Treat it as heuristic triage, not a final safety judge, but do not continue the same target as a positive result.
 - A simple boundary-plan prompt bridge also does not transfer the pairwise signal. The strict 1024-token audit shows boundary planning worsens final-answer behavior under the current heuristic metric.
+- Response-level final-response SFT on the current 38 examples is also negative and should not be continued by simply adding more steps.
+- Current evidence does not support a claim that Reconcile-OPSD improves assistant-facing safety behavior. It supports a diagnostic failure-map claim and a candidate-local scorer hypothesis.
+- Pro warned that novelty is not defensible as generic "OPD for safety", "self-OPD for safety", or "reasoning safety beyond refusal"; those collide with prior OPSD/OPCD/OPSA, deliberative safety reasoning, RATIONAL-style context-aware safety reasoning, pairwise preference learning, and judge position-bias work.
 
 ## Next Actions
 
-- Treat position-balanced compact rank-128 LoRA as a negative generation result for now. The earlier winner-only/compactscore/ontology results were useful diagnostics, and they show the one-shot compact field target needs decomposition before more training steps.
-- Ask Pro to review the compact generation, mismatch, ontology-prompt result, and reduced-target implementation once browser access is stable.
-- Ask Pro to review the obs-tag training plus fresh-heldout result, especially whether the heldout winner signal is useful despite failing the swap gate.
+- Treat position-balanced compact rank-128 LoRA, boundary-plan prompting, and response-level final-response SFT as frozen negative diagnostics.
+- Build v0.2 candidate-local data from current pairwise examples: score each candidate independently with `ACCEPTABLE: yes/no` and `ERROR_TAG: none | fork_state | scope_contract | wrong_scope | unsafe_specificity | over_refusal | missing_clarification`.
+- Evaluate fullbase and prompted-base candidate-local scoring before training. If prompted base solves the task, the benchmark is too easy.
+- If the baseline is not solved, train one rank-128 non-QLoRA candidate-local constrained scorer with short context and no final-response SFT.
+- Induce pairwise winners from independent candidate scores, then require fresh winner accuracy around `>= 0.75`, swap consistency `>= 0.75` preferably `>= 0.80`, small position gap, and no material scope/refusal regression before calling it a method signal.
+- After a scorer passes pairwise gates, test assistant-facing transfer by generating multiple fullbase candidate responses, scoring/selecting with the candidate-local scorer, and auditing selected responses against greedy fullbase.
 - Do not claim the new obs-tag adapter as a passed method result. Treat it as support-label learning plus a fresh-heldout winner signal that still needs position-invariance repair.
 - Inspect the seven persistent heldout swap failures and seven adapter-new failures, especially `scope_contract/wrong_scope`, `unsafe_specificity`, and fork-preservation cases.
-- Use the response-level audit to choose failure cases for human/Pro review before more training on the same target.
+- Use the response-level audit to choose failure cases for human/external-judge review before more training on generator targets.
 - Do not claim the pairwise adapters improve final assistant behavior yet. Fullbase is ahead on the current 16-case heuristic response-level audit.
-- Do not continue prompt-bridge experiments as the main path. Move to human/external-judge review and response-level or prefix-level target design.
+- Do not continue prompt-bridge experiments, compact multi-field generation, pairwise WINNER generation, or 38-example final-response SFT as the main path.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.
