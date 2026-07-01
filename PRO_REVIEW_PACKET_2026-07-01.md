@@ -7,10 +7,10 @@ pairwise stage. Do not include credentials or server tokens.
 
 Repository: `https://github.com/Jiayi-Mao1027/OPD`
 
-Review baseline: current `main` after `analysis: add response-level heldout
-audit`. The packet includes the older compact/ontology diagnostics, the
-fresh-heldout obs-tag LoRA result, swap-failure analysis, and the first
-response-level heldout smoke.
+Review baseline: current `main` after response-level heldout audit plus the
+boundary-plan bridge update. The packet includes the older compact/ontology
+diagnostics, the fresh-heldout obs-tag LoRA result, swap-failure analysis, the
+first response-level heldout smoke, and the strict boundary-plan bridge result.
 
 Implementation note: after the ontology diagnostic, the code supported and ran
 a reduced target style named `compact_winner_delta_tag`. It trains/generates
@@ -300,6 +300,29 @@ Response-level heldout smoke:
   Fullbase is ahead on this small heuristic audit. This blocks any claim that
   the current adapters already improve final assistant behavior.
 
+Boundary-plan bridge result:
+
+- Summary:
+  `reports/response_level_v0_1_boundary_bridge_summary.md`
+- Strict audit behavior:
+  - audit only text after closed `</think>`;
+  - for `boundary_plan`, audit only parsed `FINAL_RESPONSE`;
+  - missing thinking close or missing `FINAL_RESPONSE` is a parse failure.
+- The earlier 320-token boundary-plan smoke looked positive only because the
+  audit fell back to scoring the whole generation when `FINAL_RESPONSE` was
+  truncated or missing. That result should not be cited.
+- Strict 1024-token rerun:
+  - fullbase direct `5/16`, boundary-plan `1/16`;
+  - winner-delta direct `3/16`, boundary-plan `2/16`;
+  - obs-tag direct `4/16`, boundary-plan `1/16`.
+- Parse sanity:
+  - all direct rows had closed thinking and were audited from post-think text;
+  - all boundary-plan rows had closed thinking and parseable `FINAL_RESPONSE`;
+  - no boundary-plan row hit the 1024-token cap.
+- Interpretation: explicit boundary planning is not sufficient to transfer
+  pairwise winner-selection signal to final assistant behavior, and it worsens
+  final-answer action/scope behavior under the current heuristic audit.
+
 ## Current Interpretation
 
 Main metric should remain `score-mode=winner_only`.
@@ -339,6 +362,13 @@ Updated claim after response-level smoke:
 > The result should be framed as a useful diagnostic and failure map, not as a
 > positive safety-improvement result.
 
+Updated claim after boundary-plan bridge:
+
+> A simple prompt-only boundary plan does not solve the transfer problem. The
+> next useful step is not more prompt scaffolding or more steps on the same
+> pairwise target, but human/external-judge review and a response-level or
+> prefix-level objective.
+
 ## Questions For Pro
 
 1. Given the negative greedy generation result, is there any defensible way to
@@ -365,6 +395,7 @@ Updated claim after response-level smoke:
 9. Are the current response-level failure modes evidence that pairwise
    winner-selection is too indirect for final-response behavior, or are they
    more likely caused by the generic response prompt and tiny heldout sample?
-10. Should we test a no-training prompt bridge that first asks for a boundary
-    plan / allowed scope and then the final answer, to see whether the pairwise
-    judgment skill transfers when the response policy is made explicit?
+10. Given that the no-training boundary-plan bridge is negative under strict
+    final-answer auditing, should the next method target be response-level
+    preference pairs, prefix-level boundary planning, or paired consistency
+    training?

@@ -23,8 +23,10 @@
 - Parent-level heldout swap-failure analysis is now generated in `reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.md`.
 - Inspect the seven persistent inconsistent parents and the seven adapter-new inconsistent parents before adding more training. The main remaining axes are `scope_contract` and `fork_state`; the adapter failures include more B-side locking than fullbase.
 - Response-level assistant generation/eval is now implemented for the fresh fork/scope heldout set. Treat the first heuristic smoke as mixed/negative: fullbase overall pass `6/16`, new obs-tag adapter `5/16`, existing winner-delta adapter `3/16`.
+- Boundary-plan prompt bridge has been tested as eval-only and is negative under strict post-think / `FINAL_RESPONSE` auditing: fullbase `5/16 -> 1/16`, winner-delta `3/16 -> 2/16`, obs-tag `4/16 -> 1/16`.
+- Do not use the earlier 320-token boundary-plan smoke as evidence. It was confounded by truncated thinking and whole-generation fallback before strict final-answer parsing.
 - Do not continue the same pairwise target as a positive assistant-behavior path until response-level failures are manually or externally judged.
-- Send the response-level negative-transfer result to Pro and ask whether to move next to a human/LLM judge rubric, a prefix-level fork-preservation target, or paired-consistency training.
+- Send the response-level and boundary-bridge negative-transfer results to Pro and ask whether to move next to a human/LLM judge rubric, a prefix-level fork-preservation target, or paired-consistency training.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Redesign `continue_reasoning` as a prefix-level fork-state target, not a final response action.
 
@@ -39,6 +41,7 @@
 - Keep `--prompt-style ontology` eval-only; do not make it the default compact generation prompt.
 - Persist `preflight_gpu.json`, `train_losses.jsonl`, and `metrics.json` for pairwise training runs.
 - Keep `scripts/generate_response_level_outputs.py` and `scripts/audit_response_level_outputs.py` as eval-only assistant-facing smoke tooling. The current audit is heuristic triage, not a final safety judge.
+- Keep strict response extraction: audit post-`</think>` visible text only, and for `boundary_plan` audit only `FINAL_RESPONSE`; parse failures should not fall back to scoring the plan.
 - Add a classification-style or pairwise judgment-delta target option.
 - Extend GPU/run helpers to write structured experiment preflight snapshots into each output directory.
 

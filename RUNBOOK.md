@@ -632,6 +632,51 @@ Current result:
 - do not claim pairwise winner improvements transfer to assistant-facing
   behavior until a human or external-judge audit confirms it.
 
+## Response-Level Boundary-Plan Bridge
+
+This eval-only bridge tests whether an explicit boundary plan helps transfer
+pairwise judgment into final assistant responses. It is not a training method.
+
+Generation command shape:
+
+```bash
+python scripts/generate_response_level_outputs.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl \
+  --output outputs/response_generations/qwen3_8b_heldout_fork_scope_fullbase_boundary_plan1024.jsonl \
+  --prompt-style boundary_plan \
+  --max-new-tokens 1024 \
+  --enable-thinking \
+  --attn-implementation eager
+```
+
+Audit command shape:
+
+```bash
+python scripts/audit_response_level_outputs.py \
+  --dataset data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl \
+  --generations fullbase_direct1024=outputs/response_generations/qwen3_8b_heldout_fork_scope_fullbase_direct1024.jsonl \
+  --generations fullbase_boundary_plan1024=outputs/response_generations/qwen3_8b_heldout_fork_scope_fullbase_boundary_plan1024.jsonl \
+  --output-md reports/response_level_v0_1_heldout_fork_scope_boundary_bridge_1024_audit.md \
+  --output-json reports/response_level_v0_1_heldout_fork_scope_boundary_bridge_1024_audit.json \
+  --output-csv reports/response_level_v0_1_heldout_fork_scope_boundary_bridge_1024_cases.csv
+```
+
+Strict audit rule:
+
+- If `<think>` appears, audit only text after the closing `</think>`.
+- For `boundary_plan`, audit only the parsed `FINAL_RESPONSE` block.
+- Missing `</think>` or missing `FINAL_RESPONSE` is a parse failure.
+
+Current result:
+
+- summary: `reports/response_level_v0_1_boundary_bridge_summary.md`;
+- fullbase direct `5/16`, boundary-plan `1/16`;
+- winner-delta direct `3/16`, boundary-plan `2/16`;
+- obs-tag direct `4/16`, boundary-plan `1/16`;
+- boundary-plan is not a useful bridge under the current prompt and heuristic
+  audit.
+
 Current smoke report:
 
 - `reports/pairwise_v0_1_dev_lora_r128_smoke.md`;

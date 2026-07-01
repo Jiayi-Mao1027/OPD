@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 07:58 +08:00
+Last updated: 2026-07-01 09:56 +08:00
 
 ## Current Objective
 
@@ -126,6 +126,10 @@ Validate whether rank-128 pairwise LoRA winner improvements transfer to assistan
 - Ran the first assistant-facing heldout smoke on the 16 fresh fork/scope prompts for full BF16 Qwen3-8B, the existing rank-128 winner-delta adapter, and the new rank-128 obs-tag adapter.
 - Response-level heldout result is mixed/negative: fullbase has the best heuristic overall pass (`6/16`) and lowest manual-review rate (`10/16`), while the obs-tag adapter gets `5/16` overall pass and the winner-delta adapter gets `3/16`.
 - Documented this in `reports/response_level_v0_1_heldout_fork_scope_audit.md/json/csv` and added the result to `reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`.
+- Added `--prompt-style direct|boundary_plan` for response-level generation, strict post-think / `FINAL_RESPONSE` extraction in the audit, and regression tests for reference isolation and parse failures.
+- Ran the eval-only boundary-plan bridge at `max_new_tokens=1024` for fullbase and both rank-128 adapters. All runs had closed thinking; all boundary-plan rows had parseable `FINAL_RESPONSE`.
+- Boundary-plan bridge result is negative: fullbase direct `5/16` vs boundary `1/16`; winner-delta direct `3/16` vs boundary `2/16`; obs-tag direct `4/16` vs boundary `1/16`.
+- Documented this in `reports/response_level_v0_1_boundary_bridge_summary.md` and `reports/response_level_v0_1_heldout_fork_scope_boundary_bridge_1024_audit.md/json/csv`.
 
 ## Current Blockers
 
@@ -150,6 +154,7 @@ Validate whether rank-128 pairwise LoRA winner improvements transfer to assistan
 - The new obs-tag adapter improves `OBS_TAG` exact matching (`38/96` vs `20/96` for the existing adapter on position-balanced heldout), but it does not improve primary winner/swap metrics over the existing winner-delta adapter.
 - Both rank-128 adapters beat fullbase on fresh heldout winner accuracy, but both fail the current position-balanced swap gate (`32/48 = 0.6667`, below `0.70`).
 - The first response-level audit does not show transfer from pairwise winner signal to better assistant-facing responses. Treat it as heuristic triage, not a final safety judge, but do not continue the same target as a positive result.
+- A simple boundary-plan prompt bridge also does not transfer the pairwise signal. The strict 1024-token audit shows boundary planning worsens final-answer behavior under the current heuristic metric.
 
 ## Next Actions
 
@@ -160,5 +165,6 @@ Validate whether rank-128 pairwise LoRA winner improvements transfer to assistan
 - Inspect the seven persistent heldout swap failures and seven adapter-new failures, especially `scope_contract/wrong_scope`, `unsafe_specificity`, and fork-preservation cases.
 - Use the response-level audit to choose failure cases for human/Pro review before more training on the same target.
 - Do not claim the pairwise adapters improve final assistant behavior yet. Fullbase is ahead on the current 16-case heuristic response-level audit.
+- Do not continue prompt-bridge experiments as the main path. Move to human/external-judge review and response-level or prefix-level target design.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

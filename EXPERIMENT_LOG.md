@@ -1451,3 +1451,78 @@ Interpretation:
 - Next work should focus on human/Pro review of failure cases, an external
   judge rubric, or a target redesign that trains fork preservation at response
   or prefix level rather than adding more steps to the same pairwise target.
+
+## 2026-07-01 09:56 +08:00 - Response-Level Boundary-Plan Bridge
+
+Commit before action: `d3b5a04 analysis: add response-level heldout audit`
+Branch: `main`
+Machine: remote `node-128-46`, mirrored locally afterward
+
+Change:
+
+- Added `--prompt-style direct|boundary_plan` to
+  `scripts/generate_response_level_outputs.py`.
+- Updated `scripts/audit_response_level_outputs.py` to audit only visible
+  text after `</think>`.
+- For `boundary_plan`, the audit now scores only the parsed `FINAL_RESPONSE`
+  block. Missing `FINAL_RESPONSE` is a parse failure and does not fall back to
+  scoring the whole generated plan.
+- Added response-level tests for boundary-plan prompts, post-think extraction,
+  missing-final parse failures, and raw/audited response separation.
+
+Dataset:
+
+- `data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl`
+
+Generation:
+
+- Model: `/data/LLM/Qwen3-8B`
+- Runs: fullbase, existing rank-128 winner-delta adapter, new rank-128 obs-tag
+  adapter.
+- Prompt styles: `direct` and `boundary_plan`.
+- `max_new_tokens=1024`, `enable_thinking=True`, `do_sample=False`.
+- This was eval-only. No QLoRA and no full-parameter training.
+
+Reports:
+
+- `reports/response_level_v0_1_boundary_bridge_summary.md`
+- `reports/response_level_v0_1_heldout_fork_scope_boundary_bridge_1024_audit.md`
+- `reports/response_level_v0_1_heldout_fork_scope_boundary_bridge_1024_audit.json`
+- `reports/response_level_v0_1_heldout_fork_scope_boundary_bridge_1024_cases.csv`
+
+Parse sanity:
+
+```text
+direct1024:
+  all rows had closed <think>...</think> and were audited from post-think text.
+  each direct run had 1/16 rows at the 1024-token cap.
+
+boundary_plan1024:
+  all rows had closed <think>...</think>.
+  all rows had parseable FINAL_RESPONSE.
+  no boundary-plan row hit the 1024-token cap.
+```
+
+Result:
+
+```text
+fullbase_direct1024: overall 5/16, allowed 7/16, scope 7/16
+fullbase_boundary_plan1024: overall 1/16, allowed 3/16, scope 3/16
+
+r128_winner_delta_direct1024: overall 3/16, allowed 4/16, scope 5/16
+r128_winner_delta_boundary_plan1024: overall 2/16, allowed 6/16, scope 5/16
+
+r128_obs_tag_direct1024: overall 4/16, allowed 6/16, scope 7/16
+r128_obs_tag_boundary_plan1024: overall 1/16, allowed 4/16, scope 5/16
+```
+
+Interpretation:
+
+- The earlier 320-token boundary-plan smoke was an optimistic artifact caused
+  by truncated thinking and whole-generation fallback.
+- Under strict final-answer auditing with enough token budget, the boundary
+  plan prompt does not bridge pairwise winner-selection signal to better
+  assistant-facing behavior.
+- Do not continue prompt-bridge experiments as the main path. Next work should
+  move to human/external-judge review and response-level or prefix-level
+  training target design.
