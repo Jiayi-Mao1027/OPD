@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 13:17 +08:00
+Last updated: 2026-07-01 13:41 +08:00
 
 ## Current Objective
 
@@ -135,6 +135,9 @@ Freeze the current negative proxy-training lines and move to a candidate-local r
 - Documented this in `reports/response_level_v0_1_response_sft_summary.md` and the direct1024 response-SFT audit reports.
 - Sent the latest compact, heldout, response-level SFT, and boundary-bridge results to ChatGPT Pro from the main Codex controller.
 - Pro advice treated the current evidence as diagnostic rather than method-success evidence. The strongest recommended next path is a candidate-local constrained scorer that predicts `ACCEPTABLE` and one observable `ERROR_TAG`, then induces pairwise winners by independently scoring both candidates.
+- Added v0.2 candidate-local data construction, constrained score-row evaluation, and model-scoring CLI support.
+- Generated v0.2 candidate-local JSONL/manifests from existing v0.1 pairwise records: train `152` examples, dev `56`, dev position-balanced `112`, fresh fork/scope heldout `96`, and fresh heldout position-balanced `192`.
+- Verified the local implementation with `python -m pytest -q`: `83 passed`.
 
 ## Current Blockers
 
@@ -167,7 +170,6 @@ Freeze the current negative proxy-training lines and move to a candidate-local r
 ## Next Actions
 
 - Treat position-balanced compact rank-128 LoRA, boundary-plan prompting, and response-level final-response SFT as frozen negative diagnostics.
-- Build v0.2 candidate-local data from current pairwise examples: score each candidate independently with `ACCEPTABLE: yes/no` and `ERROR_TAG: none | fork_state | scope_contract | wrong_scope | unsafe_specificity | over_refusal | missing_clarification`.
 - Evaluate fullbase and prompted-base candidate-local scoring before training. If prompted base solves the task, the benchmark is too easy.
 - If the baseline is not solved, train one rank-128 non-QLoRA candidate-local constrained scorer with short context and no final-response SFT.
 - Induce pairwise winners from independent candidate scores, then require fresh winner accuracy around `>= 0.75`, swap consistency `>= 0.75` preferably `>= 0.80`, small position gap, and no material scope/refusal regression before calling it a method signal.

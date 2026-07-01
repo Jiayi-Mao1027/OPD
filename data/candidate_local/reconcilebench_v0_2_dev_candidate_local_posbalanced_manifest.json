@@ -1,0 +1,58 @@
+{
+  "acceptable_counts": {
+    "no": 56,
+    "yes": 56
+  },
+  "builder_version": "candidate_local_v0_2",
+  "candidate_side_counts": {
+    "A": 56,
+    "B": 56
+  },
+  "dataset": "data\\pairwise\\reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl",
+  "error_tag_counts": {
+    "fork_state": 6,
+    "missing_clarification": 10,
+    "none": 56,
+    "over_refusal": 18,
+    "scope_contract": 4,
+    "unsafe_specificity": 12,
+    "wrong_scope": 6
+  },
+  "examples_per_pair": 2.0,
+  "expected_acceptable_counts": {
+    "no": 56,
+    "yes": 56
+  },
+  "expected_error_tag_counts": {
+    "fork_state": 6,
+    "missing_clarification": 10,
+    "none": 56,
+    "over_refusal": 18,
+    "scope_contract": 4,
+    "unsafe_specificity": 12,
+    "wrong_scope": 6
+  },
+  "hard_axis_counts": {
+    "clarification": 20,
+    "fork_state": 12,
+    "granularity": 8,
+    "refusal_boundary": 20,
+    "scope_contract": 52
+  },
+  "input": "data\\pairwise\\reconcilebench_v0_1_dev_pairwise_posbalanced.jsonl",
+  "manifest_output": "data\\candidate_local\\reconcilebench_v0_2_dev_candidate_local_posbalanced_manifest.json",
+  "output": "data\\candidate_local\\reconcilebench_v0_2_dev_candidate_local_posbalanced.jsonl",
+  "position_variant_counts": {
+    "original": 56,
+    "swapped": 56
+  },
+  "source_examples": 14,
+  "source_pair_builder_versions": {
+    "pairwise_v0_1": 112
+  },
+  "source_pair_count": 56,
+  "source_pairs_with_examples": 56,
+  "total_candidates": 112,
+  "total_examples": 112,
+  "total_pairs": 56
+}

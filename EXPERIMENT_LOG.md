@@ -1526,3 +1526,85 @@ Interpretation:
 - Do not continue prompt-bridge experiments as the main path. Next work should
   move to human/external-judge review and response-level or prefix-level
   training target design.
+
+## 2026-07-01 13:41 +08:00 - Candidate-Local v0.2 Tooling And Data
+
+Commit before action: `d826276 plan: record candidate-local scorer pivot`
+Branch: `main`
+Machine: local Windows worktree `G:\pythonprogramming\safe_opd`
+
+Change:
+
+- Added `src/reconcile_opsd/candidate_local_data.py`.
+- Added `src/reconcile_opsd/candidate_local_eval.py`.
+- Added `scripts/build_candidate_local_data.py`.
+- Added `scripts/score_candidate_local.py`.
+- Added `scripts/evaluate_candidate_local_scores.py`.
+- Added candidate-local unit/CLI tests.
+
+Scope:
+
+- This was local engineering work only.
+- No GPU jobs were run.
+- No model path was selected or loaded for scoring.
+- No training was run.
+
+Generated candidate-local datasets:
+
+```text
+data/candidate_local/reconcilebench_v0_2_train_candidate_local.jsonl: 152 examples from 76 pairs
+data/candidate_local/reconcilebench_v0_2_dev_candidate_local.jsonl: 56 examples from 28 pairs
+data/candidate_local/reconcilebench_v0_2_dev_candidate_local_posbalanced.jsonl: 112 examples from 56 pairs
+data/candidate_local/reconcilebench_v0_2_fork_scope_holdout_candidate_local.jsonl: 96 examples from 48 pairs
+data/candidate_local/reconcilebench_v0_2_fork_scope_holdout_candidate_local_posbalanced.jsonl: 192 examples from 96 pairs
+```
+
+Target schema:
+
+```text
+ACCEPTABLE: yes
+ERROR_TAG: none
+
+ACCEPTABLE: no
+ERROR_TAG: fork_state | scope_contract | wrong_scope | unsafe_specificity | over_refusal | missing_clarification
+```
+
+Implementation notes:
+
+- Candidate-local prompts render from structured `candidate_a` / `candidate_b`
+  cards, not from historical pairwise `input` text.
+- Model-facing prompts hide winner, side, gold action, and acceptable-action
+  metadata.
+- The scorer script scores only valid target combinations: `yes/none` and
+  `no/<non-none error tag>`.
+- The evaluator induces pairwise winners from independent candidate scores and
+  reuses the existing pairwise swap/position-bias diagnostics.
+
+Verification:
+
+```bash
+python -m pytest -q tests/test_candidate_local_data.py tests/test_candidate_local_eval.py
+# 8 passed
+
+python -m pytest -q
+# 83 passed
+```
+
+Evaluator smoke on the generated dev position-balanced candidate-local set
+with temporary perfect score rows:
+
+```text
+acceptable_accuracy = 1.0
+error_tag_accuracy = 1.0
+induced_winner_accuracy = 1.0
+swap_consistency = 1.0
+position_gate = pass
+```
+
+Next:
+
+- Run fullbase and prompted-base candidate-local scoring on dev and fresh
+  heldout position-balanced candidate-local sets before any new training.
+- Treat any candidate-local method claim as gated on induced winner accuracy,
+  parent-level swap consistency, small position gap, and no material
+  scope/refusal regression.

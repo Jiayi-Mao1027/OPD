@@ -29,7 +29,7 @@
 - Response-level final-response SFT is also a negative diagnostic: on the 16-case fresh fork/scope heldout audit, fullbase beats response-SFT both with thinking (`5/16` vs `4/16`) and without thinking (`7/16` vs `5/16`).
 - Freeze the current proxy-training branches as negative diagnostics: action-mode SFT, compact pairwise generation, boundary-plan bridge, and 38-example final-response SFT.
 - Do not continue pairwise `WINNER` generation, compact multi-field generation, boundary-plan prompting, or final-response SFT as the main path.
-- Build v0.2 candidate-local data from pairwise records. Each candidate should be scored independently with `ACCEPTABLE: yes/no` and `ERROR_TAG: none | fork_state | scope_contract | wrong_scope | unsafe_specificity | over_refusal | missing_clarification`.
+- v0.2 candidate-local data and tooling are built. Current generated sets: train `152`, dev `56`, dev position-balanced `112`, fresh fork/scope heldout `96`, and fresh heldout position-balanced `192` candidate examples.
 - Evaluate fullbase and prompted-base candidate-local scoring before any new training. Track acceptable macro-F1, error-tag macro-F1, induced pairwise winner accuracy, swap consistency, per-stratum recall, and gold-vs-confuser margin.
 - Only if baseline scoring leaves room, train one rank-128 non-QLoRA candidate-local constrained scorer with short context and no final-response target.
 - Gate any method claim on fresh induced pairwise winner accuracy around `>= 0.75`, swap consistency `>= 0.75` preferably `>= 0.80`, small position gap, fork/scope accuracy above fullbase, and no material scope/refusal regression.
@@ -49,7 +49,7 @@
 - Persist `preflight_gpu.json`, `train_losses.jsonl`, and `metrics.json` for pairwise training runs.
 - Keep `scripts/generate_response_level_outputs.py` and `scripts/audit_response_level_outputs.py` as eval-only assistant-facing smoke tooling. The current audit is heuristic triage, not a final safety judge.
 - Keep strict response extraction: audit post-`</think>` visible text only, and for `boundary_plan` audit only `FINAL_RESPONSE`; parse failures should not fall back to scoring the plan.
-- Add a candidate-local constrained scoring target option for `ACCEPTABLE` plus `ERROR_TAG`.
+- Keep `scripts/build_candidate_local_data.py`, `scripts/score_candidate_local.py`, and `scripts/evaluate_candidate_local_scores.py` as the v0.2 candidate-local scoring path.
 - Extend GPU/run helpers to write structured experiment preflight snapshots into each output directory.
 
 ## Research

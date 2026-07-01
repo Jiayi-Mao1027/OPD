@@ -1,0 +1,57 @@
+{
+  "acceptable_counts": {
+    "no": 76,
+    "yes": 76
+  },
+  "builder_version": "candidate_local_v0_2",
+  "candidate_side_counts": {
+    "A": 76,
+    "B": 76
+  },
+  "dataset": "data\\pairwise\\reconcilebench_v0_1_train_pairwise.jsonl",
+  "error_tag_counts": {
+    "fork_state": 11,
+    "missing_clarification": 16,
+    "none": 76,
+    "over_refusal": 21,
+    "scope_contract": 5,
+    "unsafe_specificity": 15,
+    "wrong_scope": 8
+  },
+  "examples_per_pair": 2.0,
+  "expected_acceptable_counts": {
+    "no": 76,
+    "yes": 76
+  },
+  "expected_error_tag_counts": {
+    "fork_state": 11,
+    "missing_clarification": 16,
+    "none": 76,
+    "over_refusal": 21,
+    "scope_contract": 5,
+    "unsafe_specificity": 15,
+    "wrong_scope": 8
+  },
+  "hard_axis_counts": {
+    "clarification": 32,
+    "fork_state": 22,
+    "granularity": 10,
+    "refusal_boundary": 22,
+    "scope_contract": 66
+  },
+  "input": "data\\pairwise\\reconcilebench_v0_1_train_pairwise.jsonl",
+  "manifest_output": "data\\candidate_local\\reconcilebench_v0_2_train_candidate_local_manifest.json",
+  "output": "data\\candidate_local\\reconcilebench_v0_2_train_candidate_local.jsonl",
+  "position_variant_counts": {
+    "original": 152
+  },
+  "source_examples": 38,
+  "source_pair_builder_versions": {
+    "pairwise_v0_1": 152
+  },
+  "source_pair_count": 76,
+  "source_pairs_with_examples": 76,
+  "total_candidates": 152,
+  "total_examples": 152,
+  "total_pairs": 76
+}
