@@ -323,6 +323,42 @@ Boundary-plan bridge result:
   pairwise winner-selection signal to final assistant behavior, and it worsens
   final-answer action/scope behavior under the current heuristic audit.
 
+Response-level rank-128 LoRA SFT result:
+
+- Summary:
+  `reports/response_level_v0_1_response_sft_summary.md`
+- New trainer:
+  `scripts/train_response_lora.py`
+- Tests:
+  `tests/test_response_lora.py`
+- Training target: source user prompt -> reference `final_response`.
+- Training prompt includes only the generic response-level system prompt and
+  source user prompt. It does not include `final_response`, `judgment_delta`,
+  revised labels, allowed/disallowed fields, or action labels in the input.
+- Training config:
+  - model `/data/LLM/Qwen3-8B`
+  - train `data/splits/reconcilebench_v0_1_train.jsonl`
+  - rank-128 LoRA, alpha 256, dropout 0.05
+  - no QLoRA, no 4-bit loading, no full-parameter fine-tuning
+  - max length 768, 12 optimizer steps, batch 1, grad accumulation 16,
+    lr `3e-6`, gradient checkpointing
+- Training metrics:
+  - loss `7.0888 -> 4.1816`
+  - process CUDA peak allocated `22394.38 MB`
+  - observed total GPU1 memory during training about `64640 MB`, under the
+    current 70GB safety ceiling in a shared GPU environment
+- Strict enable-thinking direct1024 heldout audit:
+  - fullbase `5/16`, allowed `7/16`, scope `7/16`, parse fail `0`
+  - winner-delta adapter `3/16`, allowed `4/16`, scope `5/16`, parse fail `0`
+  - obs-tag adapter `4/16`, allowed `6/16`, scope `7/16`, parse fail `0`
+  - response-SFT adapter `4/16`, allowed `5/16`, scope `7/16`, parse fail `0`
+- Matched no-thinking direct1024 heldout audit:
+  - fullbase `7/16`, allowed `9/16`, scope `10/16`, parse fail `0`
+  - response-SFT adapter `5/16`, allowed `7/16`, scope `9/16`, parse fail `0`
+- Interpretation: direct final-response SFT on the 38-example v0.1 train split
+  does not improve assistant-facing heldout behavior. The strongest current
+  response-level baseline is still no-thinking fullbase direct1024.
+
 ## Current Interpretation
 
 Main metric should remain `score-mode=winner_only`.
@@ -369,6 +405,13 @@ Updated claim after boundary-plan bridge:
 > pairwise target, but human/external-judge review and a response-level or
 > prefix-level objective.
 
+Updated claim after response-level SFT:
+
+> A minimal source-prompt to final-response rank-128 LoRA also fails to improve
+> heldout response behavior. The next useful step is not simply more steps on
+> the same 38 final responses, but failure-row review and a better response-level
+> paired/preference or prefix-level fork-preservation objective.
+
 ## Questions For Pro
 
 1. Given the negative greedy generation result, is there any defensible way to
@@ -399,3 +442,9 @@ Updated claim after boundary-plan bridge:
     final-answer auditing, should the next method target be response-level
     preference pairs, prefix-level boundary planning, or paired consistency
     training?
+11. Given that direct final-response SFT is also negative, what is the most
+    defensible next supervision format: paired good/bad final responses,
+    prefix-level boundary-state targets, or response-level preference training?
+12. Does the no-thinking fullbase strength suggest that thinking mode is adding
+    exposure/parse/scope risk for this benchmark, or is that an artifact of the
+    current heuristic auditor and small heldout set?

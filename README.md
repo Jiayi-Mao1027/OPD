@@ -51,6 +51,10 @@ Current conservative interpretation:
   `3/16`.
 - A simple eval-only boundary-plan bridge is also negative under strict
   final-answer auditing; it should not be used as the next main path.
+- A direct response-level rank-128 LoRA SFT run on v0.1 source
+  `final_response` targets is also negative: the response-SFT adapter gets
+  `4/16` with enable-thinking direct1024 and `5/16` in matched no-thinking
+  direct1024, while the no-thinking fullbase gets `7/16`.
 - Fresh heldout pairwise files use the fixed `render_card` newline format.
   Historical train/dev pairwise files were not regenerated and still reflect
   the old rendering.
