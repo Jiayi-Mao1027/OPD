@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 13:41 +08:00
+Last updated: 2026-07-01 14:24 +08:00
 
 ## Current Objective
 
@@ -138,6 +138,9 @@ Freeze the current negative proxy-training lines and move to a candidate-local r
 - Added v0.2 candidate-local data construction, constrained score-row evaluation, and model-scoring CLI support.
 - Generated v0.2 candidate-local JSONL/manifests from existing v0.1 pairwise records: train `152` examples, dev `56`, dev position-balanced `112`, fresh fork/scope heldout `96`, and fresh heldout position-balanced `192`.
 - Verified the local implementation with `python -m pytest -q`: `83 passed`.
+- Ran Qwen3-8B BF16 fullbase candidate-local scoring on dev, dev position-balanced, and fresh fork/scope heldout position-balanced data.
+- Candidate-local fullbase result: dev position-balanced induced winner `0.8929`, swap `1.0000`, position gate pass; fresh heldout position-balanced induced winner `0.7500`, swap `1.0000`, position gate pass.
+- Candidate-local fullbase does not solve the diagnostic labels: heldout acceptable macro-F1 `0.6630`, error-tag macro-F1 `0.1551`.
 
 ## Current Blockers
 
@@ -170,8 +173,8 @@ Freeze the current negative proxy-training lines and move to a candidate-local r
 ## Next Actions
 
 - Treat position-balanced compact rank-128 LoRA, boundary-plan prompting, and response-level final-response SFT as frozen negative diagnostics.
-- Evaluate fullbase and prompted-base candidate-local scoring before training. If prompted base solves the task, the benchmark is too easy.
-- If the baseline is not solved, train one rank-128 non-QLoRA candidate-local constrained scorer with short context and no final-response SFT.
+- Evaluate a prompted/rubric base candidate-local variant before training. If prompt-only scoring solves the task, the benchmark is too easy.
+- Do not train a candidate-local scorer just to improve induced pairwise winner accuracy: BF16 fullbase already reaches the fresh heldout `0.7500` winner gate with perfect swap consistency. Remaining room is mainly candidate-level error-tag diagnosis and assistant-facing transfer.
 - Induce pairwise winners from independent candidate scores, then require fresh winner accuracy around `>= 0.75`, swap consistency `>= 0.75` preferably `>= 0.80`, small position gap, and no material scope/refusal regression before calling it a method signal.
 - After a scorer passes pairwise gates, test assistant-facing transfer by generating multiple fullbase candidate responses, scoring/selecting with the candidate-local scorer, and auditing selected responses against greedy fullbase.
 - Do not claim the new obs-tag adapter as a passed method result. Treat it as support-label learning plus a fresh-heldout winner signal that still needs position-invariance repair.

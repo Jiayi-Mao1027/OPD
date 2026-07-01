@@ -1608,3 +1608,155 @@ Next:
 - Treat any candidate-local method claim as gated on induced winner accuracy,
   parent-level swap consistency, small position gap, and no material
   scope/refusal regression.
+
+## 2026-07-01 14:24 +08:00 - Qwen3-8B Fullbase Candidate-Local Scoring
+
+Commit before action: `2b47c54 code: add candidate-local scorer tooling`
+Branch: local clean archive of `main`
+Machine: remote `node-128-46`
+Run root: `/data03/liang/mjy/reconcile_opsd_runs/candidate_local_2b47c54_1782886487`
+
+Scope:
+
+- Model: `/data/LLM/Qwen3-8B`
+- Model class: thinking-capable Qwen3 chat model, verified from
+  `tokenizer_config.json`, `config.json`, and a short `--enable-thinking`
+  smoke generation before scoring.
+- Scoring mode: BF16 fullbase, no adapter, no QLoRA, no full-parameter
+  training.
+- Candidate-local constrained scoring used `enable_thinking=False`.
+- Device binding: `CUDA_VISIBLE_DEVICES=1`.
+
+Preflight GPU state:
+
+```text
+GPU0 H100 PCIe total 81559 MB, used 75317 MB, free 5678 MB, util 0%
+GPU1 H100 PCIe total 81559 MB, used 28325 MB, free 52670 MB, util 7%
+GPU2 H100 PCIe total 81559 MB, used 66663 MB, free 14332 MB, util 75%
+GPU3 H100 PCIe total 81559 MB, used 75447 MB, free 5548 MB, util 0%
+```
+
+Peak allocated CUDA memory reported by scoring/smoke logs:
+
+```text
+smoke generation: 15672.98 MB
+candidate-local scoring: up to 15882.90 MB
+```
+
+Commands:
+
+```bash
+PY=/data/conda/envs/mjy/bin/python
+MODEL=/data/LLM/Qwen3-8B
+export CUDA_VISIBLE_DEVICES=1
+
+$PY scripts/smoke_generate.py \
+  --model "$MODEL" \
+  --enable-thinking \
+  --max-new-tokens 64 \
+  --attn-implementation eager
+
+$PY scripts/score_candidate_local.py \
+  --model "$MODEL" \
+  --dataset data/candidate_local/reconcilebench_v0_2_dev_candidate_local.jsonl \
+  --output outputs/candidate_local_scores/qwen3_8b_fullbase_v0_2_dev.jsonl \
+  --attn-implementation eager
+
+$PY scripts/evaluate_candidate_local_scores.py \
+  --dataset data/candidate_local/reconcilebench_v0_2_dev_candidate_local.jsonl \
+  --scores fullbase=outputs/candidate_local_scores/qwen3_8b_fullbase_v0_2_dev.jsonl \
+  --output-md reports/qwen3_8b_fullbase_v0_2_dev.md \
+  --output-json reports/qwen3_8b_fullbase_v0_2_dev.json \
+  --output-csv reports/qwen3_8b_fullbase_v0_2_dev_errors.csv
+
+$PY scripts/score_candidate_local.py \
+  --model "$MODEL" \
+  --dataset data/candidate_local/reconcilebench_v0_2_dev_candidate_local_posbalanced.jsonl \
+  --output outputs/candidate_local_scores/qwen3_8b_fullbase_v0_2_dev_posbalanced.jsonl \
+  --attn-implementation eager
+
+$PY scripts/evaluate_candidate_local_scores.py \
+  --dataset data/candidate_local/reconcilebench_v0_2_dev_candidate_local_posbalanced.jsonl \
+  --scores fullbase=outputs/candidate_local_scores/qwen3_8b_fullbase_v0_2_dev_posbalanced.jsonl \
+  --output-md reports/qwen3_8b_fullbase_v0_2_dev_posbalanced.md \
+  --output-json reports/qwen3_8b_fullbase_v0_2_dev_posbalanced.json \
+  --output-csv reports/qwen3_8b_fullbase_v0_2_dev_posbalanced_errors.csv
+
+$PY scripts/score_candidate_local.py \
+  --model "$MODEL" \
+  --dataset data/candidate_local/reconcilebench_v0_2_fork_scope_holdout_candidate_local_posbalanced.jsonl \
+  --output outputs/candidate_local_scores/qwen3_8b_fullbase_v0_2_fork_scope_heldout_posbalanced.jsonl \
+  --attn-implementation eager
+
+$PY scripts/evaluate_candidate_local_scores.py \
+  --dataset data/candidate_local/reconcilebench_v0_2_fork_scope_holdout_candidate_local_posbalanced.jsonl \
+  --scores fullbase=outputs/candidate_local_scores/qwen3_8b_fullbase_v0_2_fork_scope_heldout_posbalanced.jsonl \
+  --output-md reports/qwen3_8b_fullbase_v0_2_fork_scope_heldout_posbalanced.md \
+  --output-json reports/qwen3_8b_fullbase_v0_2_fork_scope_heldout_posbalanced.json \
+  --output-csv reports/qwen3_8b_fullbase_v0_2_fork_scope_heldout_posbalanced_errors.csv
+```
+
+Reports:
+
+- `reports/qwen3_8b_fullbase_v0_2_dev.md`
+- `reports/qwen3_8b_fullbase_v0_2_dev.json`
+- `reports/qwen3_8b_fullbase_v0_2_dev_errors.csv`
+- `reports/qwen3_8b_fullbase_v0_2_dev_posbalanced.md`
+- `reports/qwen3_8b_fullbase_v0_2_dev_posbalanced.json`
+- `reports/qwen3_8b_fullbase_v0_2_dev_posbalanced_errors.csv`
+- `reports/qwen3_8b_fullbase_v0_2_fork_scope_heldout_posbalanced.md`
+- `reports/qwen3_8b_fullbase_v0_2_fork_scope_heldout_posbalanced.json`
+- `reports/qwen3_8b_fullbase_v0_2_fork_scope_heldout_posbalanced_errors.csv`
+
+Result:
+
+```text
+dev:
+  candidates = 56
+  acceptable accuracy = 0.7143
+  acceptable macro-F1 = 0.7143
+  error-tag accuracy = 0.5000
+  error-tag macro-F1 = 0.2923
+  induced winner accuracy = 0.8929
+  swap consistency = n/a
+  position gate = pass
+  fork accuracy = 1.0000
+  scope accuracy = 0.7692
+
+dev position-balanced:
+  candidates = 112
+  acceptable accuracy = 0.7143
+  acceptable macro-F1 = 0.7143
+  error-tag accuracy = 0.5000
+  error-tag macro-F1 = 0.2923
+  induced winner accuracy = 0.8929
+  swap consistency = 1.0000
+  position gate = pass
+  fork accuracy = 1.0000
+  scope accuracy = 0.7692
+
+fresh fork/scope heldout position-balanced:
+  candidates = 192
+  acceptable accuracy = 0.6667
+  acceptable macro-F1 = 0.6630
+  error-tag accuracy = 0.3438
+  error-tag macro-F1 = 0.1551
+  induced winner accuracy = 0.7500
+  swap consistency = 1.0000
+  position gate = pass
+  fork accuracy = 0.8333
+  scope accuracy = 0.8000
+```
+
+Interpretation:
+
+- BF16 fullbase already reaches the fresh heldout induced pairwise winner gate
+  (`0.7500`) and has perfect parent-level swap consistency under the
+  candidate-local scorer.
+- This means training is not justified just to improve induced winner accuracy.
+- The remaining weakness is candidate-level diagnosis: fresh heldout
+  `ERROR_TAG` macro-F1 is only `0.1551`, and predicted tags collapse mostly
+  toward `none`, `unsafe_specificity`, and `over_refusal`.
+- Before any candidate-local LoRA training, run a prompted/rubric base variant
+  to see whether prompt-only scoring can recover label diagnosis. If it can,
+  the current v0.2 label benchmark is too prompt-solvable for a training claim.
