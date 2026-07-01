@@ -1760,3 +1760,114 @@ Interpretation:
 - Before any candidate-local LoRA training, run a prompted/rubric base variant
   to see whether prompt-only scoring can recover label diagnosis. If it can,
   the current v0.2 label benchmark is too prompt-solvable for a training claim.
+
+## 2026-07-01 14:39 +08:00 - Qwen3-8B Rubric Prompt Candidate-Local Scoring
+
+Commit before action: `213d9b7 code: add candidate-local rubric prompt style`
+Branch: local clean archive of `main`
+Machine: remote `node-128-46`
+Run root: `/data03/liang/mjy/reconcile_opsd_runs/candidate_local_213d9b7_rubric_1782887525`
+
+Change before run:
+
+- Added `--system-prompt-style default|rubric` to
+  `scripts/score_candidate_local.py`.
+- The rubric prompt gives short definitions for `fork_state`,
+  `scope_contract`, `wrong_scope`, `unsafe_specificity`, `over_refusal`, and
+  `missing_clarification`.
+
+Scope:
+
+- Model: `/data/LLM/Qwen3-8B`
+- Model class: thinking-capable Qwen3 chat model, already verified in the
+  previous fullbase run.
+- Scoring mode: BF16 fullbase, no adapter, no QLoRA, no full-parameter
+  training.
+- Candidate-local constrained scoring used `enable_thinking=False`.
+- Device binding: `CUDA_VISIBLE_DEVICES=1`.
+- Remote targeted tests before scoring: `8 passed`.
+
+Peak allocated CUDA memory:
+
+```text
+rubric candidate-local scoring: up to 16018.35 MB
+```
+
+Reports:
+
+- `reports/qwen3_8b_rubric_v0_2_dev.md`
+- `reports/qwen3_8b_rubric_v0_2_dev.json`
+- `reports/qwen3_8b_rubric_v0_2_dev_errors.csv`
+- `reports/qwen3_8b_rubric_v0_2_dev_posbalanced.md`
+- `reports/qwen3_8b_rubric_v0_2_dev_posbalanced.json`
+- `reports/qwen3_8b_rubric_v0_2_dev_posbalanced_errors.csv`
+- `reports/qwen3_8b_rubric_v0_2_fork_scope_heldout_posbalanced.md`
+- `reports/qwen3_8b_rubric_v0_2_fork_scope_heldout_posbalanced.json`
+- `reports/qwen3_8b_rubric_v0_2_fork_scope_heldout_posbalanced_errors.csv`
+
+Result:
+
+```text
+dev:
+  candidates = 56
+  acceptable accuracy = 0.6786
+  acceptable macro-F1 = 0.6782
+  error-tag accuracy = 0.5179
+  error-tag macro-F1 = 0.4257
+  induced winner accuracy = 0.8571
+  swap consistency = n/a
+  position gate = pass
+  fork accuracy = 1.0000
+  scope accuracy = 0.8462
+
+dev position-balanced:
+  candidates = 112
+  acceptable accuracy = 0.6786
+  acceptable macro-F1 = 0.6782
+  error-tag accuracy = 0.5179
+  error-tag macro-F1 = 0.4257
+  induced winner accuracy = 0.8571
+  swap consistency = 1.0000
+  position gate = pass
+  fork accuracy = 1.0000
+  scope accuracy = 0.8462
+
+fresh fork/scope heldout position-balanced:
+  candidates = 192
+  acceptable accuracy = 0.6250
+  acceptable macro-F1 = 0.6000
+  error-tag accuracy = 0.3125
+  error-tag macro-F1 = 0.2721
+  induced winner accuracy = 0.7917
+  swap consistency = 1.0000
+  position gate = pass
+  fork accuracy = 0.8333
+  scope accuracy = 0.8400
+```
+
+Comparison to default fullbase prompt:
+
+```text
+dev position-balanced:
+  induced winner: 0.8929 -> 0.8571
+  acceptable macro-F1: 0.7143 -> 0.6782
+  error-tag macro-F1: 0.2923 -> 0.4257
+  swap: 1.0000 -> 1.0000
+
+fresh heldout position-balanced:
+  induced winner: 0.7500 -> 0.7917
+  acceptable macro-F1: 0.6630 -> 0.6000
+  error-tag macro-F1: 0.1551 -> 0.2721
+  swap: 1.0000 -> 1.0000
+```
+
+Interpretation:
+
+- Prompt-only rubric improves `ERROR_TAG` macro-F1 and fresh heldout induced
+  winner accuracy, but worsens acceptable classification.
+- The candidate-local pairwise gate is now prompt-solvable by BF16 fullbase
+  under both default and rubric prompts.
+- Do not start rank-128 LoRA just to pass pairwise gates. The next useful step
+  is error-case analysis comparing default vs rubric prompts, then deciding
+  whether the training target should focus on candidate-level calibration or
+  move straight to response-selection transfer.

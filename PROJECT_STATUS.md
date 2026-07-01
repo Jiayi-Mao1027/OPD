@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-07-01 14:24 +08:00
+Last updated: 2026-07-01 14:39 +08:00
 
 ## Current Objective
 
@@ -141,6 +141,8 @@ Freeze the current negative proxy-training lines and move to a candidate-local r
 - Ran Qwen3-8B BF16 fullbase candidate-local scoring on dev, dev position-balanced, and fresh fork/scope heldout position-balanced data.
 - Candidate-local fullbase result: dev position-balanced induced winner `0.8929`, swap `1.0000`, position gate pass; fresh heldout position-balanced induced winner `0.7500`, swap `1.0000`, position gate pass.
 - Candidate-local fullbase does not solve the diagnostic labels: heldout acceptable macro-F1 `0.6630`, error-tag macro-F1 `0.1551`.
+- Added and ran a prompt-only rubric candidate-local baseline for Qwen3-8B BF16 fullbase.
+- Rubric baseline improves candidate-local error-tag macro-F1 but trades off acceptable classification: fresh heldout position-balanced induced winner `0.7917`, swap `1.0000`, acceptable macro-F1 `0.6000`, error-tag macro-F1 `0.2721`.
 
 ## Current Blockers
 
@@ -173,8 +175,8 @@ Freeze the current negative proxy-training lines and move to a candidate-local r
 ## Next Actions
 
 - Treat position-balanced compact rank-128 LoRA, boundary-plan prompting, and response-level final-response SFT as frozen negative diagnostics.
-- Evaluate a prompted/rubric base candidate-local variant before training. If prompt-only scoring solves the task, the benchmark is too easy.
-- Do not train a candidate-local scorer just to improve induced pairwise winner accuracy: BF16 fullbase already reaches the fresh heldout `0.7500` winner gate with perfect swap consistency. Remaining room is mainly candidate-level error-tag diagnosis and assistant-facing transfer.
+- Do not train a candidate-local scorer just to improve induced pairwise winner accuracy: prompt-only BF16 baselines already reach the fresh heldout winner gate with perfect swap consistency. Remaining room is mainly candidate-level acceptable/tag calibration and assistant-facing transfer.
+- Next compare fullbase vs rubric error cases before deciding whether a rank-128 non-QLoRA candidate-local scorer has a real target beyond prompt calibration.
 - Induce pairwise winners from independent candidate scores, then require fresh winner accuracy around `>= 0.75`, swap consistency `>= 0.75` preferably `>= 0.80`, small position gap, and no material scope/refusal regression before calling it a method signal.
 - After a scorer passes pairwise gates, test assistant-facing transfer by generating multiple fullbase candidate responses, scoring/selecting with the candidate-local scorer, and auditing selected responses against greedy fullbase.
 - Do not claim the new obs-tag adapter as a passed method result. Treat it as support-label learning plus a fresh-heldout winner signal that still needs position-invariance repair.
