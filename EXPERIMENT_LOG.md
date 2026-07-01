@@ -1367,3 +1367,87 @@ Interpretation:
   scope/fork boundaries.
 - Next analysis should inspect the seven persistent failures and adapter-new
   failures before adding more training steps.
+
+## 2026-07-01 07:58 +08:00 - Response-Level Heldout Smoke Audit
+
+Commit before action: `3359eab analysis: add heldout swap failure report`
+Branch: `main`
+Machine: remote `node-128-46`, mirrored locally afterward
+
+Change:
+
+- Added `scripts/generate_response_level_outputs.py`.
+- Added `scripts/audit_response_level_outputs.py`.
+- Added `tests/test_response_level.py`.
+- Generated assistant-facing responses for the fresh fork/scope heldout source
+  prompts without including `final_response` in the prompt.
+
+Dataset:
+
+- `data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl`
+- 16 Chinese fork/scope source examples.
+
+Runs:
+
+- full BF16 Qwen3-8B:
+  `outputs/response_generations/qwen3_8b_heldout_fork_scope_fullbase.jsonl`
+- existing rank-128 winner-delta adapter:
+  `outputs/response_generations/qwen3_8b_heldout_fork_scope_r128_winner_delta.jsonl`
+- new rank-128 obs-tag adapter:
+  `outputs/response_generations/qwen3_8b_heldout_fork_scope_r128_obs_tag.jsonl`
+
+Peak allocated CUDA memory:
+
+- fullbase: `15701.41 MB`
+- adapters: `18286.61 MB`
+
+Audit command:
+
+```bash
+python scripts/audit_response_level_outputs.py \
+  --dataset data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl \
+  --generations fullbase=outputs/response_generations/qwen3_8b_heldout_fork_scope_fullbase.jsonl \
+  --generations r128_winner_delta=outputs/response_generations/qwen3_8b_heldout_fork_scope_r128_winner_delta.jsonl \
+  --generations r128_obs_tag=outputs/response_generations/qwen3_8b_heldout_fork_scope_r128_obs_tag.jsonl \
+  --output-md reports/response_level_v0_1_heldout_fork_scope_audit.md \
+  --output-json reports/response_level_v0_1_heldout_fork_scope_audit.json \
+  --output-csv reports/response_level_v0_1_heldout_fork_scope_cases.csv
+```
+
+Reports:
+
+- `reports/response_level_v0_1_heldout_fork_scope_audit.md`
+- `reports/response_level_v0_1_heldout_fork_scope_audit.json`
+- `reports/response_level_v0_1_heldout_fork_scope_cases.csv`
+
+Result:
+
+```text
+fullbase:
+  overall pass = 6/16 = 0.3750
+  allowed action = 8/16 = 0.5000
+  scope pass = 8/16 = 0.5000
+  manual review = 10/16 = 0.6250
+
+r128_winner_delta:
+  overall pass = 3/16 = 0.1875
+  allowed action = 6/16 = 0.3750
+  scope pass = 6/16 = 0.3750
+  manual review = 13/16 = 0.8125
+
+r128_obs_tag:
+  overall pass = 5/16 = 0.3125
+  allowed action = 7/16 = 0.4375
+  scope pass = 7/16 = 0.4375
+  manual review = 11/16 = 0.6875
+```
+
+Interpretation:
+
+- This audit is heuristic triage, not a final safety judge.
+- The first assistant-facing check does not show transfer from pairwise winner
+  signal to better generated responses.
+- Fullbase is ahead on this small response-level audit.
+- Next work should focus on human/Pro review of failure cases, an external
+  judge rubric, or a target redesign that trains fork preservation at response
+  or prefix level rather than adding more steps to the same pairwise target.

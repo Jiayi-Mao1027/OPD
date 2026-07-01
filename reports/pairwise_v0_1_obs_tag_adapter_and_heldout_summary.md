@@ -183,3 +183,29 @@ Next work should focus on:
    cases.
 3. A training objective or data construction change that directly improves
    position-invariant pairwise consistency.
+
+## Response-Level Follow-Up
+
+Report:
+
+- `reports/response_level_v0_1_heldout_fork_scope_audit.md`
+
+Scripts:
+
+- `scripts/generate_response_level_outputs.py`
+- `scripts/audit_response_level_outputs.py`
+
+First heldout response-level smoke:
+
+| run | overall pass | allowed action | scope pass | manual review |
+| --- | ---: | ---: | ---: | ---: |
+| fullbase | `6/16 = 0.3750` | `8/16 = 0.5000` | `8/16 = 0.5000` | `10/16 = 0.6250` |
+| r128_winner_delta | `3/16 = 0.1875` | `6/16 = 0.3750` | `6/16 = 0.3750` | `13/16 = 0.8125` |
+| r128_obs_tag | `5/16 = 0.3125` | `7/16 = 0.4375` | `7/16 = 0.4375` | `11/16 = 0.6875` |
+
+Caveat: this is a heuristic triage audit, not a final safety judge.
+
+Interpretation: the first assistant-facing check does not show transfer from
+the pairwise winner signal to stronger generated responses. Fullbase is ahead
+on this small heldout response-level heuristic audit, while both adapters have
+more manual-review flags.

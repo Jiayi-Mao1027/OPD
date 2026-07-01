@@ -22,7 +22,9 @@
 - Keep the render-format caveat visible: newly generated heldout pairwise files have fixed `render_card` newlines; historical train/dev pairwise files still use the earlier concatenated-field rendering.
 - Parent-level heldout swap-failure analysis is now generated in `reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.md`.
 - Inspect the seven persistent inconsistent parents and the seven adapter-new inconsistent parents before adding more training. The main remaining axes are `scope_contract` and `fork_state`; the adapter failures include more B-side locking than fullbase.
-- Add response-level assistant generation/eval or human/external audit before more training on the same target.
+- Response-level assistant generation/eval is now implemented for the fresh fork/scope heldout set. Treat the first heuristic smoke as mixed/negative: fullbase overall pass `6/16`, new obs-tag adapter `5/16`, existing winner-delta adapter `3/16`.
+- Do not continue the same pairwise target as a positive assistant-behavior path until response-level failures are manually or externally judged.
+- Send the response-level negative-transfer result to Pro and ask whether to move next to a human/LLM judge rubric, a prefix-level fork-preservation target, or paired-consistency training.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Redesign `continue_reasoning` as a prefix-level fork-state target, not a final response action.
 
@@ -36,7 +38,7 @@
 - Use `--target-style compact_winner_obs_tag` for the next pairwise LoRA/generation ablation; `compact_winner_delta_tag` is retained only as a logged negative/reduced-label diagnostic, and full compact remains available as `compact_structured_judgment` for diagnostics.
 - Keep `--prompt-style ontology` eval-only; do not make it the default compact generation prompt.
 - Persist `preflight_gpu.json`, `train_losses.jsonl`, and `metrics.json` for pairwise training runs.
-- Add response-level generation/eval for `final_response`, eval-only for now.
+- Keep `scripts/generate_response_level_outputs.py` and `scripts/audit_response_level_outputs.py` as eval-only assistant-facing smoke tooling. The current audit is heuristic triage, not a final safety judge.
 - Add a classification-style or pairwise judgment-delta target option.
 - Extend GPU/run helpers to write structured experiment preflight snapshots into each output directory.
 

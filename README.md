@@ -45,6 +45,10 @@ Current conservative interpretation:
   swap-consistency gate (`32/48 = 0.6667`, threshold `0.70`).
 - The new `compact_winner_obs_tag` adapter mainly improves exact `OBS_TAG`
   support-label matching. It is not a passed method result yet.
+- The first assistant-facing response-level heldout smoke does not show
+  positive transfer: fullbase passes the heuristic audit on `6/16` prompts,
+  while the obs-tag adapter passes `5/16` and the winner-delta adapter passes
+  `3/16`.
 - Fresh heldout pairwise files use the fixed `render_card` newline format.
   Historical train/dev pairwise files were not regenerated and still reflect
   the old rendering.

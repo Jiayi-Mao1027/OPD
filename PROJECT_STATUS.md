@@ -1,10 +1,10 @@
 # Project Status
 
-Last updated: 2026-07-01 07:10 +08:00
+Last updated: 2026-07-01 07:58 +08:00
 
 ## Current Objective
 
-Validate whether rank-128 pairwise LoRA gives a real fresh-heldout fork/scope signal under the observable `WINNER + OBS_TAG` target, while keeping position-balanced swap consistency as the main gate.
+Validate whether rank-128 pairwise LoRA winner improvements transfer to assistant-facing fork/scope responses, while keeping response-level audits and position-balanced swap consistency as blocking gates.
 
 ## Git State
 
@@ -122,6 +122,10 @@ Validate whether rank-128 pairwise LoRA gives a real fresh-heldout fork/scope si
 - Documented the training, dev eval, heldout eval, render caveat, and next recommendation in `reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`.
 - Added reusable parent-level swap-failure analysis via `scripts/analyze_pairwise_swap_failures.py`.
 - Generated `reports/pairwise_v0_1_heldout_fork_scope_swap_failure_analysis.md/json/csv`. Fullbase has `21/48` inconsistent parents, all locked to A; both adapters reduce this to `16/48`, fix 12 fullbase failures, add 7 new failures, and leave 7 persistent failures across all runs.
+- Added response-level assistant generation and heuristic audit tooling via `scripts/generate_response_level_outputs.py` and `scripts/audit_response_level_outputs.py`.
+- Ran the first assistant-facing heldout smoke on the 16 fresh fork/scope prompts for full BF16 Qwen3-8B, the existing rank-128 winner-delta adapter, and the new rank-128 obs-tag adapter.
+- Response-level heldout result is mixed/negative: fullbase has the best heuristic overall pass (`6/16`) and lowest manual-review rate (`10/16`), while the obs-tag adapter gets `5/16` overall pass and the winner-delta adapter gets `3/16`.
+- Documented this in `reports/response_level_v0_1_heldout_fork_scope_audit.md/json/csv` and added the result to `reports/pairwise_v0_1_obs_tag_adapter_and_heldout_summary.md`.
 
 ## Current Blockers
 
@@ -145,6 +149,7 @@ Validate whether rank-128 pairwise LoRA gives a real fresh-heldout fork/scope si
 - The fresh heldout set is a small Chinese fork/scope diagnostic set, not a full benchmark. It does not cover `ask_clarification`, `direct_answer`, or `refuse` as source action modes.
 - The new obs-tag adapter improves `OBS_TAG` exact matching (`38/96` vs `20/96` for the existing adapter on position-balanced heldout), but it does not improve primary winner/swap metrics over the existing winner-delta adapter.
 - Both rank-128 adapters beat fullbase on fresh heldout winner accuracy, but both fail the current position-balanced swap gate (`32/48 = 0.6667`, below `0.70`).
+- The first response-level audit does not show transfer from pairwise winner signal to better assistant-facing responses. Treat it as heuristic triage, not a final safety judge, but do not continue the same target as a positive result.
 
 ## Next Actions
 
@@ -153,6 +158,7 @@ Validate whether rank-128 pairwise LoRA gives a real fresh-heldout fork/scope si
 - Ask Pro to review the obs-tag training plus fresh-heldout result, especially whether the heldout winner signal is useful despite failing the swap gate.
 - Do not claim the new obs-tag adapter as a passed method result. Treat it as support-label learning plus a fresh-heldout winner signal that still needs position-invariance repair.
 - Inspect the seven persistent heldout swap failures and seven adapter-new failures, especially `scope_contract/wrong_scope`, `unsafe_specificity`, and fork-preservation cases.
-- Add response-level assistant generation/audit before more training on the same target.
+- Use the response-level audit to choose failure cases for human/Pro review before more training on the same target.
+- Do not claim the pairwise adapters improve final assistant behavior yet. Fullbase is ahead on the current 16-case heuristic response-level audit.
 - Use parent-level swap diagnostics to focus on `scope_contract/wrong_scope/unsafe_specificity` failures before adding more training steps.
 - Prefer `Qwen3-8B` for the first thinking-model path; keep Qwen2.5 Instruct as a non-thinking baseline.

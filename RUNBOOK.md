@@ -567,6 +567,71 @@ Current swap-failure result:
 - both adapters fix 12 fullbase inconsistent parents but add 7 new ones;
 - seven parent pairs remain inconsistent across all three runs.
 
+## Response-Level Heldout Smoke
+
+Use this after pairwise checks to test whether the winner signal transfers to
+assistant-facing responses. This is eval-only; it does not train.
+
+Generate fullbase responses:
+
+```bash
+eval "$(python scripts/gpu_status.py --export)"
+python scripts/generate_response_level_outputs.py \
+  --model /data/LLM/Qwen3-8B \
+  --dataset data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl \
+  --output outputs/response_generations/qwen3_8b_heldout_fork_scope_fullbase.jsonl \
+  --max-new-tokens 192 \
+  --enable-thinking \
+  --attn-implementation eager
+```
+
+Generate adapter responses:
+
+```bash
+python scripts/generate_response_level_outputs.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_winner_delta_lr3e6_s24_len1024_b2/adapter \
+  --dataset data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl \
+  --output outputs/response_generations/qwen3_8b_heldout_fork_scope_r128_winner_delta.jsonl \
+  --max-new-tokens 192 \
+  --enable-thinking \
+  --attn-implementation eager
+
+python scripts/generate_response_level_outputs.py \
+  --model /data/LLM/Qwen3-8B \
+  --adapter outputs/train_pairwise_lora/qwen3_8b_v0_1_r128_posbalanced_obs_tag_lr3e6_s24_len1024_b2/adapter \
+  --dataset data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl \
+  --output outputs/response_generations/qwen3_8b_heldout_fork_scope_r128_obs_tag.jsonl \
+  --max-new-tokens 192 \
+  --enable-thinking \
+  --attn-implementation eager
+```
+
+Audit the generated responses:
+
+```bash
+python scripts/audit_response_level_outputs.py \
+  --dataset data/heldout/reconcilebench_v0_1_fork_scope_holdout.jsonl \
+  --generations fullbase=outputs/response_generations/qwen3_8b_heldout_fork_scope_fullbase.jsonl \
+  --generations r128_winner_delta=outputs/response_generations/qwen3_8b_heldout_fork_scope_r128_winner_delta.jsonl \
+  --generations r128_obs_tag=outputs/response_generations/qwen3_8b_heldout_fork_scope_r128_obs_tag.jsonl \
+  --output-md reports/response_level_v0_1_heldout_fork_scope_audit.md \
+  --output-json reports/response_level_v0_1_heldout_fork_scope_audit.json \
+  --output-csv reports/response_level_v0_1_heldout_fork_scope_cases.csv
+```
+
+Current result:
+
+- report: `reports/response_level_v0_1_heldout_fork_scope_audit.md`;
+- fullbase overall pass `6/16`, manual review `10/16`;
+- existing winner-delta adapter overall pass `3/16`, manual review `13/16`;
+- new obs-tag adapter overall pass `5/16`, manual review `11/16`;
+- this is heuristic triage, not a final safety judge;
+- JSON/CSV cases exclude reference responses by default. Add
+  `--include-reference` only for human audit, not for external-judge inputs;
+- do not claim pairwise winner improvements transfer to assistant-facing
+  behavior until a human or external-judge audit confirms it.
+
 Current smoke report:
 
 - `reports/pairwise_v0_1_dev_lora_r128_smoke.md`;
